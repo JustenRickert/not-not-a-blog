@@ -1,0 +1,6 @@
+build/
+db/
+dist/
+node_modules/
+public/*
+!public/index.html

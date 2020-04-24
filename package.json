@@ -1,0 +1,38 @@
+{
+  "name": "not-blog",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "db": "mkdir -p db && mongod --dbpath db",
+    "dev": "NODE_ENV=development nodemon -x babel-node server/index.js",
+    "build": "NODE_ENV=production webpack && babel server -d build",
+    "start": "NODE_ENV=production node build/index.js"
+  },
+  "author": "jsasz <justenrickert@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "@babel/core": "^7.9.0",
+    "@babel/node": "^7.8.7",
+    "@babel/preset-env": "^7.9.5",
+    "@cycle/dom": "^22.7.0",
+    "@cycle/http": "^15.4.0",
+    "@cycle/run": "^5.4.0",
+    "@cycle/time": "^0.20.0",
+    "babel-loader": "^8.1.0",
+    "body-parser": "^1.19.0",
+    "connect-mongo": "^3.2.0",
+    "express": "^4.17.1",
+    "express-session": "^1.17.1",
+    "express-ws": "^4.0.0",
+    "mongodb": "^3.5.6",
+    "webpack": "^4.43.0",
+    "webpack-dev-middleware": "^3.7.2",
+    "webpack-hot-middleware": "^2.25.0",
+    "xstream": "^11.11.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.3",
+    "webpack-cli": "^3.3.11"
+  }
+}
