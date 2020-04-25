@@ -1,3 +1,4 @@
+import assert from "assert";
 import { MongoClient } from "mongodb";
 import ConnectMongo from "connect-mongo";
 import express from "express";
@@ -6,8 +7,9 @@ import bodyParser from "body-parser";
 import expressWs from "express-ws";
 import path from "path";
 
+import { authenticateUser, newUser } from "./api/password";
 import useDevMiddleware from "./dev-middleware";
-import wsRouter from "./ws.js";
+import makeRouter from "./router";
 
 const wsServer = expressWs(express());
 const app = wsServer.app;
@@ -19,6 +21,7 @@ if (process.env.NODE_ENV === "development") {
 const MongoSessionStore = ConnectMongo(session);
 
 const mongoUrl = "mongodb://localhost:27017";
+const mongoDbName = "notblog";
 
 const mongoClientPromise = MongoClient.connect(mongoUrl).catch(err => {
   console.error(err);
@@ -36,11 +39,53 @@ const expressSessionConfig = {
   cookie: {}
 };
 
-app.use("/", wsRouter);
-
-app.all("*", express.static(path.join(process.cwd(), "public")));
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+app.use(session(expressSessionConfig));
 
 mongoClientPromise.then(client => {
+  const db = client.db(mongoDbName);
+
+  app.get("/login", (req, res) => {
+    authenticateUser(db, req.query)
+      .then(_id => {
+        req.session.authenticated = true;
+        req.session.userId = _id;
+        res.redirect(301, "/index.html");
+      })
+      .catch(() => res.send(401).send());
+  });
+
+  app.post("/new-user", (req, res) => {
+    if (req.body.username && req.body.password) {
+      newUser(db, req.body).then(({ result: { ok }, ops: [{ _id }] }) => {
+        assert(ok, "should be ok");
+        req.session.authenticated = true;
+        req.session.userId = _id;
+        res.redirect(301, "/index.html");
+      });
+    } else {
+      res.status(401).send();
+    }
+  });
+
+  app.use((req, res, next) => {
+    if (!req.session.authenticated) {
+      switch (req.url) {
+        case "/new-user.html":
+          return res.status(401).sendFile("new-user.html", { root: "public" });
+        case "/login.html":
+        default:
+          return res.status(401).sendFile("login.html", { root: "public" });
+      }
+    }
+    next();
+  });
+
+  app.use("/", makeRouter(db));
+
+  app.all("*", express.static(path.join(process.cwd(), "public")));
+
   app.listen(3000, err => {
     if (err) throw error;
     console.log("listening...");
