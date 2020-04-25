@@ -46,8 +46,8 @@ app.use(session(expressSessionConfig));
 mongoClientPromise.then(client => {
   const db = client.db(mongoDbName);
 
-  app.get("/login", (req, res) => {
-    authenticateUser(db, req.query)
+  app.post("/login", (req, res) => {
+    authenticateUser(db, req.body)
       .then(_id => {
         req.session.authenticated = true;
         req.session.userId = _id;

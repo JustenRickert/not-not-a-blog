@@ -5,9 +5,32 @@ import { USER_COLLECTION } from "./constant";
 
 export function userInformation(db, { id }) {
   assert(typeof id === "string", "`id` is a string");
+  const _id = new ObjectId(id);
   return db
     .collection(USER_COLLECTION)
-    .findOne({ _id: new ObjectId(id) }, { projection: { _id: false } });
+    .findOne({ _id }, { projection: { _id: false } })
+    .then(result => {
+      if (!result)
+        return db
+          .collection(USER_COLLECTION)
+          .findOneAndUpdate(
+            { _id },
+            {
+              $set: {
+                points: 0,
+                population: 100,
+                lastSaveDate: new Date()
+              }
+            },
+            {
+              upsert: true,
+              returnOriginal: false,
+              projection: { _id: false }
+            }
+          )
+          .then(result => result.value);
+      return result;
+    });
 }
 
 export function saveUser(db, { id, user }) {
@@ -15,9 +38,7 @@ export function saveUser(db, { id, user }) {
   return db.collection(USER_COLLECTION).findOneAndUpdate(
     { _id: new ObjectId(id) },
     {
-      $set: {
-        ...user
-      }
+      $set: user
     },
     { projection: { _id: false } }
   );

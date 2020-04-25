@@ -1,7 +1,7 @@
 {
   "verbose": true,
   "ignore": ["node_modules"],
-  "watch": ["server/**/*"],
+  "watch": ["server/**/*", "util.js"],
   "exec": "babel-node",
   "ext": "js json"
 }

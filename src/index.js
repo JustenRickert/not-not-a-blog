@@ -22,18 +22,16 @@ const reducers = ({ even$, odd$ }) => {
 };
 
 function main(sources) {
-  const socketCount$ = sources.Socket.filter(p => p.type === "POINTS")
-    .map(v => v.points)
-    .remember();
-  const socketMessage$ = sources.Socket.filter(p => p.type === "inert")
-    .map(v => v.message)
-    .startWith("not hella")
-    .remember();
-  const vdom$ = xs
-    .combine(socketCount$, socketMessage$)
-    .map(([time, msg]) =>
-      div(".container", [div(".time", time), div(".msg", msg)])
-    );
+  const user$ = sources.Socket.filter(p => p.type === "USER").map(
+    v => v.payload
+  );
+  const vdom$ = user$.map(({ points, population, lastSaveDate }) =>
+    div(".container", [
+      div(".date", ["last save: ", lastSaveDate]),
+      div(".points", points),
+      div(".population", population)
+    ])
+  );
   return { DOM: vdom$ };
 }
 
