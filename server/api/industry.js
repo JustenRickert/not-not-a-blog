@@ -19,6 +19,8 @@ export function getIndustries(db, { userId }) {
                 ...industries,
                 [key]: {
                   ...stub,
+                  lastEmployDate: now,
+                  lastLayoffDate: now,
                   lastUpdateSupplyDate: now
                 }
               }),
@@ -31,6 +33,16 @@ export function getIndustries(db, { userId }) {
     }
     return result;
   });
+}
+
+export function saveIndustry(db, { userId, industryName, industry }) {
+  return db
+    .collection(INDUSTRY_COLLECTION)
+    .findOneAndUpdate(
+      { _id: new ObjectId(userId) },
+      { $set: { [industryName]: industry } },
+      { projection: { _id: false } }
+    );
 }
 
 export function saveIndustries(db, { userId, industries }) {

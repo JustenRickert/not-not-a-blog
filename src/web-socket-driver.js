@@ -7,9 +7,9 @@ export function makeWebSocketDriver() {
   function webSocketDriver(outgoing$) {
     outgoing$.addListener({
       next: outgoing => {
-        socket.send(outgoing);
+        socket.send(JSON.stringify(outgoing));
       },
-      error: () => {},
+      error: console.error,
       complete: () => {}
     });
 
@@ -33,10 +33,9 @@ export function makeWebSocketDriver() {
       stop: () => {}
     });
 
-    // what does this do...
     incoming$.addListener({
       next: () => {},
-      error: () => {},
+      error: console.error,
       complete: () => {}
     });
 
