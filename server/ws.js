@@ -1,10 +1,17 @@
+import assert from "assert";
 import express from "express";
 import expressWs from "express-ws";
 import xs from "xstream";
-import throttle from "xstream/extra/throttle";
+import sampleCombine from "xstream/extra/sampleCombine";
 
+import {
+  INDUSTRY_KEYS,
+  INDUSTRY_SUPPLY_TIMEOUTS,
+  INDUSTRIES_UPDATE_SUPPLY_RATE
+} from "../constant";
 import { set, update } from "../util";
 import { userInformation, saveUser } from "./api/user";
+import { getIndustries } from "./api/industry";
 import { POPULATION_GROWTH_RATE } from "./constant";
 
 /**
@@ -27,69 +34,202 @@ const populationTimeout = 30e3;
 const lastSaveDateTimeout = 120e3;
 const sendUserTimeout = 10e3;
 
-const updateSinceLastActive = user => {
+const updateUserSinceLastActive = user => {
+  const now = new Date();
   const points =
-    user.points + (Date.now() - user.lastSaveDate.getTime()) / 1000;
+    user.points + (now.getTime() - user.lastSaveDate.getTime()) / 1000;
   const population = growthAfterTime(
     user.population,
-    (Date.now() - user.lastSaveDate.getTime()) / 1000,
+    (now.getTime() - user.lastSaveDate.getTime()) / 1000,
     1000 + user.points / 100
   );
   return {
     ...user,
-    lastSaveDate: new Date(),
+    lastSaveDate: now,
     points,
     population
   };
 };
 
+const industrySupplyChange = (industries, key) => {
+  const rate = INDUSTRIES_UPDATE_SUPPLY_RATE[key];
+  if (typeof rate === "number") {
+    // simple update
+    return update(industries, [key], industry => {
+      const now = new Date();
+      const secondsDiff =
+        1000 * (now.getTime() - industry.lastUpdateSupplyDate.getTime());
+      return {
+        ...industry,
+        lastUpdateSupplyDate: now,
+        supply: industry.supply + industry.allocation * rate * secondsDiff
+      };
+    });
+  } else {
+    // complex update
+    const industry = industries[key];
+    const { unit, ...productCosts } = rate;
+    const now = new Date();
+    const secondsDiff =
+      1000 * (now.getTime() - industry.lastUpdateSupplyDate.getTime());
+    const maxDelta = industry.allocation * unit * secondsDiff;
+    const maxSubtractions = Object.entries(productCosts).reduce(
+      (subtractions, [otherIndustryName, costPerUnit]) => ({
+        ...subtractions,
+        [otherIndustryName]: maxDelta * costPerUnit
+      }),
+      {}
+    );
+    const deltaRatio = Object.entries(maxSubtractions).reduce(
+      (deltaRatio, [otherIndustryName, supplySubtraction]) => {
+        const otherIndustry = industries[otherIndustryName];
+        return otherIndustry.supply < supplySubtraction
+          ? otherIndustry.supply / supplySubtraction
+          : deltaRatio;
+      },
+      1
+    );
+    return {
+      ...industries,
+      [key]: {
+        ...industry,
+        lastUpdateSupplyDate: new Date(),
+        supply: industry.supply + deltaRatio * maxDelta
+      },
+      ...Object.entries(maxSubtractions).reduce(
+        (otherIndustries, [otherIndustryName, maxSubtraction]) => {
+          /**
+           * Need to do the `Math.max` thing here because otherwise we get
+           * rounding errors on the `deltaRatio` calculation that causes
+           * negative supplies. JavaScript :shrug:
+           */
+          assert(
+            industries[otherIndustryName].supply -
+              deltaRatio * maxSubtraction >=
+              0 || deltaRatio * maxSubtraction < 1,
+            "Doing the below correction shouldn't affect numbers too irregularly"
+          );
+          return {
+            ...otherIndustries,
+            [otherIndustryName]: {
+              ...industries[otherIndustryName],
+              supply: Math.max(
+                0,
+                industries[otherIndustryName].supply -
+                  deltaRatio * maxSubtraction
+              )
+            }
+          };
+        },
+        {}
+      )
+    };
+  }
+};
+
+const updateIndustrySinceLastActive = industries =>
+  INDUSTRY_KEYS.reduce(
+    (industries, key) => industrySupplyChange(industries, key),
+    industries
+  );
+
 const periodicallySendToUser = ({ ws, db, userId }) => {
-  const onSendUser = {
+  const sendUserListener = {
     next: user => {
       ws.send(JSON.stringify({ type: "USER", payload: user }));
     }
   };
 
-  const onSaveUser = {
-    next: user => {
-      saveUser(db, { id: userId, user });
+  const sendIndustriesListener = {
+    next: ([industryName, industry]) => {
+      ws.send(
+        JSON.stringify({
+          type: "INDUSTRY",
+          payload: { industryName, industry }
+        })
+      );
     }
   };
 
-  userInformation(db, { id: userId })
-    .then(user => {
-      const points$ = xs.periodic(pointsTimeout);
-      const population$ = xs.periodic(populationTimeout);
+  const sendSaveUserListener = {
+    next: user => {
+      saveUser(db, { userId, user });
+    }
+  };
+
+  const tap = x => (console.log(x), x);
+
+  Promise.all([
+    userInformation(db, { userId }).then(updateUserSinceLastActive),
+    getIndustries(db, { userId }).then(updateIndustrySinceLastActive)
+  ])
+    .then(([user, industries]) => {
+      // TODO: Is there a better way to do this? Like `xs.periodic` that sends
+      // immediately
+      sendUserListener.next(user);
+      sendSaveUserListener.next(user);
+
       const lastSaveDate$ = xs.periodic(lastSaveDateTimeout);
-      const state$ = xs
-        .merge(
-          lastSaveDate$.map(() => user =>
-            set(user, "lastSaveDate", new Date())
-          ),
-          points$.map(() => user =>
-            update(user, "points", points => points + 1)
-          ),
-          population$.map(() => user =>
-            update(user, "population", population =>
+      const userPoints$ = xs.periodic(pointsTimeout);
+
+      const userReducer$ = xs.merge(
+        lastSaveDate$.map(() => state =>
+          set(state, "user.lastSaveDate", new Date())
+        ),
+        userPoints$.map(() => state =>
+          update(state, "user.points", points => points + 1e3 * pointsTimeout)
+        ),
+        xs
+          .periodic(populationTimeout)
+          .map(() => state =>
+            update(state, "user.population", population =>
               growthAfterTime(
                 population,
                 1e3 * populationTimeout,
-                1000 + user.points / 100
+                1000 + state.user.points / 100
               )
             )
           )
+      );
+
+      const industryPeriods$ = xs.merge(
+        ...INDUSTRY_KEYS.map(key =>
+          xs.periodic([INDUSTRY_SUPPLY_TIMEOUTS[key]]).mapTo(key)
         )
-        .fold((acc, reducer) => reducer(acc), updateSinceLastActive(user));
+      );
 
-      const send$ = state$.compose(throttle(sendUserTimeout));
-      const save$ = state$.compose(throttle(lastSaveDateTimeout));
+      const industriesReducer$ = industryPeriods$.map(key => state =>
+        update(state, "industries", industries =>
+          industrySupplyChange(industries, key)
+        )
+      );
 
-      send$.addListener(onSendUser);
-      save$.addListener(onSaveUser);
+      const state$ = xs
+        .merge(userReducer$, industriesReducer$)
+        .fold((acc, reducer) => reducer(acc), {
+          industries,
+          user
+        });
+
+      const sendUser$ = userPoints$
+        .compose(sampleCombine(state$))
+        .map(([, state]) => state.user);
+
+      const saveUser$ = lastSaveDate$
+        .compose(sampleCombine(state$))
+        .map(([, state]) => state.user);
+
+      const sendIndustries$ = industryPeriods$
+        .compose(sampleCombine(state$))
+        .map(([key, state]) => [key, state.industries[key]]);
+
+      sendIndustries$.addListener(sendIndustriesListener);
+      sendUser$.addListener(sendUserListener);
+      saveUser$.addListener(sendSaveUserListener);
 
       ws.on("close", () => {
-        send$.removeListener(onSendUser);
-        save$.removeListener(onSaveUser);
+        sendUser$.removeListener(sendUserListener);
+        saveUser$.removeListener(sendSaveUserListener);
       });
     })
     .catch(e => {
