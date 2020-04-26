@@ -2,6 +2,7 @@ import assert from "assert";
 import express from "express";
 import expressWs from "express-ws";
 import xs from "xstream";
+import throttle from "xstream/extra/throttle";
 import sampleCombine from "xstream/extra/sampleCombine";
 
 import {
@@ -93,7 +94,7 @@ const industrySupplyChange = (industries, key) => {
       ...industries,
       [key]: {
         ...industry,
-        lastUpdateSupplyDate: new Date(),
+        lastUpdateSupplyDate: now,
         supply: industry.supply + deltaRatio * maxDelta
       },
       ...Object.entries(maxSubtractions).reduce(
@@ -133,109 +134,82 @@ const updateIndustrySinceLastActive = industries =>
     industries
   );
 
-const periodicallySendToUser = ({ ws, db, userId }) => {
-  const sendUserListener = {
-    next: user => {
-      ws.send(JSON.stringify({ type: "USER", payload: user }));
-    }
-  };
+const makeStateUpdateStreams = (
+  { ws, db, userId },
+  action$,
+  { user, industries }
+) => {
+  const lastSaveDate$ = xs.periodic(lastSaveDateTimeout);
+  const userPoints$ = xs.periodic(pointsTimeout);
+  const userPopulation$ = xs.periodic(populationTimeout);
 
-  const sendIndustriesListener = {
-    next: ([industryName, industry]) => {
-      ws.send(
-        JSON.stringify({
-          type: "INDUSTRY",
-          payload: { industryName, industry }
-        })
-      );
-    }
-  };
-
-  const sendSaveUserListener = {
-    next: user => {
-      saveUser(db, { userId, user });
-    }
-  };
-
-  const tap = x => (console.log(x), x);
-
-  Promise.all([
-    userInformation(db, { userId }).then(updateUserSinceLastActive),
-    getIndustries(db, { userId }).then(updateIndustrySinceLastActive)
-  ])
-    .then(([user, industries]) => {
-      // TODO: Is there a better way to do this? Like `xs.periodic` that sends
-      // immediately
-      sendUserListener.next(user);
-      sendSaveUserListener.next(user);
-
-      const lastSaveDate$ = xs.periodic(lastSaveDateTimeout);
-      const userPoints$ = xs.periodic(pointsTimeout);
-
-      const userReducer$ = xs.merge(
-        lastSaveDate$.map(() => state =>
-          set(state, "user.lastSaveDate", new Date())
-        ),
-        userPoints$.map(() => state =>
-          update(state, "user.points", points => points + 1e3 * pointsTimeout)
-        ),
-        xs
-          .periodic(populationTimeout)
-          .map(() => state =>
-            update(state, "user.population", population =>
-              growthAfterTime(
-                population,
-                1e3 * populationTimeout,
-                1000 + state.user.points / 100
-              )
-            )
-          )
-      );
-
-      const industryPeriods$ = xs.merge(
-        ...INDUSTRY_KEYS.map(key =>
-          xs.periodic([INDUSTRY_SUPPLY_TIMEOUTS[key]]).mapTo(key)
+  const userUpdater$ = xs.merge(
+    lastSaveDate$.map(() => state =>
+      set(state, "user.lastSaveDate", new Date())
+    ),
+    userPoints$.map(() => state =>
+      update(state, "user.points", points => points + pointsTimeout / 1e3)
+    ),
+    userPopulation$.map(() => state =>
+      update(state, "user.population", population =>
+        growthAfterTime(
+          population,
+          1e3 * populationTimeout,
+          1000 + state.user.points / 100
         )
-      );
+      )
+    )
+  );
 
-      const industriesReducer$ = industryPeriods$.map(key => state =>
-        update(state, "industries", industries =>
-          industrySupplyChange(industries, key)
-        )
-      );
+  const industryPeriods$ = xs.merge(
+    ...INDUSTRY_KEYS.map(key =>
+      xs.periodic([INDUSTRY_SUPPLY_TIMEOUTS[key]]).mapTo(key)
+    )
+  );
 
-      const state$ = xs
-        .merge(userReducer$, industriesReducer$)
-        .fold((acc, reducer) => reducer(acc), {
-          industries,
-          user
-        });
+  const industriesUpdater$ = industryPeriods$.map(key => state =>
+    update(state, "industries", industries =>
+      industrySupplyChange(industries, key)
+    )
+  );
 
-      const sendUser$ = userPoints$
-        .compose(sampleCombine(state$))
-        .map(([, state]) => state.user);
+  // TODO connect this
+  const industriesReducer$ = action$
+    .filter(a => a.type === "INDUSTRY" && "allocation" in a.payload)
+    .map(action => state =>
+      set(
+        state,
+        ["industries", action.industryName, "allocation"],
+        action.allocation
+      )
+    );
 
-      const saveUser$ = lastSaveDate$
-        .compose(sampleCombine(state$))
-        .map(([, state]) => state.user);
-
-      const sendIndustries$ = industryPeriods$
-        .compose(sampleCombine(state$))
-        .map(([key, state]) => [key, state.industries[key]]);
-
-      sendIndustries$.addListener(sendIndustriesListener);
-      sendUser$.addListener(sendUserListener);
-      saveUser$.addListener(sendSaveUserListener);
-
-      ws.on("close", () => {
-        sendUser$.removeListener(sendUserListener);
-        saveUser$.removeListener(sendSaveUserListener);
-      });
-    })
-    .catch(e => {
-      console.error(e);
-      throw e;
+  const state$ = xs
+    .merge(userUpdater$, industriesUpdater$)
+    .fold((acc, reducer) => reducer(acc), {
+      industries,
+      user
     });
+
+  const sendUser$ = xs
+    .merge(userPoints$, userPopulation$)
+    .compose(throttle(Math.min(pointsTimeout, populationTimeout)))
+    .compose(sampleCombine(state$))
+    .map(([, state]) => state.user);
+
+  const saveUser$ = lastSaveDate$
+    .compose(sampleCombine(state$))
+    .map(([, state]) => state.user);
+
+  const sendIndustries$ = industryPeriods$
+    .compose(sampleCombine(state$))
+    .map(([key, state]) => [key, state.industries[key]]);
+
+  return {
+    sendUser$,
+    saveUser$,
+    sendIndustries$
+  };
 };
 
 export default db => {
@@ -243,11 +217,100 @@ export default db => {
   const router = wsRouter.app;
 
   router.ws("/", (ws, req) => {
-    ws.on("message", msg => {
-      console.log("receieved message", msg);
+    const { userId, socketConnected } = req.session;
+
+    /**
+     * TODO This commented code block should probably be enabled in a production
+     * build. In development it's not nice to have because it doesn't clear the
+     * `socketConnected` value in a session
+     */
+
+    // if (socketConnected) {
+    //   // TODO need to send a message to client in this case, probably
+    //   console.log("User already connected to socket!");
+    //   return;
+    // }
+
+    // req.session.socketConnected = true;
+    // req.session.save();
+
+    // ws.on("error", () => {
+    //   req.session.socketConnected = false;
+    //   req.session.save();
+    // });
+
+    // ws.on("close", () => {
+    //   req.session.socketConnected = false;
+    //   req.session.save();
+    // });
+
+    const sendUserListener = {
+      next: user => {
+        ws.send(JSON.stringify({ type: "USER", payload: user }));
+      }
+    };
+
+    const sendIndustriesListener = {
+      next: ([industryName, industry]) => {
+        ws.send(
+          JSON.stringify({
+            type: "INDUSTRY",
+            payload: { industryName, industry }
+          })
+        );
+      }
+    };
+
+    const sendSaveUserListener = {
+      next: user => {
+        saveUser(db, { userId, user });
+      }
+    };
+
+    const action$ = xs.create({
+      start(listener) {
+        ws.on("message", msg => {
+          msg = JSON.parse(msg);
+          console.log("receieved INDUSTRY message", msg);
+          listener.next(msg);
+        });
+      },
+      stop() {}
     });
 
-    periodicallySendToUser({ ws, db, userId: req.session.userId });
+    xs.fromPromise(
+      Promise.all([
+        userInformation(db, { userId }).then(updateUserSinceLastActive),
+        getIndustries(db, { userId }).then(updateIndustrySinceLastActive)
+      ])
+    ).addListener({
+      next: ([user, industries]) => {
+        sendUserListener.next(user);
+        sendSaveUserListener.next(user);
+        INDUSTRY_KEYS.forEach(key =>
+          sendIndustriesListener.next([key, industries[key]])
+        );
+
+        const {
+          sendUser$,
+          saveUser$,
+          sendIndustries$
+        } = makeStateUpdateStreams({ ws, db, userId }, action$, {
+          user,
+          industries
+        });
+
+        sendIndustries$.addListener(sendIndustriesListener);
+        sendUser$.addListener(sendUserListener);
+        saveUser$.addListener(sendSaveUserListener);
+
+        ws.on("close", () => {
+          sendIndustries$.removeListener(sendIndustriesListener);
+          sendUser$.removeListener(sendUserListener);
+          saveUser$.removeListener(sendSaveUserListener);
+        });
+      }
+    });
   });
 
   return router;

@@ -34,6 +34,7 @@ const expressSessionConfig = {
   resave: false,
   store: new MongoSessionStore({
     clientPromise: mongoClientPromise,
+    dbName: mongoDbName,
     url: mongoUrl
   }),
   cookie: {}
