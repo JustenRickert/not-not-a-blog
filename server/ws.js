@@ -10,7 +10,7 @@ import {
   INDUSTRY_SUPPLY_TIMEOUTS,
   INDUSTRIES_UPDATE_SUPPLY_RATE
 } from "../constant";
-import { set, update } from "../util";
+import { set, update, pick } from "../util";
 import { userInformation, saveUser } from "./api/user";
 import { getIndustries, saveIndustries, saveIndustry } from "./api/industry";
 import { POPULATION_GROWTH_RATE } from "./constant";
@@ -101,15 +101,32 @@ const makeStateUpdateStreams = (action$, { user, industries }) => {
 
   const sendIndustries$ = xs
     .merge(
-      industryPeriods$,
-      industryAction$.map(({ payload }) => payload.industryName)
+      industryPeriods$.map(industryName => {
+        const rate = INDUSTRIES_UPDATE_SUPPLY_RATE[industryName];
+        return {
+          industryNames:
+            typeof rate === "object"
+              ? [
+                  industryName,
+                  ...Object.keys(rate).filter(key => key !== "unit")
+                ]
+              : [industryName]
+        };
+      }),
+      industryAction$.map(({ type, payload }) => ({
+        reason: type,
+        industryName: payload.industryName,
+        industryNames: [payload.industryName]
+      }))
     )
-    // TODO throttle? Can I throttle this well? Should I?
+    // TODO throttle? Can I throttle this well? Should I? Maybe I can adjust
+    // timings and that would be fine. Yeah.
     .compose(sampleCombine(state$))
-    .map(([industryName, state]) => [
+    .map(([{ reason, industryName, industryNames }, state]) => ({
+      reason,
       industryName,
-      state.industries[industryName]
-    ]);
+      industries: pick(state.industries, industryNames)
+    }));
 
   return {
     sendUser$,
@@ -158,13 +175,13 @@ export default db => {
       error: console.error
     };
 
-    let count = 0;
     const sendIndustriesListener = {
-      next([industryName, industry]) {
+      next({ industries, industryName, reason }) {
         ws.send(
           JSON.stringify({
             type: "INDUSTRY",
-            payload: { industryName, industry }
+            reason,
+            payload: { industries, industryName }
           })
         );
       },
@@ -216,9 +233,7 @@ export default db => {
       next: ([user, industries]) => {
         sendUserListener.next(user);
         sendSaveUserListener.next(user);
-        INDUSTRY_KEYS.forEach(key =>
-          sendIndustriesListener.next([key, industries[key]])
-        );
+        sendIndustriesListener.next({ industries });
         // TODO sendSaveIndustryListener
 
         const {

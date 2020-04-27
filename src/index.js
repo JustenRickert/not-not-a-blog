@@ -1,29 +1,99 @@
 import { run } from "@cycle/run";
+import { timeDriver } from "@cycle/time";
 import xs from "xstream";
 import debounce from "xstream/extra/debounce";
 import { div, button, h1, h4, a, makeDOMDriver } from "@cycle/dom";
 import { makeHTTPDriver } from "@cycle/http";
 
-import { set } from "../util";
+import { set, update } from "../util";
 import { INDUSTRY_KEYS, INDUSTRIES_STUB } from "../constant";
 import { makeWebSocketDriver } from "./web-socket-driver";
 
 const tap = (ex, x) => (console.log(ex, x), x);
+
+const employTimeout = 5e3;
+
+// TODO?
+// const serializeIndustriesDates = industries =>
+//   Object.entries(industries).reduce(
+//     (
+//       industries,
+//       [
+//         industryName,
+//         { lastEmployDate, lastLayoffDate, lastUpdateSupplyDate, ...industry }
+//       ]
+//     ) => ({
+//       ...industries,
+//       [industryName]: {
+//         ...industry,
+//         lastEmployDate: new Date(lastEmployDate),
+//         lastLayoffDate: new Date(lastLayoffDate),
+//         lastUpdateSupplyDate: new Date(lastUpdateSupplyDate)
+//       }
+//     }),
+//     {}
+//   );
 
 const periodicUpdates = sources => {
   const userUpdater$ = sources.Socket.filter(p => p.type === "USER").map(
     ({ payload }) => state => set(state, "user", payload)
   );
 
-  const industriesUpdater$ = sources.Socket.filter(
-    p => p.type === "INDUSTRY"
-  ).map(({ payload: { industryName, industry } }) => state =>
-    set(state, ["industries", industryName], industry)
+  const industries$ = sources.Socket.filter(p => p.type === "INDUSTRY");
+
+  const industriesUpdater$ = industries$.map(
+    ({ payload: { industries: updatedIndustries } }) => state =>
+      update(state, ["industries"], industries => ({
+        ...industries,
+        ...updatedIndustries
+      }))
   );
+
+  const industriesButtonStateInitializer$ = industries$
+    .take(1)
+    .map(({ payload: { industries } }) =>
+      INDUSTRY_KEYS.map(industryName => {
+        const sinceLast =
+          Date.now() -
+          new Date(industries[industryName].lastEmployDate).getTime();
+        return [industryName, Math.max(0, employTimeout - sinceLast)];
+      })
+    )
+    .map(industryTimeouts =>
+      xs.merge(
+        ...industryTimeouts.map(([industryName, timeout]) =>
+          xs.of(industryName).compose(sources.Time.delay(timeout))
+        )
+      )
+    )
+    .flatten()
+    .map(industryName => state =>
+      set(
+        state,
+        ["buttonState", industryName, "employ", "attrs", "disabled"],
+        false
+      )
+    );
+
+  const employButtonStateUpdater$ = sources.Socket.filter(
+    p => p.type === "INDUSTRY" && p.reason === "INDUSTRY#EMPLOY"
+  )
+    .compose(sources.Time.delay(employTimeout))
+    .map(({ payload: { industryName } }) => state =>
+      set(
+        state,
+        ["buttonState", industryName, "employ", "attrs", "disabled"],
+        false
+      )
+    );
 
   return {
     userUpdater$,
-    industriesUpdater$
+    industriesUpdater$,
+    buttonStateUpdater$: xs.merge(
+      industriesButtonStateInitializer$,
+      employButtonStateUpdater$
+    )
   };
 };
 
@@ -67,19 +137,21 @@ function reducers(sources, action$) {
   return xs.merge(clickReducer$);
 }
 
+const initialButtonState = INDUSTRY_KEYS.reduce(
+  (buttonState, industryName) => ({
+    ...buttonState,
+    [industryName]: {
+      employ: { attrs: { disabled: true } },
+      layoff: { attrs: { disabled: true } }
+    }
+  }),
+  {}
+);
+
 const initialState = {
   user: { points: "...", population: "...", lastSaveDate: "..." },
   industries: INDUSTRIES_STUB,
-  buttonState: INDUSTRY_KEYS.reduce(
-    (buttonState, key) => ({
-      ...buttonState,
-      [key]: {
-        employ: { attrs: { disabled: false } },
-        layoff: { attrs: { disabled: false } }
-      }
-    }),
-    {}
-  )
+  buttonState: initialButtonState
 };
 
 /**
@@ -87,14 +159,18 @@ const initialState = {
  */
 
 function main(sources) {
-  const { userUpdater$, industriesUpdater$ } = periodicUpdates(sources);
+  const {
+    userUpdater$,
+    industriesUpdater$,
+    buttonStateUpdater$
+  } = periodicUpdates(sources);
   const { click$ } = intent(sources);
   const reducer$ = reducers(sources, xs.merge(click$));
 
   const socket$ = click$;
 
   const state$ = xs
-    .merge(userUpdater$, industriesUpdater$, reducer$)
+    .merge(userUpdater$, industriesUpdater$, reducer$, buttonStateUpdater$)
     .fold((acc, reducer) => reducer(acc), initialState);
 
   const vdom$ = state$.map(
@@ -111,7 +187,7 @@ function main(sources) {
             div(`.${key}`, [
               key,
               " ",
-              div(industries[key].supply),
+              div(["supply ", industries[key].supply]),
               div(industries[key].allocation),
               button(".layoff", buttonState[key].layoff, "Layoff"),
               button(".employ", buttonState[key].employ, "Employ")
@@ -126,7 +202,8 @@ function main(sources) {
 
 run(main, {
   DOM: makeDOMDriver("#root"),
-  Socket: makeWebSocketDriver()
+  Socket: makeWebSocketDriver(),
+  Time: timeDriver
 });
 
 if (module.hot) {

@@ -24,3 +24,13 @@ export function withRandomOffset(n, offsetPercentage = 0.1) {
   const offset = offsetPercentage * (2 * (Math.random() - 1 / 2));
   return n * (1 + offset);
 }
+
+export function pick(o, keys) {
+  return keys.reduce(
+    (acc, key) => ({
+      ...acc,
+      [key]: o[key]
+    }),
+    {}
+  );
+}

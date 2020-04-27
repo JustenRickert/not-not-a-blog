@@ -7,7 +7,7 @@
     "db": "mkdir -p db && mongod --dbpath db",
     "dev": "NODE_ENV=development nodemon -x babel-node server/index.js",
     "build": "NODE_ENV=production webpack",
-    "start": "NODE_ENV=production node build/server/index.js"
+    "start": "NODE_ENV=production node build/index.js"
   },
   "author": "jsasz <justenrickert@gmail.com>",
   "license": "MIT",
@@ -31,8 +31,9 @@
     "@babel/preset-env": "^7.9.5",
     "nodemon": "^2.0.3",
     "webpack": "^4.43.0",
+    "webpack-cli": "^3.3.11",
     "webpack-dev-middleware": "^3.7.2",
     "webpack-hot-middleware": "^2.25.0",
-    "webpack-cli": "^3.3.11"
+    "webpack-node-externals": "^1.7.2"
   }
 }

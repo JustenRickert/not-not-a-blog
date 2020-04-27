@@ -1,3 +1,4 @@
+const nodeExternals = require("webpack-node-externals");
 const webpack = require("webpack");
 const path = require("path");
 
@@ -13,6 +14,7 @@ module.exports = [
     output: {
       path: path.resolve("build")
     },
+    externals: [nodeExternals()],
     module: {
       rules: [
         { test: /\.jsx?$/, exclude: /node_modules/, loader: "babel-loader" }
