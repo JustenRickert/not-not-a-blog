@@ -2,6 +2,7 @@ import { run } from "@cycle/run";
 import { timeDriver } from "@cycle/time";
 import xs from "xstream";
 import debounce from "xstream/extra/debounce";
+import flattenConcurrently from "xstream/extra/flattenConcurrently";
 import { div, button, h1, h4, a, makeDOMDriver } from "@cycle/dom";
 import { makeHTTPDriver } from "@cycle/http";
 
@@ -9,30 +10,12 @@ import { set, update } from "../util";
 import { INDUSTRY_KEYS, INDUSTRIES_STUB } from "../constant";
 import { makeWebSocketDriver } from "./web-socket-driver";
 
+import "./style.css";
+
 const tap = (ex, x) => (console.log(ex, x), x);
 
-const employTimeout = 5e3;
-
-// TODO?
-// const serializeIndustriesDates = industries =>
-//   Object.entries(industries).reduce(
-//     (
-//       industries,
-//       [
-//         industryName,
-//         { lastEmployDate, lastLayoffDate, lastUpdateSupplyDate, ...industry }
-//       ]
-//     ) => ({
-//       ...industries,
-//       [industryName]: {
-//         ...industry,
-//         lastEmployDate: new Date(lastEmployDate),
-//         lastLayoffDate: new Date(lastLayoffDate),
-//         lastUpdateSupplyDate: new Date(lastUpdateSupplyDate)
-//       }
-//     }),
-//     {}
-//   );
+const employTimeout = 15e3;
+const layoffTimeout = 10e3;
 
 const periodicUpdates = sources => {
   const userUpdater$ = sources.Socket.filter(p => p.type === "USER").map(
@@ -53,46 +36,77 @@ const periodicUpdates = sources => {
     .take(1)
     .map(({ payload: { industries } }) =>
       INDUSTRY_KEYS.map(industryName => {
-        const sinceLast =
+        const sinceLastLayoff =
+          Date.now() -
+          new Date(industries[industryName].lastLayoffDate).getTime();
+        const sinceLastEmploy =
           Date.now() -
           new Date(industries[industryName].lastEmployDate).getTime();
-        return [industryName, Math.max(0, employTimeout - sinceLast)];
+        return {
+          industryName,
+          layoff: {
+            timeout: Math.max(0, layoffTimeout - sinceLastLayoff)
+          },
+          employ: {
+            timeout: Math.max(0, employTimeout - sinceLastEmploy)
+          }
+        };
       })
     )
     .map(industryTimeouts =>
       xs.merge(
-        ...industryTimeouts.map(([industryName, timeout]) =>
-          xs.of(industryName).compose(sources.Time.delay(timeout))
+        ...industryTimeouts.map(({ industryName, layoff, employ }) =>
+          xs.merge(
+            xs
+              .of([industryName, "layoff"])
+              .compose(sources.Time.delay(layoff.timeout)),
+            xs
+              .of([industryName, "employ"])
+              .compose(sources.Time.delay(employ.timeout))
+          )
         )
       )
     )
     .flatten()
-    .map(industryName => state =>
+    .map(([industryName, buttonType]) => state =>
       set(
         state,
-        ["buttonState", industryName, "employ", "attrs", "disabled"],
+        ["buttonState", industryName, buttonType, "attrs", "disabled"],
         false
       )
     );
 
-  const employButtonStateUpdater$ = sources.Socket.filter(
-    p => p.type === "INDUSTRY" && p.reason === "INDUSTRY#EMPLOY"
+  const industriesButtonStateUpdater$ = sources.Socket.filter(
+    action =>
+      action.type === "INDUSTRY" &&
+      ["INDUSTRY#EMPLOY", "INDUSTRY#LAYOFF"].some(
+        reason => reason === action.reason
+      )
   )
-    .compose(sources.Time.delay(employTimeout))
-    .map(({ payload: { industryName } }) => state =>
+    .map(action => {
+      const buttonType = action.reason.replace(/INDUSTRY#/, "").toLowerCase();
+      return xs
+        .of([action.payload.industryName, buttonType])
+        .compose(
+          sources.Time.delay(
+            buttonType === "layoff" ? layoffTimeout : employTimeout
+          )
+        );
+    })
+    .compose(flattenConcurrently)
+    .map(([industryName, buttonType]) => state =>
       set(
         state,
-        ["buttonState", industryName, "employ", "attrs", "disabled"],
+        ["buttonState", industryName, buttonType, "attrs", "disabled"],
         false
       )
     );
-
   return {
     userUpdater$,
     industriesUpdater$,
     buttonStateUpdater$: xs.merge(
       industriesButtonStateInitializer$,
-      employButtonStateUpdater$
+      industriesButtonStateUpdater$
     )
   };
 };
