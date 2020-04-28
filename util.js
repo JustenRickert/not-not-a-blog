@@ -1,3 +1,5 @@
+import { INDUSTRIES_UPDATE_SUPPLY_RATE } from "./constant";
+
 // export function sum(xs, toNumeric = x => x) {
 //   return xs.reduce((s, x) => s + toNumeric(x), 0);
 // }
@@ -33,4 +35,25 @@ export function pick(o, keys) {
     }),
     {}
   );
+}
+
+export function industrySupplyDerivative(industryName, industries) {
+  const industry = industries[industryName];
+  const rate = INDUSTRIES_UPDATE_SUPPLY_RATE[industryName];
+  if (typeof rate === "number") {
+    return {
+      [industryName]: industry.allocation * rate
+    };
+  }
+  const { unit, ...productCosts } = rate;
+  return {
+    [industryName]: industry.allocation * unit,
+    ...Object.entries(productCosts).reduce(
+      (acc, [otherIndustryName, unitCost]) => ({
+        ...acc,
+        [otherIndustryName]: -industry.allocation * unit * unitCost
+      }),
+      {}
+    )
+  };
 }

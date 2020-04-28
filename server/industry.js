@@ -17,8 +17,6 @@ const totalUnallocated = state => {
   return population - allocated;
 };
 
-const tap = (ex, x) => (console.log(ex, x), x);
-
 export const industryActionReducer = action => state => {
   const now = new Date();
   switch (action.type.replace(/INDUSTRY#/, "")) {
@@ -43,8 +41,7 @@ export const industryActionReducer = action => state => {
         ...industry,
         lastLayoffDate: now,
         allocation:
-          industry.allocation *
-          tap("percentage", 1 - withRandomOffset(layoffPercentage, 0.3))
+          industry.allocation * (1 - withRandomOffset(layoffPercentage, 0.3))
       }));
     }
     default:

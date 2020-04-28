@@ -20,7 +20,7 @@ export const updateUserSinceLastActive = user => {
   };
 };
 
-// TODO not working...
+// TODO not working(?)
 export const industrySupplyChange = (industries, industryName) => {
   if (!industries[industryName].allocation) return industries;
 
