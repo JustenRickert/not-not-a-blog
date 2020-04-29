@@ -1,6 +1,7 @@
 import assert from "assert";
 import { ObjectId } from "mongodb";
 
+import { INITIAL_POPULATION } from "../../constant";
 import { USER_COLLECTION } from "./constant";
 
 export function userInformation(db, { userId }) {
@@ -15,7 +16,7 @@ export function userInformation(db, { userId }) {
           {
             $set: {
               points: 0,
-              population: 100,
+              population: INITIAL_POPULATION,
               lastSaveDate: new Date()
             }
           },

@@ -1,5 +1,9 @@
 import assert from "assert";
-import { INDUSTRIES_UPDATE_SUPPLY_RATE, INDUSTRY_KEYS } from "../constant";
+import {
+  INDUSTRIES_UPDATE_SUPPLY_RATE,
+  INDUSTRY_KEYS,
+  INITIAL_POPULATION
+} from "../constant";
 import { update } from "../util";
 import { growthAfterTime } from "./util";
 
@@ -10,7 +14,7 @@ export const updateUserSinceLastActive = user => {
   const population = growthAfterTime(
     user.population,
     (now.getTime() - user.lastSaveDate.getTime()) / 1000,
-    1000 + user.points / 100
+    INITIAL_POPULATION + user.points / 100
   );
   return {
     ...user,

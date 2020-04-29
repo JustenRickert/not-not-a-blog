@@ -1,3 +1,5 @@
+export const INITIAL_POPULATION = 1000;
+
 const INDUSTRY_STUB = {
   allocation: 0,
   supply: 0
