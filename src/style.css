@@ -10,3 +10,7 @@
 .industry {
     min-width: 14rem;
 }
+
+.hidden {
+    display: none;
+}

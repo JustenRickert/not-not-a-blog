@@ -4,3 +4,5 @@ dist/
 node_modules/
 public/*
 !public/index.html
+!public/login.html
+!public/new-user.html

@@ -11,16 +11,20 @@ import {
   h3,
   h4,
   a,
+  ul,
+  li,
   span,
   makeDOMDriver
 } from "@cycle/dom";
 import { makeHTTPDriver } from "@cycle/http";
 
 import { set, update, industrySupplyDerivative } from "../util";
-import { INDUSTRY_KEYS, INDUSTRIES_STUB } from "../constant";
+import { INDUSTRY_KEYS, INDUSTRIES_STUB, INDUSTRY_LABELS } from "../constant";
 import { makeWebSocketDriver } from "./web-socket-driver";
 
 import "./style.css";
+
+const tap = x => (console.log(x), x);
 
 const employTimeout = 15e3;
 const layoffTimeout = 10e3;
@@ -131,6 +135,34 @@ function intent(sources) {
       sources.DOM.select(`.industry .${industryName} .layoff`)
         .events("click")
         .mapTo({ type: "INDUSTRY#LAYOFF", payload: { industryName } })
+    ),
+    ...INDUSTRY_KEYS.map(industryName =>
+      sources.DOM.select(
+        [
+          ".industry",
+          `.${industryName}`,
+          ".effects-derivative-stats-button"
+        ].join(" ")
+      )
+        .events("click")
+        .mapTo({
+          type: "INDUSTRY#EFFECTS_DERIVATIVE_STATS",
+          payload: { industryName }
+        })
+    ),
+    ...INDUSTRY_KEYS.map(industryName =>
+      sources.DOM.select(
+        [
+          ".industry",
+          `.${industryName}`,
+          ".breakdown-derivative-stats-button"
+        ].join(" ")
+      )
+        .events("click")
+        .mapTo({
+          type: "INDUSTRY#BREAKDOWN_DERIVATIVE_STATS",
+          payload: { industryName }
+        })
     )
   );
   return { click$ };
@@ -145,7 +177,18 @@ function reducers(sources, action$) {
         payload: { industryName }
       } = action;
       switch (buttonAction) {
-        case "LAYOFF":
+        case "BREAKDOWN_DERIVATIVE_STATS":
+        case "EFFECTS_DERIVATIVE_STATS": {
+          const buttonType = buttonAction.includes("BREAKDOWN")
+            ? "breakdown"
+            : "effects";
+          return update(
+            state,
+            ["buttonState", industryName, "derivatives", "shown"],
+            shown => (shown === buttonType ? "" : buttonType)
+          );
+        }
+        case "LAYOFF": // pass
         case "EMPLOY":
           const buttonType = buttonAction.toLowerCase();
           return set(
@@ -165,7 +208,8 @@ const initialButtonState = INDUSTRY_KEYS.reduce(
     ...buttonState,
     [industryName]: {
       employ: { attrs: { disabled: true } },
-      layoff: { attrs: { disabled: true } }
+      layoff: { attrs: { disabled: true } },
+      derivatives: { shown: "" }
     }
   }),
   {}
@@ -181,6 +225,8 @@ const toPercentage = n => (100 * n).toPrecision(2) + "%";
 
 const toWhole = n => Math.floor(n).toLocaleString();
 
+const toDecimal = n => Number(n).toFixed(1);
+
 const withPlus = s => (/^-/.test(s) ? s : "+" + s);
 
 function main(sources) {
@@ -192,7 +238,7 @@ function main(sources) {
   const { click$ } = intent(sources);
   const reducer$ = reducers(sources, xs.merge(click$));
 
-  const socket$ = click$;
+  const socket$ = click$.filter(p => /INDUSTRY#(EMPLOY|LAYOFF)/.test(p.type));
 
   const state$ = xs
     .merge(userUpdater$, industriesUpdater$, reducer$, buttonStateUpdater$)
@@ -223,8 +269,20 @@ function main(sources) {
     };
   });
 
+  const stats$ = state$.map(state => {
+    const employed = Object.values(state.industries).reduce(
+      (employed, industry) => employed + industry.allocation,
+      0
+    );
+    const unemployed = state.user.population - employed;
+    return {
+      employed,
+      unemployed
+    };
+  });
+
   const vdom$ = xs
-    .combine(state$, derivatives$)
+    .combine(state$, derivatives$, stats$)
     .map(
       ([
         {
@@ -232,37 +290,52 @@ function main(sources) {
           industries,
           buttonState
         },
-        { derivatives, derivativeSums }
+        { derivatives, derivativeSums },
+        { employed, unemployed }
       ]) =>
         div(".container", [
           div(".user", [
             h2(".user-header", "User"),
             div(".user-stats", [
               div(".points", ["points", " ", toWhole(points)]),
-              div(".population", ["population", " ", toWhole(population)])
+              div(".population", ["population", " ", toWhole(population)]),
+              div(["unemployment", " ", toPercentage(unemployed / population)])
             ])
           ]),
           div(".industry", [
             h2(".industry-header", "Industry"),
             div(
               INDUSTRY_KEYS.map(industryName => {
-                const derivative = industrySupplyDerivative(
-                  industryName,
-                  industries
-                );
                 const industry = industries[industryName];
                 const {
-                  [industryName]: { layoff: layoffAttrs, employ: employAttrs }
+                  [industryName]: {
+                    layoff: layoffAttrs,
+                    employ: employAttrs,
+                    derivatives: { shown: shownDerivative }
+                  }
                 } = buttonState;
+                const inputDerivative = derivatives[industryName];
+                const derivativeBreakdown = Object.entries(derivatives)
+                  .filter(
+                    ([, derivative]) =>
+                      typeof derivative[industryName] !== "undefined"
+                  )
+                  .reduce(
+                    (derivativeBreakdown, [otherIndustryName, derivative]) => ({
+                      ...derivativeBreakdown,
+                      [otherIndustryName]: derivative[industryName]
+                    }),
+                    {}
+                  );
                 return div(`.${industryName}`, [
-                  h3(industryName),
+                  h3(INDUSTRY_LABELS[industryName]),
                   div(".industry-stats", [
                     div([
                       "supply",
                       " ",
                       toWhole(industry.supply),
                       " ",
-                      `${withPlus(toWhole(derivativeSums[industryName]))}/s`
+                      withPlus(toDecimal(derivativeSums[industryName])) + "/s"
                     ]),
                     div([
                       "employment ",
@@ -273,8 +346,28 @@ function main(sources) {
                   ]),
                   div(".industry-actions", [
                     button(".layoff", layoffAttrs, "Layoff"),
-                    button(".employ", employAttrs, "Employ")
-                  ])
+                    button(".employ", employAttrs, "Employ"),
+                    button(".effects-derivative-stats-button", "Effects"),
+                    button(".breakdown-derivative-stats-button", "Breakdown")
+                  ]),
+                  div(
+                    [".derivative-stats", !shownDerivative && ".hidden"]
+                      .filter(Boolean)
+                      .join(" "),
+                    ul(
+                      Object.entries(
+                        shownDerivative === "effects"
+                          ? inputDerivative
+                          : derivativeBreakdown
+                      ).map(([otherIndustryName, cost]) =>
+                        li([
+                          otherIndustryName,
+                          " ",
+                          `${withPlus(toDecimal(cost))}/s`
+                        ])
+                      )
+                    )
+                  )
                 ]);
               })
             )

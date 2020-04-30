@@ -24,7 +24,6 @@ export const updateUserSinceLastActive = user => {
   };
 };
 
-// TODO not working(?)
 export const industrySupplyChange = (industries, industryName) => {
   if (!industries[industryName].allocation) return industries;
 
@@ -79,17 +78,26 @@ export const industrySupplyChange = (industries, industryName) => {
            * rounding errors on the `deltaRatio` calculation that causes
            * negative supplies. JavaScript :shrug:
            */
+          const otherIndustry = industries[otherIndustryName];
+          const adjustedNewSupply = Math.max(
+            0,
+            otherIndustry.supply - deltaRatio * maxSubtraction
+          );
           // TODO this logic may have to be revisited :/ It's kind of stupid
           // hard to deal with... I think it's working correctly though :)
+          if (otherIndustry.supply - deltaRatio * maxSubtraction < 0) {
+            console.log("ADJUSTMENT MADE", {
+              industryName,
+              otherIndustryName,
+              calculated: otherIndustry.supply - deltaRatio * maxSubtraction
+            });
+          }
           return {
             ...otherIndustries,
             [otherIndustryName]: {
-              ...industries[otherIndustryName],
-              supply: Math.max(
-                0,
-                industries[otherIndustryName].supply -
-                  deltaRatio * maxSubtraction
-              )
+              ...otherIndustry,
+              // NOTE: `lastUpdateSupplyDate` should NOT change here
+              supply: adjustedNewSupply
             }
           };
         },

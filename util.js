@@ -1,9 +1,5 @@
 import { INDUSTRIES_UPDATE_SUPPLY_RATE } from "./constant";
 
-// export function sum(xs, toNumeric = x => x) {
-//   return xs.reduce((s, x) => s + toNumeric(x), 0);
-// }
-
 export function update(o, key, fn) {
   if (typeof key === "string") key = key.split(".");
   if (key.length === 0) return fn(o);
