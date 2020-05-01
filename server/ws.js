@@ -3,6 +3,7 @@ import express from "express";
 import expressWs from "express-ws";
 import xs from "xstream";
 import throttle from "xstream/extra/throttle";
+import debounce from "xstream/extra/debounce";
 import sampleCombine from "xstream/extra/sampleCombine";
 
 import {
@@ -20,15 +21,16 @@ import {
   updateUserSinceLastActive,
   updateIndustrySinceLastActive
 } from "./state-update.js";
-import { industryActionReducer } from "./industry";
+import { industryActionReducer, industriesUnlockReducer } from "./industry";
 
 // TODO move these to constants probably... maybe it's not important though
 // :shrug:
-const pointsTimeout = 1e3;
-const populationTimeout = 30e3;
+const pointsTimeout = 10e3;
+const populationTimeout = 60e3;
 const lastSaveDateTimeout = 120e3;
 const lastSaveIndustriesTimeout = 120e3;
 const sendUserTimeout = 10e3;
+const unlockTimeout = 120e3;
 
 const makeStateUpdateStreams = (action$, { user, industries }) => {
   const lastSaveUserDate$ = xs.periodic(lastSaveDateTimeout);
@@ -74,8 +76,18 @@ const makeStateUpdateStreams = (action$, { user, industries }) => {
   const industryAction$ = action$.filter(a => /^INDUSTRY/.test(a.type));
   const industriesReducer$ = industryAction$.map(industryActionReducer);
 
+  const industriesUnlockPeriod$ = xs.periodic(unlockTimeout);
+  const industriesUnlocker$ = industriesUnlockPeriod$.map(
+    industriesUnlockReducer
+  );
+
   const state$ = xs
-    .merge(userUpdater$, industriesUpdater$, industriesReducer$)
+    .merge(
+      userUpdater$,
+      industriesUpdater$,
+      industriesReducer$,
+      industriesUnlocker$
+    )
     .fold((acc, reducer) => reducer(acc), {
       industries,
       user
@@ -83,8 +95,8 @@ const makeStateUpdateStreams = (action$, { user, industries }) => {
 
   const sendUser$ = xs
     .merge(userPoints$, userPopulation$)
-    // .compose(throttle(Math.min(pointsTimeout, populationTimeout)))
     .compose(sampleCombine(state$))
+    .compose(debounce(Math.min(pointsTimeout, populationTimeout)))
     .map(([, state]) => state.user);
 
   const saveUser$ = lastSaveUserDate$
@@ -94,7 +106,12 @@ const makeStateUpdateStreams = (action$, { user, industries }) => {
   const saveIndustries$ = xs
     .merge(
       industryAction$.map(a => a.payload.industryName),
-      lastSaveIndustriesDate$.mapTo("all")
+      xs
+        .merge(
+          lastSaveIndustriesDate$.mapTo("all"),
+          industriesUnlockPeriod$.mapTo("all")
+        )
+        .compose(debounce(Math.min(lastSaveIndustriesTimeout, unlockTimeout)))
     )
     .compose(sampleCombine(state$))
     .map(([key, state]) => [key, state.industries]);
@@ -119,8 +136,6 @@ const makeStateUpdateStreams = (action$, { user, industries }) => {
         industryNames: [payload.industryName]
       }))
     )
-    // TODO throttle? Can I throttle this well? Should I? Maybe I can adjust
-    // timings and that would be fine. Yeah.
     .compose(sampleCombine(state$))
     .map(([{ reason, industryName, industryNames }, state]) => ({
       reason,

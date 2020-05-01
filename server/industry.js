@@ -1,5 +1,5 @@
-import { INDUSTRY_KEYS } from "../constant";
-import { withRandomOffset, update } from "../util";
+import { INDUSTRY_KEYS, INDUSTRIES_UNLOCK_CONDITION } from "../constant";
+import { withRandomOffset, update, setAll } from "../util";
 
 // TODO move this?
 const employmentPercentage = 0.025;
@@ -48,4 +48,20 @@ export const industryActionReducer = action => state => {
       console.error("NOT HANDLED", action);
       return state;
   }
+};
+
+export const industriesUnlockReducer = () => state => {
+  const newlyUnlocked = Object.entries(INDUSTRIES_UNLOCK_CONDITION)
+    .filter(
+      ([industryName, predicate]) =>
+        !state.industries[industryName].unlocked && predicate(state)
+    )
+    .map(([industryName]) => industryName);
+  return setAll(
+    state,
+    newlyUnlocked.map(industryName => [
+      ["industries", industryName, "unlocked"],
+      true
+    ])
+  );
 };

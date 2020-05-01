@@ -1,8 +1,19 @@
 export const INITIAL_POPULATION = 1000;
 
+export const USER_STUB = {
+  population: INITIAL_POPULATION,
+  points: 0,
+  food: 100
+};
+
+const AGRICULTURE_SUPPLY_SURPLUS_FOOD_CONVERSION_RATE = 0.05;
+
+const FOOD_CONSUMPTION_RATE = 0.01;
+
 const INDUSTRY_STUB = {
   allocation: 0,
-  supply: 0
+  supply: 0,
+  unlocked: false
 };
 
 export const INDUSTRY_LABELS = {
@@ -15,7 +26,7 @@ export const INDUSTRY_LABELS = {
 };
 
 export const INDUSTRIES_STUB = {
-  agriculture: INDUSTRY_STUB,
+  agriculture: { ...INDUSTRY_STUB, unlocked: true },
   baking: INDUSTRY_STUB,
   forestry: INDUSTRY_STUB,
   handTool: INDUSTRY_STUB,
@@ -57,4 +68,30 @@ export const INDUSTRIES_UPDATE_SUPPLY_RATE = {
     agriculture: 0.5,
     handTool: 1
   }
+};
+
+export const INDUSTRIES_UNLOCK_CONDITION = {
+  agriculture: () => true,
+  baking: ({
+    industries: {
+      agriculture: { supply }
+    }
+  }) => supply >= 100,
+  forestry: ({ industries, user: { population } }) =>
+    population > 5000 &&
+    [["agriculture", 100], ["mining", 100], ["handTool", 100]].every(
+      ([industryName, supply]) => industries[industryName].supply >= supply
+    ),
+  handTool: ({ industries, user: { population } }) =>
+    population > 1500 &&
+    [["agriculture", 500], ["mining", 250]].every(
+      ([industryName, supply]) => industries[industryName].supply >= supply
+    ),
+  mining: ({ industries: { agriculture }, user: { population } }) =>
+    agriculture.supply > 1000 && population > 1500,
+  textiles: ({ industries, user: { population } }) =>
+    population > 2500 &&
+    [["agriculture", 1000], ["handTool", 500]].every(
+      ([industryName, supply]) => industries[industryName].supply >= supply
+    )
 };
