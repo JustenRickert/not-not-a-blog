@@ -1,5 +1,13 @@
 import { INDUSTRIES_UPDATE_SUPPLY_RATE } from "./constant";
 
+export const toPercentage = n => (100 * n).toPrecision(2) + "%";
+
+export const toWhole = n => Math.floor(n).toLocaleString();
+
+export const toDecimal = n => Number(n).toFixed(1);
+
+export const withPlus = s => (/^-/.test(s) ? s : "+" + s);
+
 export function update(o, key, fn) {
   if (typeof key === "string") key = key.split(".");
   if (key.length === 0) return fn(o);
