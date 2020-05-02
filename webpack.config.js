@@ -24,12 +24,15 @@ module.exports = [
   {
     devtool: "source-map",
     mode: process.env.NODE_ENV || "development",
-    optimization: {
-      splitChunks: {
-        chunks: "all",
-        name: "vendors"
-      }
-    },
+    // TODO: chunk out vendors, though need to keep track of the crypto package
+    // separately, because it's only needed on a save, to validate that someone
+    // isn't cheating.
+    // optimization: {
+    //   splitChunks: {
+    //     chunks: "all",
+    //     name: "vendors"
+    //   }
+    // },
     entry: {
       index: [isDev && "webpack-hot-middleware/client", "./src"].filter(Boolean)
     },

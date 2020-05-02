@@ -14,7 +14,9 @@
   "dependencies": {
     "@cycle/dom": "^22.7.0",
     "@cycle/http": "^15.4.0",
+    "@cycle/isolate": "^5.2.0",
     "@cycle/run": "^5.4.0",
+    "@cycle/state": "^1.4.0",
     "@cycle/time": "^0.20.0",
     "babel-loader": "^8.1.0",
     "body-parser": "^1.19.0",

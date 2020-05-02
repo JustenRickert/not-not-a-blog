@@ -1,9 +1,11 @@
 import { run } from "@cycle/run";
+import isolate from "@cycle/isolate";
+import { withState } from "@cycle/state";
 import { timeDriver } from "@cycle/time";
 import xs from "xstream";
-import debounce from "xstream/extra/debounce";
 import {
   div,
+  section,
   button,
   h1,
   h2,
@@ -15,119 +17,54 @@ import {
   span,
   makeDOMDriver
 } from "@cycle/dom";
-import { makeHTTPDriver } from "@cycle/http";
 
-import {
-  set,
-  update,
-  industrySupplyDerivative,
-  toWhole,
-  toPercentage,
-  withPlus,
-  toDecimal
-} from "../util";
-import { INDUSTRY_KEYS, INDUSTRIES_STUB, INDUSTRY_LABELS } from "../constant";
-import { makeWebSocketDriver } from "./web-socket-driver";
-import Industries from "./industry";
+import { makeIndustriesStub, makeUserStub, makeInfoStub } from "./constant";
+import User from "./user";
+import Industries from "./industries";
 
-import "./style.css";
+const initReducer = () => ({
+  info: makeInfoStub(),
+  user: makeUserStub(),
+  industries: makeIndustriesStub()
+});
 
-const tap = x => (console.log(x), x);
+function main(sources) {
+  const userSinks = User(sources);
+  const industriesSinks = Industries(sources);
 
-const periodicUpdates = sources => {
-  const userUpdater$ = sources.Socket.filter(p => p.type === "USER").map(
-    ({ payload }) => state => ({ ...state, ...payload })
-  );
+  const dom$ = xs
+    .combine(userSinks.DOM, industriesSinks.DOM)
+    .map(([userDom, industriesDom]) =>
+      div(".not-not-a-blog", [
+        section([h2("User"), userDom]),
+        section([h2("Industries"), industriesDom])
+      ])
+    );
 
-  const industries$ = sources.Socket.filter(p => p.type === "INDUSTRY");
-
-  const industriesUpdater$ = industries$.map(
-    ({ payload: { industries: updatedIndustries } }) => industries => ({
-      ...industries,
-      ...updatedIndustries
-    })
+  const reducer$ = xs.merge(
+    xs.of(initReducer),
+    userSinks.state,
+    industriesSinks.state
   );
 
   return {
-    userUpdater$,
-    industriesUpdater$
+    DOM: dom$,
+    state: reducer$
   };
-};
-
-const initialState = {
-  user: { points: "...", population: "...", lastSaveDate: "..." },
-  industries: INDUSTRIES_STUB
-};
-
-function main(sources) {
-  const { userUpdater$, industriesUpdater$ } = periodicUpdates(sources);
-
-  const user$ = userUpdater$.fold(
-    (user, reducer) => reducer(user),
-    initialState.user
-  );
-
-  const industries$ = industriesUpdater$.fold(
-    (industries, reducer) => reducer(industries),
-    initialState.industries
-  );
-
-  const industries = Industries({
-    ...sources,
-    props: {
-      user: user$,
-      industries: industries$
-    }
-  });
-
-  const { DOM: industriesVDom$, action$: industriesAction$ } = industries;
-
-  const socket$ = industriesAction$.filter(p =>
-    /INDUSTRY#(EMPLOY|LAYOFF)/.test(p.type)
-  );
-
-  const stats$ = xs.combine(user$, industries$).map(([user, industries]) => {
-    const employed = Object.values(industries).reduce(
-      (employed, industry) => employed + industry.allocation,
-      0
-    );
-    const unemployed = user.population - employed;
-    return {
-      employed,
-      unemployed
-    };
-  });
-
-  const vdom$ = xs
-    .combine(user$, stats$, industriesVDom$)
-    .map(
-      ([
-        { points, population, lastSaveDate },
-        { employed, unemployed },
-        industryVDom
-      ]) =>
-        div(".container", [
-          div(".user", [
-            h2(".user-header", "User"),
-            div(".user-stats", [
-              div(".points", ["points", " ", toWhole(points)]),
-              div(".population", ["population", " ", toWhole(population)]),
-              div(["unemployment", " ", toPercentage(unemployed / population)])
-            ])
-          ]),
-          industryVDom
-        ])
-    );
-
-  return { DOM: vdom$, Socket: socket$ };
 }
 
-run(main, {
+run(withState(main), {
   DOM: makeDOMDriver("#root"),
-  Socket: makeWebSocketDriver(),
   Time: timeDriver
 });
 
 if (module.hot) {
   module.hot.accept();
 }
+
+// TODO hash on save :)
+
+// const MAIN_SCRIPT = document.currentScript.src;
+// import("./create-script-hash")
+//   .then(m => m.default(MAIN_SCRIPT))
+//   .then(console.log);

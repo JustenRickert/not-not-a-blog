@@ -1,5 +1,7 @@
 export const INITIAL_POPULATION = 1000;
 
+export const POPULATION_GROWTH_RATE = 0.001;
+
 export const USER_STUB = {
   population: INITIAL_POPULATION,
   points: 0,

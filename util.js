@@ -1,4 +1,7 @@
-import { INDUSTRIES_UPDATE_SUPPLY_RATE } from "./constant";
+import {
+  INDUSTRIES_UPDATE_SUPPLY_RATE,
+  POPULATION_GROWTH_RATE
+} from "./constant";
 
 export const toPercentage = n => (100 * n).toPrecision(2) + "%";
 
@@ -64,4 +67,21 @@ export function industrySupplyDerivative(industryName, industries) {
       {}
     )
   };
+}
+
+/**
+ * :shaka: https://en.wikipedia.org/wiki/Logistic_function#In_ecology:_modeling_population_growth
+ */
+export function growthAfterTime(
+  original,
+  secondsDiff,
+  capacity,
+  growthRate = POPULATION_GROWTH_RATE
+) {
+  return (
+    capacity /
+    (1 +
+      ((capacity - original) / original) *
+        Math.E ** (-growthRate * secondsDiff))
+  );
 }

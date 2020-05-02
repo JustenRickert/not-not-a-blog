@@ -1,1 +1,1 @@
-export const POPULATION_GROWTH_RATE = 0.001;
+export { POPULATION_GROWTH_RATE } from "../constant";
