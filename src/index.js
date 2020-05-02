@@ -69,8 +69,19 @@ function main(sources) {
       })
   });
 
-  const userSinks = User(sources);
-  const industriesSinks = Industries(sources);
+  const info$ = sources.state.stream.map(({ user, industries }) => {
+    const employed = Object.values(industries).reduce(
+      (employed, i) => employed + i.employed,
+      0
+    );
+    return {
+      employed,
+      unemployed: user.population - employed
+    };
+  });
+
+  const userSinks = User(sources, { info$ });
+  const industriesSinks = Industries(sources, { info$ });
 
   const dom$ = xs
     .combine(sources.state.stream, userSinks.DOM, industriesSinks.DOM)
