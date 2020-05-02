@@ -20,6 +20,10 @@ export function update(o, key, fn) {
   };
 }
 
+export function updateAll(o, keyFns) {
+  return keyFns.reduce((o, [key, fn]) => update(o, key, fn), o);
+}
+
 export function set(o, key, value) {
   if (typeof key === "string") key = key.split(".");
   if (key.length === 0) return value;

@@ -4,30 +4,16 @@ import { withState } from "@cycle/state";
 import { timeDriver } from "@cycle/time";
 import xs from "xstream";
 import sampleCombine from "xstream/extra/sampleCombine";
-import {
-  div,
-  section,
-  button,
-  h1,
-  h2,
-  h3,
-  h4,
-  a,
-  ul,
-  li,
-  span,
-  makeDOMDriver
-} from "@cycle/dom";
+import { makeDOMDriver } from "@cycle/dom";
 
+import { update, set, setAll } from "../util";
 import {
   makeIndustriesStub,
   makeUserStub,
   makeInfoStub,
   TIMEOUTS
 } from "./constant";
-import User from "./user";
-import Industries from "./industries";
-import { update, set } from "../util";
+import NotNotABlog from "./not-not-a-blog";
 
 const initState = {
   info: makeInfoStub(),
@@ -35,21 +21,36 @@ const initState = {
   industries: makeIndustriesStub()
 };
 
+const stubMissingIndustries = state => {
+  const initialIndustries = Object.entries(initState.industries);
+  return setAll(
+    state,
+    initialIndustries
+      .filter(([industryName]) => !state.industries[industryName])
+      .map(([industryName, industryStub]) => [
+        ["industries", industryName],
+        industryStub
+      ])
+  );
+};
+
 // TODO: user-data should maybe be fetched with a timestamp to make sure people
 // aren't cheating by moving their computer time into the future
-const initialDataPromise = fetch("/user-data").then(r => {
-  if (r.status === 404) return initState;
-  return r
-    .json()
-    .then(state =>
-      update(
-        state,
-        "user.points",
-        points =>
-          points + (Date.now() - state.info.lastSaveDate) / TIMEOUTS.points
-      )
-    );
-});
+const initialDataPromise = fetch("/user-data")
+  .then(r => {
+    if (r.status === 404) return initState;
+    return r
+      .json()
+      .then(state =>
+        update(
+          state,
+          "user.points",
+          points =>
+            points + (Date.now() - state.info.lastSaveDate) / TIMEOUTS.points
+        )
+      );
+  })
+  .then(stubMissingIndustries);
 
 function main(sources) {
   const saveData$ = xs
@@ -69,40 +70,17 @@ function main(sources) {
       })
   });
 
-  const info$ = sources.state.stream.map(({ user, industries }) => {
-    const employed = Object.values(industries).reduce(
-      (employed, i) => employed + i.employed,
-      0
-    );
-    return {
-      employed,
-      unemployed: user.population - employed
-    };
-  });
-
-  const userSinks = User(sources, { info$ });
-  const industriesSinks = Industries(sources, { info$ });
-
-  const dom$ = xs
-    .combine(sources.state.stream, userSinks.DOM, industriesSinks.DOM)
-    .map(([state, userDom, industriesDom]) =>
-      div(".not-not-a-blog", [
-        div(["last save ", state.info.lastSaveDate]),
-        section([h2("User"), userDom]),
-        section([h2("Industries"), industriesDom])
-      ])
-    );
-
-  const reducer$ = xs.merge(
-    xs.fromPromise(initialDataPromise).map(initialState => () => initialState),
-    userSinks.state,
-    industriesSinks.state,
-    saveData$.map(state => () => state)
-  );
+  const notNotABlogSinks = NotNotABlog(sources);
 
   return {
-    DOM: dom$,
-    state: reducer$
+    DOM: notNotABlogSinks.DOM,
+    state: xs.merge(
+      xs
+        .fromPromise(initialDataPromise)
+        .map(initialState => () => initialState),
+      saveData$.map(state => () => state),
+      notNotABlogSinks.state
+    )
   };
 }
 

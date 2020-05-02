@@ -2,7 +2,16 @@ export const TIMEOUTS = {
   saveData: 30e3,
   points: 1e3,
   population: 10e3,
-  food: 3e3
+  food: 3e3,
+  unlockIndustries: 120e3,
+  industries: {
+    agriculture: {
+      supply: 5e3
+    },
+    foodService: {
+      agricultureToFood: 5e3
+    }
+  }
 };
 
 export const makeInfoStub = () => ({
@@ -21,14 +30,18 @@ export const makeUserStub = () => ({
 });
 
 const INDUSTRY_STUB = {
-  unlocked: true,
-  employed: 0,
-  supply: 0
+  unlocked: false,
+  employed: 0
 };
 
 export const makeIndustriesStub = () => ({
-  agriculture: INDUSTRY_STUB
+  agriculture: { ...INDUSTRY_STUB, supply: 0, unlocked: true },
+  foodService: INDUSTRY_STUB
 });
+
+export const INDUSTRIES_UNLOCK_CONDITIONS = {
+  foodService: state => state.industries.agriculture.supply > 100
+};
 
 export const FOOD_PER_PERSON = 0.01;
 
@@ -39,4 +52,12 @@ export const POPULATION_GROWTH_RATE = 0.02;
 export const EMPLOYMENT = {
   layoffRate: 0.02,
   employRate: 0.02
+};
+
+export const INDUSTRIES_UPDATE_SUPPLY_RATE = {
+  agriculture: 0.05,
+  foodService: {
+    unit: 0.5,
+    agriculture: 3
+  }
 };

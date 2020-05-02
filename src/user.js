@@ -52,19 +52,22 @@ const makeUserUpdateStream = sources => {
   return xs.merge(pointsReducer$, populationReducer$, foodReducer$);
 };
 
-export default function User(sources) {
+export default function User(sources, { info$ }) {
   const user$ = sources.state.stream.map(state => state.user);
 
-  const dom$ = user$.map(({ population, points, food }) =>
-    div(
-      ".user",
-      ul([
-        li(["points", " ", points]),
-        li(["population", " ", population]),
-        li(["food", " ", food])
-      ])
-    )
-  );
+  const dom$ = xs
+    .combine(user$, info$)
+    .map(([{ population, points, food }, info]) =>
+      div(
+        ".user",
+        ul([
+          li(["points", " ", points]),
+          li(["population", " ", population]),
+          li(["unemployment", " ", 100 * (info.unemployed / population), "%"]),
+          li(["food", " ", food])
+        ])
+      )
+    );
 
   const userReducer$ = makeUserUpdateStream(sources);
 

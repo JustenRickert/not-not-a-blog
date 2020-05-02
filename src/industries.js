@@ -2,12 +2,38 @@ import xs from "xstream";
 import { div, button, h1, h2, h3, h4, a, ul, li, span } from "@cycle/dom";
 import sampleCombine from "xstream/extra/sampleCombine";
 
-import { update, withRandomOffset } from "../util";
-import { EMPLOYMENT } from "./constant";
+import { setAll, update, withRandomOffset } from "../util";
+import { EMPLOYMENT, INDUSTRIES_UNLOCK_CONDITIONS, TIMEOUTS } from "./constant";
 import Agriculture from "./agriculture";
+import FoodService from "./food-service";
 
-const makeIndustriesUpdateStream = sources => {
-  // const
+// const makeIndustriesUpdate = sources => {
+//   const industries$ = sources.state.stream.map(state => state.industries);
+//   // const
+// };
+
+const makeUnlockIndustries = sources => {
+  const unlock$ = xs
+    .periodic(TIMEOUTS.unlockIndustries)
+    .compose(sampleCombine(sources.state.stream))
+    .map(([, state]) =>
+      Object.entries(INDUSTRIES_UNLOCK_CONDITIONS)
+        .filter(
+          ([industryName, predicate]) =>
+            !state.industries[industryName].unlocked && predicate(state)
+        )
+        .map(([industryName]) => industryName)
+    )
+    .map(industryNames => state =>
+      setAll(
+        state,
+        industryNames.map(industryName => [
+          ["industries", industryName, "unlocked"],
+          true
+        ])
+      )
+    );
+  return unlock$;
 };
 
 const industriesReducer = (action$, { info$ }) => {
@@ -39,17 +65,23 @@ const industriesReducer = (action$, { info$ }) => {
 };
 
 export default function Industries(sources, { info$ }) {
-  const industries$ = sources.state.stream.map(state => state.industries);
-
   const agricultureSinks = Agriculture(sources);
+  const foodServiceSinks = FoodService(sources);
 
-  const action$ = xs.merge(agricultureSinks.action);
+  const action$ = xs.merge(agricultureSinks.action, foodServiceSinks.action);
 
   const dom$ = xs
-    .combine(industries$, agricultureSinks.DOM)
-    .map(([industries, agricultureDom]) => div([agricultureDom]));
+    .combine(agricultureSinks.DOM, foodServiceSinks.DOM)
+    .map(([agricultureDom, foodServiceDom]) =>
+      div([agricultureDom, foodServiceDom])
+    );
+
+  const unlockIndustries$ = makeUnlockIndustries(sources);
 
   const reducer$ = xs.merge(
+    unlockIndustries$,
+    foodServiceSinks.state,
+    agricultureSinks.state,
     industriesReducer(action$, { info$ }).map(reducer => state =>
       update(state, "industries", reducer)
     )

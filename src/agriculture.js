@@ -1,34 +1,23 @@
 import xs from "xstream";
 import { div, button, h1, h2, h3, h4, a, ul, li, span } from "@cycle/dom";
 
-const makeEmploymentAction = (sources, industryName) => {
-  const employmentClick$ = xs.merge(
-    sources.DOM.select(`.${industryName} .employ`)
-      .events("click")
-      .mapTo({
-        type: "employment",
-        reason: "employ",
-        payload: { industryName }
-      }),
-    sources.DOM.select(`.${industryName} .layoff`)
-      .events("click")
-      .mapTo({
-        type: "employment",
-        reason: "layoff",
-        payload: { industryName }
-      })
-  );
-  return xs.merge(employmentClick$);
-};
+import { update } from "../util";
+import {
+  makeEmploymentAction,
+  makeIndustrySupplyUpdate
+} from "./industry-util";
 
 function intent(sources) {
   const employmentAction$ = makeEmploymentAction(sources, "agriculture");
   return xs.merge(employmentAction$);
 }
 
-export default function Agriculture(sources) {
-  const action$ = intent(sources);
+function industryUpdate(sources) {
+  const update$ = makeIndustrySupplyUpdate(sources, "agriculture");
+  return update$;
+}
 
+export default function Agriculture(sources) {
   const agriculture$ = sources.state.stream.map(
     state => state.industries.agriculture
   );
@@ -42,9 +31,16 @@ export default function Agriculture(sources) {
     ])
   );
 
+  const action$ = intent(sources);
+  const update$ = industryUpdate(sources);
+
+  const updateReducer$ = update$.map(reducer => state =>
+    update(state, "industries.agriculture", reducer)
+  );
+
   return {
     DOM: dom$,
-    action: action$
-    // state: reducer$
+    action: action$,
+    state: updateReducer$
   };
 }
