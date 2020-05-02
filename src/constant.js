@@ -1,4 +1,5 @@
 export const TIMEOUTS = {
+  saveData: 30e3,
   points: 1e3,
   population: 10e3,
   food: 3e3
@@ -12,10 +13,11 @@ export const makeInfoStub = () => ({
 export const LEAST_POPULATION = 100;
 
 export const makeUserStub = () => ({
-  lastDates: {
-    population: Date.now(),
-    food: Date.now()
-  },
+  // TODO?
+  // lastDates: {
+  //   population: Date.now(),
+  //   food: Date.now()
+  // },
   population: LEAST_POPULATION,
   points: 0,
   food: 100

@@ -3,6 +3,7 @@ import isolate from "@cycle/isolate";
 import { withState } from "@cycle/state";
 import { timeDriver } from "@cycle/time";
 import xs from "xstream";
+import sampleCombine from "xstream/extra/sampleCombine";
 import {
   div,
   section,
@@ -18,33 +19,74 @@ import {
   makeDOMDriver
 } from "@cycle/dom";
 
-import { makeIndustriesStub, makeUserStub, makeInfoStub } from "./constant";
+import {
+  makeIndustriesStub,
+  makeUserStub,
+  makeInfoStub,
+  TIMEOUTS
+} from "./constant";
 import User from "./user";
 import Industries from "./industries";
+import { update, set } from "../util";
 
-const initReducer = () => ({
+const initState = {
   info: makeInfoStub(),
   user: makeUserStub(),
   industries: makeIndustriesStub()
+};
+
+// TODO: user-data should maybe be fetched with a timestamp to make sure people
+// aren't cheating by moving their computer time into the future
+const initialDataPromise = fetch("/user-data").then(r => {
+  if (r.status === 404) return initState;
+  return r
+    .json()
+    .then(state =>
+      update(
+        state,
+        "user.points",
+        points =>
+          points + (Date.now() - state.info.lastSaveDate) / TIMEOUTS.points
+      )
+    );
 });
 
 function main(sources) {
+  const saveData$ = xs
+    .periodic(TIMEOUTS.saveData)
+    .compose(sampleCombine(sources.state.stream))
+    .map(([, state]) => state)
+    .map(state => set(state, "info.lastSaveDate", Date.now()));
+
+  saveData$.addListener({
+    next: data =>
+      fetch("/user-data", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ data })
+      })
+  });
+
   const userSinks = User(sources);
   const industriesSinks = Industries(sources);
 
   const dom$ = xs
-    .combine(userSinks.DOM, industriesSinks.DOM)
-    .map(([userDom, industriesDom]) =>
+    .combine(sources.state.stream, userSinks.DOM, industriesSinks.DOM)
+    .map(([state, userDom, industriesDom]) =>
       div(".not-not-a-blog", [
+        div(["last save ", state.info.lastSaveDate]),
         section([h2("User"), userDom]),
         section([h2("Industries"), industriesDom])
       ])
     );
 
   const reducer$ = xs.merge(
-    xs.of(initReducer),
+    xs.fromPromise(initialDataPromise).map(initialState => () => initialState),
     userSinks.state,
-    industriesSinks.state
+    industriesSinks.state,
+    saveData$.map(state => () => state)
   );
 
   return {

@@ -10,25 +10,35 @@ import {
   POPULATION_GROWTH_RATE
 } from "./constant";
 
-const logisticDelta = (p, capacity, rate) => p * rate * (1 - p / capacity);
+const logisticDeltaEquation = (p, capacity, rate) =>
+  p * rate * (1 - p / capacity);
 
 const makeUserUpdateStream = sources => {
+  // TODO(maybe) If points updating changes in the future, make sure to update
+  // the way points are updated since last save.
   const pointsReducer$ = xs.periodic(TIMEOUTS.points).mapTo(user => {
     return update(user, "points", points => points + 1);
   });
 
+  // TODO(probably not) population growth while not playing would be tricky to
+  // calculate with `food` in play. If it should be supported, it needs to be
+  // figured out...
   const populationReducer$ = xs.periodic(TIMEOUTS.population).mapTo(user => {
     const foodRequired = FOOD_PER_PERSON * user.population;
     const upperCapacity =
       LEAST_POPULATION + POPULATION_CAPACITY_PER_POINT * user.points;
     const delta =
       user.food < foodRequired
-        ? logisticDelta(
+        ? logisticDeltaEquation(
             user.population,
             LEAST_POPULATION,
             POPULATION_GROWTH_RATE
           )
-        : logisticDelta(user.population, upperCapacity, POPULATION_GROWTH_RATE);
+        : logisticDeltaEquation(
+            user.population,
+            upperCapacity,
+            POPULATION_GROWTH_RATE
+          );
     return update(user, "population", population =>
       Math.min(upperCapacity, Math.max(LEAST_POPULATION, population + delta))
     );
