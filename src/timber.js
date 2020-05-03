@@ -41,7 +41,9 @@ export default function Timber(sources) {
             " ",
             plural(supply, "supply", "supplies"),
             " ",
-            perSecond(derivative.timber.timber)
+            perSecond(
+              derivative.timber.timber + derivative.housing.timber.supply
+            )
           ]),
           button(".employ", "employ"),
           button(".layoff", "layoff")

@@ -6,16 +6,22 @@ import sampleCombine from "xstream/extra/sampleCombine";
 import { makeDOMDriver } from "@cycle/dom";
 import isolate from "@cycle/isolate";
 
-import { update, set, setAll } from "../util";
+import { update, set, setAll, logisticDeltaEquation } from "../util";
 import {
   makeIndustriesStub,
   makeUserStub,
   makeInfoStub,
   TIMEOUTS,
   INDUSTRIES_UPDATE_SUPPLY_RATE,
-  FOOD_PER_PERSON
+  FOOD_PER_PERSON,
+  POPULATION_GROWTH_RATE,
+  POPULATION_CAPACITY_PER_POINT,
+  LEAST_UPPER_CAPACITY
 } from "./constant";
-import { makeFoodServiceDerivative } from "./industry-util";
+import {
+  makeFoodServiceDerivative,
+  makeHousingDerivative
+} from "./industry-util";
 import NotNotABlog from "./not-not-a-blog";
 
 const initState = {
@@ -56,6 +62,11 @@ const initialDataPromise = fetch("/user-data")
 
 const deriveDeritave = state => ({
   user: {
+    population: logisticDeltaEquation(
+      state.user.population,
+      LEAST_UPPER_CAPACITY + POPULATION_CAPACITY_PER_POINT * state.user.points,
+      POPULATION_GROWTH_RATE
+    ),
     food: -(FOOD_PER_PERSON * state.user.population)
   },
   foodService: makeFoodServiceDerivative(state),
@@ -67,7 +78,8 @@ const deriveDeritave = state => ({
   timber: {
     timber:
       INDUSTRIES_UPDATE_SUPPLY_RATE.timber * state.industries.timber.employed
-  }
+  },
+  housing: makeHousingDerivative(state)
 });
 
 const withDerivedLens = {

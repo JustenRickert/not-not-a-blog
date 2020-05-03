@@ -57,6 +57,20 @@ export function makeFoodServiceDerivative(state) {
   };
 }
 
+export function makeHousingDerivative(state) {
+  const rate = INDUSTRIES_UPDATE_SUPPLY_RATE.housing;
+  const userHousingDerivative = rate.unit * state.industries.housing.employed;
+  const timberSupplyDerivative = userHousingDerivative * rate.timber;
+  return {
+    user: {
+      houses: userHousingDerivative
+    },
+    timber: {
+      supply: timberSupplyDerivative
+    }
+  };
+}
+
 export function agricultureToFoodDelta(state) {
   const time = TIMEOUTS.industries.foodService.agricultureToFood;
   const maxDelta = makeFoodServiceDerivative(state);

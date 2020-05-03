@@ -7,11 +7,13 @@ import { EMPLOYMENT, INDUSTRIES_UNLOCK_CONDITIONS, TIMEOUTS } from "./constant";
 import Agriculture from "./agriculture";
 import FoodService from "./food-service";
 import Timber from "./timber";
+import Housing from "./housing";
 
 const makeUnlockIndustries = sources => {
+  const state$ = sources.state.stream;
   const unlock$ = xs
     .periodic(1e3 * TIMEOUTS.unlockIndustries)
-    .compose(sampleCombine(sources.state.stream))
+    .compose(sampleCombine(state$))
     .map(([, state]) =>
       Object.entries(INDUSTRIES_UNLOCK_CONDITIONS)
         .filter(
@@ -64,18 +66,25 @@ export default function Industries(sources) {
   const derived$ = sources.state.stream.map(state => state.derived);
   const agricultureSinks = Agriculture(sources);
   const foodServiceSinks = FoodService(sources);
-  const timberSinks = Timber(sources, { derived$ });
+  const timberSinks = Timber(sources);
+  const housingSinks = Housing(sources);
 
   const action$ = xs.merge(
     agricultureSinks.action,
     foodServiceSinks.action,
-    timberSinks.action
+    timberSinks.action,
+    housingSinks.action
   );
 
   const dom$ = xs
-    .combine(agricultureSinks.DOM, foodServiceSinks.DOM, timberSinks.DOM)
-    .map(([agricultureDom, foodServiceDom, timberDom]) =>
-      div([agricultureDom, foodServiceDom, timberDom])
+    .combine(
+      agricultureSinks.DOM,
+      foodServiceSinks.DOM,
+      timberSinks.DOM,
+      housingSinks.DOM
+    )
+    .map(([agricultureDom, foodServiceDom, timberDom, housingDom]) =>
+      div([agricultureDom, foodServiceDom, timberDom, housingDom])
     );
 
   const unlockIndustries$ = makeUnlockIndustries(sources);
@@ -85,6 +94,7 @@ export default function Industries(sources) {
     foodServiceSinks.state,
     agricultureSinks.state,
     timberSinks.state,
+    housingSinks.state,
     industriesReducer(action$, { derived$ }).map(reducer => state =>
       update(state, "industries", reducer)
     )

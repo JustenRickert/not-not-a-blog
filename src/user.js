@@ -2,7 +2,13 @@ import xs from "xstream";
 import sampleCombine from "xstream/extra/sampleCombine";
 import { div, button, h1, h2, h3, h4, a, ul, li, span, p } from "@cycle/dom";
 
-import { set, setAll, update, growthAfterTime } from "../util";
+import {
+  set,
+  setAll,
+  update,
+  growthAfterTime,
+  logisticDeltaEquation
+} from "../util";
 import {
   FOOD_PER_PERSON,
   TIMEOUTS,
@@ -12,9 +18,6 @@ import {
   LEAST_UPPER_CAPACITY
 } from "./constant";
 import { whole, percentage, perSecond, relativeTime, time } from "./format";
-
-const logisticDeltaEquation = (p, capacity, rate) =>
-  p * rate * (1 - p / capacity);
 
 const makeStateUpdateStream = (sources, { derived$ }) => {
   // TODO(maybe) If points updating changes in the future, make sure to update
@@ -29,7 +32,7 @@ const makeStateUpdateStream = (sources, { derived$ }) => {
   const populationReducer$ = xs
     .periodic(1e3 * TIMEOUTS.population)
     .compose(sampleCombine(derived$))
-    .map(([, { employed }]) => state => {
+    .map(([, { employed, derivative }]) => state => {
       const { population } = state.user;
       const foodRequired = FOOD_PER_PERSON * TIMEOUTS.population * population;
       if (state.user.food < foodRequired) {
@@ -55,23 +58,12 @@ const makeStateUpdateStream = (sources, { derived$ }) => {
           )
         ]);
       } else {
-        const upperCapacity =
-          LEAST_UPPER_CAPACITY +
-          POPULATION_CAPACITY_PER_POINT * state.user.points;
-        const delta =
-          TIMEOUTS.population *
-          logisticDeltaEquation(
-            population,
-            upperCapacity,
-            POPULATION_GROWTH_RATE
-          );
+        const delta = TIMEOUTS.population * derivative.user.population;
         return set(
           state,
           "user.population",
-          Math.min(
-            upperCapacity,
-            Math.max(LEAST_POPULATION, population + delta)
-          )
+          // TODO Need min-max here?
+          population + delta
         );
       }
     });
@@ -90,12 +82,18 @@ export default function User(sources) {
 
   const dom$ = xs
     .combine(user$, derived$)
-    .map(([{ population, points, food }, { unemployed, derivative }]) =>
+    .map(([{ population, points, food, houses }, { unemployed, derivative }]) =>
       div(
         ".user",
         ul([
           li(["points", " ", whole(points)]),
-          li(["population", " ", whole(population)]),
+          li([
+            "population",
+            " ",
+            whole(population),
+            " ",
+            perSecond(derivative.user.population)
+          ]),
           li(["unemployment", " ", percentage(unemployed / population)]),
           li([
             span([whole(food), " food"]),
@@ -103,6 +101,12 @@ export default function User(sources) {
               li(perSecond(derivative.foodService.food + derivative.user.food)),
               li([time(Math.abs(food / derivative.user.food)), " worth"])
             ])
+          ]),
+          li([
+            "houses ",
+            whole(houses),
+            " ",
+            perSecond(derivative.housing.user.houses)
           ])
         ])
       )

@@ -93,3 +93,7 @@ export function growthAfterTime(
 export function clamp(n, min, max) {
   return Math.max(min, Math.min(n, max));
 }
+
+export function logisticDeltaEquation(p, capacity, rate) {
+  return p * rate * (1 - p / capacity);
+}

@@ -14,6 +14,9 @@ export const TIMEOUTS = {
     },
     timber: {
       supply: 3.5
+    },
+    housing: {
+      timberToHouses: 1
     }
   }
 };
@@ -31,7 +34,7 @@ export const makeUserStub = () => ({
   points: 0,
   food: 100,
   // TODO: implement timber industry and then housing ...
-  housing: 0
+  houses: 0
 });
 
 const INDUSTRY_STUB = {
@@ -42,12 +45,19 @@ const INDUSTRY_STUB = {
 export const makeIndustriesStub = () => ({
   agriculture: { ...INDUSTRY_STUB, supply: 0, unlocked: true },
   foodService: INDUSTRY_STUB,
-  timber: { ...INDUSTRY_STUB, supply: 0 }
+  timber: { ...INDUSTRY_STUB, supply: 0 },
+  housing: INDUSTRY_STUB
 });
 
 export const INDUSTRIES_UNLOCK_CONDITIONS = {
   foodService: state => state.industries.agriculture.supply > 100,
-  timber: state => state.user.population > 150 && state.user.points > 1000
+  timber: state => state.user.population > 150 && state.user.points > 1000,
+  housing: state => {
+    const result =
+      state.user.population > 2250 && state.industries.timber.supply > 1e6;
+    console.log({ state, result });
+    return result;
+  }
 };
 
 export const FOOD_PER_PERSON = 0.01;
@@ -66,5 +76,9 @@ export const INDUSTRIES_UPDATE_SUPPLY_RATE = {
     unit: 0.9,
     agriculture: -1
   },
-  timber: 0.25
+  timber: 0.25,
+  housing: {
+    unit: 1 / 100,
+    timber: -10e3
+  }
 };
