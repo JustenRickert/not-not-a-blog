@@ -6,7 +6,7 @@ import {
   makeEmploymentAction,
   makeIndustrySupplyUpdate
 } from "./industry-util";
-import { whole, perSecond, plural } from "./format";
+import { whole, perSecond, plural, percentage } from "./format";
 
 function intent(sources) {
   const employmentAction$ = makeEmploymentAction(sources, "agriculture");
@@ -18,18 +18,25 @@ function industryUpdate(sources) {
   return update$;
 }
 
-export default function Agriculture(sources, { derived$ }) {
+export default function Agriculture(sources) {
+  const derived$ = sources.state.stream.map(state => state.derived);
+  const user$ = sources.state.stream.map(state => state.user);
   const agriculture$ = sources.state.stream.map(
     state => state.industries.agriculture
   );
 
   const dom$ = xs
-    .combine(agriculture$, derived$)
-    .map(([{ supply, employed }, { derivative }]) =>
+    .combine(user$, agriculture$, derived$)
+    .map(([{ population }, { supply, employed }, { derivative }]) =>
       div(".agriculture", [
         h3("Agriculture"),
         ul([
-          li([whole(employed), " ", plural(employed, "worker", "workers")]),
+          li([
+            whole(employed),
+            " ",
+            plural(employed, "worker", "workers"),
+            ` (${percentage(employed / population)} of population)`
+          ]),
           li([
             whole(supply),
             " ",

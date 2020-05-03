@@ -60,9 +60,10 @@ const industriesReducer = (action$, { derived$ }) => {
   return xs.merge(employmentReducer);
 };
 
-export default function Industries(sources, { derived$ }) {
-  const agricultureSinks = Agriculture(sources, { derived$ });
-  const foodServiceSinks = FoodService(sources, { derived$ });
+export default function Industries(sources) {
+  const derived$ = sources.state.stream.map(state => state.derived);
+  const agricultureSinks = Agriculture(sources);
+  const foodServiceSinks = FoodService(sources);
   const timberSinks = Timber(sources, { derived$ });
 
   const action$ = xs.merge(

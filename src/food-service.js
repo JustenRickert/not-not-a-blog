@@ -5,7 +5,7 @@ import { div, button, h1, h2, h3, h4, a, ul, li, span } from "@cycle/dom";
 import { update, updateAll, withRandomOffset } from "../util";
 import { agricultureToFoodDelta, makeEmploymentAction } from "./industry-util";
 import { TIMEOUTS, INDUSTRIES_UPDATE_SUPPLY_RATE } from "./constant";
-import { perSecond, whole } from "./format";
+import { percentage, perSecond, whole } from "./format";
 
 function intent(sources) {
   const employmentAction$ = makeEmploymentAction(sources, "foodService");
@@ -44,7 +44,8 @@ function stateUpdate(sources) {
   };
 }
 
-export default function FoodService(sources, { derived$ }) {
+export default function FoodService(sources) {
+  const derived$ = sources.state.stream.map(state => state.derived);
   const stateUpdateSinks = stateUpdate(sources);
 
   const notEnoughAgriculture$ = stateUpdateSinks.agricultureToFoodDelta.filter(
@@ -65,15 +66,20 @@ export default function FoodService(sources, { derived$ }) {
   const foodService$ = sources.state.stream.map(
     state => state.industries.foodService
   );
+  const user$ = sources.state.stream.map(state => state.user);
 
   const dom$ = xs
-    .combine(foodService$, derived$)
-    .map(([{ supply, employed, unlocked }, { derivative }]) => {
+    .combine(user$, foodService$, derived$)
+    .map(([{ population }, { supply, employed, unlocked }, { derivative }]) => {
       if (!unlocked) return null;
       return div(".foodService", [
         h3("Food Service"),
         ul([
-          li([whole(employed), " workers"]),
+          li([
+            whole(employed),
+            " workers",
+            ` (${percentage(employed / population)} of population)`
+          ]),
           li([perSecond(derivative.foodService.food), " food"]),
           li([perSecond(derivative.foodService.agriculture), " agriculture"])
         ]),

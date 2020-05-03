@@ -52,8 +52,8 @@ export const INDUSTRIES_UNLOCK_CONDITIONS = {
 
 export const FOOD_PER_PERSON = 0.01;
 
-export const POPULATION_CAPACITY_PER_POINT = 1 / 100;
-export const POPULATION_GROWTH_RATE = 0.025;
+export const POPULATION_CAPACITY_PER_POINT = 1 / 10;
+export const POPULATION_GROWTH_RATE = 0.00025;
 
 export const EMPLOYMENT = {
   layoffRate: 0.02,

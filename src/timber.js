@@ -1,7 +1,7 @@
 import xs from "xstream";
 import { div, button, h1, h2, h3, h4, a, ul, li, span } from "@cycle/dom";
 
-import { whole, plural, perSecond } from "./format";
+import { percentage, whole, plural, perSecond } from "./format";
 import {
   makeEmploymentAction,
   makeIndustrySupplyUpdate
@@ -18,17 +18,24 @@ function industryUpdate(sources) {
   return update$;
 }
 
-export default function Timber(sources, { derived$ }) {
+export default function Timber(sources) {
+  const derived$ = sources.state.stream.map(state => state.derived);
+  const user$ = sources.state.stream.map(state => state.user);
   const timber$ = sources.state.stream.map(state => state.industries.timber);
 
   const dom$ = xs
-    .combine(timber$, derived$)
-    .map(([{ supply, employed, unlocked }, { derivative }]) => {
+    .combine(user$, timber$, derived$)
+    .map(([{ population }, { supply, employed, unlocked }, { derivative }]) => {
       if (!unlocked) return null;
       return div(".timber", [
         h3("Timber"),
         ul([
-          li([whole(employed), " ", plural(employed, "worker", "workers")]),
+          li([
+            whole(employed),
+            " ",
+            plural(employed, "worker", "workers"),
+            ` (${percentage(employed / population)} of population)`
+          ]),
           li([
             whole(supply),
             " ",

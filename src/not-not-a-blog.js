@@ -1,6 +1,7 @@
 import xs from "xstream";
 import sampleCombine from "xstream/extra/sampleCombine";
 import throttle from "xstream/extra/throttle";
+import debounce from "xstream/extra/debounce";
 import {
   div,
   section,
@@ -25,7 +26,7 @@ import {
 } from "./constant";
 import User from "./user";
 import Industries from "./industries";
-import { makeFoodServiceDifferential } from "./industry-util";
+import { makeFoodServiceDerivative } from "./industry-util";
 
 import "./style.css";
 
@@ -44,43 +45,8 @@ export default function NotNotABlog(sources) {
     .map(a => a.which)
     .startWith("game-tab");
 
-  const derivative$ = sources.state.stream
-    .compose(throttle(1e3 * TIMEOUTS.derivativeThrottle))
-    .map(state => {
-      return {
-        user: {
-          food: -(FOOD_PER_PERSON * state.user.population)
-        },
-        foodService: makeFoodServiceDifferential(state),
-        agriculture: {
-          agriculture:
-            INDUSTRIES_UPDATE_SUPPLY_RATE.agriculture *
-            state.industries.agriculture.employed
-        },
-        timber: {
-          timber:
-            INDUSTRIES_UPDATE_SUPPLY_RATE.timber *
-            state.industries.timber.employed
-        }
-      };
-    });
-
-  const derived$ = xs
-    .combine(sources.state.stream, derivative$)
-    .map(([{ user, industries }, derivative]) => {
-      const employed = Object.values(industries).reduce(
-        (employed, i) => employed + i.employed,
-        0
-      );
-      return {
-        employed,
-        unemployed: user.population - employed,
-        derivative
-      };
-    });
-
-  const userSinks = User(sources, { derived$ });
-  const industriesSinks = Industries(sources, { derived$ });
+  const userSinks = User(sources);
+  const industriesSinks = Industries(sources);
 
   const dom$ = xs
     .combine(tab$, sources.state.stream, userSinks.DOM, industriesSinks.DOM)

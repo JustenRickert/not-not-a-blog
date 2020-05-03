@@ -2,6 +2,7 @@ import xs from "xstream";
 
 import { INDUSTRIES_UPDATE_SUPPLY_RATE, TIMEOUTS } from "./constant";
 import { withRandomOffset, clamp } from "../util";
+import sampleCombine from "xstream/extra/sampleCombine";
 
 // TODO: employ/layoff actions should temporarily disable employ/layoff
 export function makeEmploymentAction(sources, industryName) {
@@ -27,24 +28,26 @@ export function makeEmploymentAction(sources, industryName) {
 export function makeIndustrySupplyUpdate(sources, industryName) {
   const rate = INDUSTRIES_UPDATE_SUPPLY_RATE[industryName];
   const time = TIMEOUTS.industries[industryName].supply;
-  const industry$ = sources.state.stream.map(
-    state => state.industries[industryName]
+  const derivative$ = sources.state.stream.map(
+    state => state.derived.derivative[industryName][industryName]
   );
-  const supplyUpdate$ = xs.periodic(1e3 * time).mapTo(industry => {
-    const delta = withRandomOffset(rate * time * industry.employed);
-    if (delta < 0)
-      console.log("THIS SHOULDNT BE NEGATIVE BUT IT IS", delta, industryName);
-    return {
-      ...industry,
-      supply: industry.supply + delta
-    };
-  });
+  const supplyUpdate$ = xs
+    .periodic(1e3 * time)
+    .compose(sampleCombine(derivative$))
+    .map(([, derivative]) => industry => {
+      const delta = withRandomOffset(derivative * time);
+      if (delta < 0)
+        console.log("THIS SHOULDNT BE NEGATIVE BUT IT IS", delta, industryName);
+      return {
+        ...industry,
+        supply: industry.supply + delta
+      };
+    });
   return supplyUpdate$;
 }
 
-// _differential_ is without time, _delta_ is with time. Totally not
-// confusing...
-export function makeFoodServiceDifferential(state) {
+// _derivative_ is without time, _delta_ is with time. Totally not confusing...
+export function makeFoodServiceDerivative(state) {
   const rate = INDUSTRIES_UPDATE_SUPPLY_RATE.foodService;
   const maxFoodDelta = rate.unit * state.industries.foodService.employed;
   const maxAgricultureSupplyDelta = maxFoodDelta * rate.agriculture;
@@ -56,7 +59,7 @@ export function makeFoodServiceDifferential(state) {
 
 export function agricultureToFoodDelta(state) {
   const time = TIMEOUTS.industries.foodService.agricultureToFood;
-  const maxDelta = makeFoodServiceDifferential(state);
+  const maxDelta = makeFoodServiceDerivative(state);
   const maxFoodDelta = maxDelta.food * time;
   const maxAgricultureDelta = maxDelta.agriculture * time;
   if (maxFoodDelta === 0) {

@@ -1,6 +1,6 @@
 import xs from "xstream";
 import sampleCombine from "xstream/extra/sampleCombine";
-import { div, button, h1, h2, h3, h4, a, ul, li, span } from "@cycle/dom";
+import { div, button, h1, h2, h3, h4, a, ul, li, span, p } from "@cycle/dom";
 
 import { set, setAll, update, growthAfterTime } from "../util";
 import {
@@ -11,7 +11,7 @@ import {
   POPULATION_GROWTH_RATE,
   LEAST_UPPER_CAPACITY
 } from "./constant";
-import { whole, percentage, perSecond } from "./format";
+import { whole, percentage, perSecond, relativeTime, time } from "./format";
 
 const logisticDeltaEquation = (p, capacity, rate) =>
   p * rate * (1 - p / capacity);
@@ -84,8 +84,9 @@ const makeStateUpdateStream = (sources, { derived$ }) => {
   return xs.merge(pointsReducer$, populationReducer$, foodReducer$);
 };
 
-export default function User(sources, { derived$ }) {
+export default function User(sources) {
   const user$ = sources.state.stream.map(state => state.user);
+  const derived$ = sources.state.stream.map(state => state.derived);
 
   const dom$ = xs
     .combine(user$, derived$)
@@ -97,11 +98,11 @@ export default function User(sources, { derived$ }) {
           li(["population", " ", whole(population)]),
           li(["unemployment", " ", percentage(unemployed / population)]),
           li([
-            "food",
-            " ",
-            whole(food),
-            " ",
-            perSecond(derivative.foodService.food + derivative.user.food)
+            span([whole(food), " food"]),
+            ul([
+              li(perSecond(derivative.foodService.food + derivative.user.food)),
+              li([time(Math.abs(food / derivative.user.food)), " worth"])
+            ])
           ])
         ])
       )

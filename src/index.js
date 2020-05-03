@@ -1,18 +1,21 @@
 import { run } from "@cycle/run";
-import isolate from "@cycle/isolate";
 import { withState } from "@cycle/state";
 import { timeDriver } from "@cycle/time";
 import xs from "xstream";
 import sampleCombine from "xstream/extra/sampleCombine";
 import { makeDOMDriver } from "@cycle/dom";
+import isolate from "@cycle/isolate";
 
 import { update, set, setAll } from "../util";
 import {
   makeIndustriesStub,
   makeUserStub,
   makeInfoStub,
-  TIMEOUTS
+  TIMEOUTS,
+  INDUSTRIES_UPDATE_SUPPLY_RATE,
+  FOOD_PER_PERSON
 } from "./constant";
+import { makeFoodServiceDerivative } from "./industry-util";
 import NotNotABlog from "./not-not-a-blog";
 
 const initState = {
@@ -51,6 +54,40 @@ const initialDataPromise = fetch("/user-data")
   })
   .then(stubMissingIndustries);
 
+const deriveDeritave = state => ({
+  user: {
+    food: -(FOOD_PER_PERSON * state.user.population)
+  },
+  foodService: makeFoodServiceDerivative(state),
+  agriculture: {
+    agriculture:
+      INDUSTRIES_UPDATE_SUPPLY_RATE.agriculture *
+      state.industries.agriculture.employed
+  },
+  timber: {
+    timber:
+      INDUSTRIES_UPDATE_SUPPLY_RATE.timber * state.industries.timber.employed
+  }
+});
+
+const withDerivedLens = {
+  get: state => {
+    const employed = Object.values(state.industries).reduce(
+      (employed, i) => employed + i.employed,
+      0
+    );
+    return {
+      ...state,
+      derived: {
+        employed,
+        unemployed: state.user.population - employed,
+        derivative: deriveDeritave(state)
+      }
+    };
+  },
+  set: (_, { derived, ...state }) => state
+};
+
 function main(sources) {
   const saveData$ = xs
     .periodic(1e3 * TIMEOUTS.saveData)
@@ -59,17 +96,20 @@ function main(sources) {
     .map(state => set(state, "info.lastSaveDate", Date.now()));
 
   saveData$.addListener({
-    next: data =>
+    next: data => {
       fetch("/user-data", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({ data })
-      })
+      });
+    }
   });
 
-  const notNotABlogSinks = NotNotABlog(sources);
+  const notNotABlogSinks = isolate(NotNotABlog, { state: withDerivedLens })(
+    sources
+  );
 
   return {
     DOM: notNotABlogSinks.DOM,
