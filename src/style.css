@@ -1,0 +1,10 @@
+.not-not-a-blog {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.not-not-a-blog section {
+    margin: 1rem 4rem;
+    min-width: 12rem;
+}

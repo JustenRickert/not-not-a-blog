@@ -8,7 +8,8 @@ import {
   TIMEOUTS,
   POPULATION_CAPACITY_PER_POINT,
   LEAST_POPULATION,
-  POPULATION_GROWTH_RATE
+  POPULATION_GROWTH_RATE,
+  LEAST_UPPER_CAPACITY
 } from "./constant";
 import { whole, percentage, perSecond } from "./format";
 
@@ -31,8 +32,6 @@ const makeStateUpdateStream = (sources, { derived$ }) => {
     .map(([, { employed }]) => state => {
       const { population } = state.user;
       const foodRequired = FOOD_PER_PERSON * TIMEOUTS.population * population;
-      const upperCapacity =
-        LEAST_POPULATION + POPULATION_CAPACITY_PER_POINT * state.user.points;
       if (state.user.food < foodRequired) {
         // delta is negative here
         const delta =
@@ -56,6 +55,9 @@ const makeStateUpdateStream = (sources, { derived$ }) => {
           )
         ]);
       } else {
+        const upperCapacity =
+          LEAST_UPPER_CAPACITY +
+          POPULATION_CAPACITY_PER_POINT * state.user.points;
         const delta =
           TIMEOUTS.population *
           logisticDeltaEquation(

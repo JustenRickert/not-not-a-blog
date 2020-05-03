@@ -89,7 +89,10 @@ run(withState(main), {
 });
 
 if (module.hot) {
-  module.hot.accept();
+  module.hot.accept("./index.js", () => {
+    // TODO probably a way to do this nicer :shrug:
+    window.location.reload();
+  });
 }
 
 // TODO hash on save :)

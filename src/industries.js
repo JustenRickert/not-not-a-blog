@@ -6,11 +6,7 @@ import { setAll, update, withRandomOffset } from "../util";
 import { EMPLOYMENT, INDUSTRIES_UNLOCK_CONDITIONS, TIMEOUTS } from "./constant";
 import Agriculture from "./agriculture";
 import FoodService from "./food-service";
-
-// const makeIndustriesUpdate = sources => {
-//   const industries$ = sources.state.stream.map(state => state.industries);
-//   // const
-// };
+import Timber from "./timber";
 
 const makeUnlockIndustries = sources => {
   const unlock$ = xs
@@ -67,13 +63,18 @@ const industriesReducer = (action$, { derived$ }) => {
 export default function Industries(sources, { derived$ }) {
   const agricultureSinks = Agriculture(sources, { derived$ });
   const foodServiceSinks = FoodService(sources, { derived$ });
+  const timberSinks = Timber(sources, { derived$ });
 
-  const action$ = xs.merge(agricultureSinks.action, foodServiceSinks.action);
+  const action$ = xs.merge(
+    agricultureSinks.action,
+    foodServiceSinks.action,
+    timberSinks.action
+  );
 
   const dom$ = xs
-    .combine(agricultureSinks.DOM, foodServiceSinks.DOM)
-    .map(([agricultureDom, foodServiceDom]) =>
-      div([agricultureDom, foodServiceDom])
+    .combine(agricultureSinks.DOM, foodServiceSinks.DOM, timberSinks.DOM)
+    .map(([agricultureDom, foodServiceDom, timberDom]) =>
+      div([agricultureDom, foodServiceDom, timberDom])
     );
 
   const unlockIndustries$ = makeUnlockIndustries(sources);
@@ -82,6 +83,7 @@ export default function Industries(sources, { derived$ }) {
     unlockIndustries$,
     foodServiceSinks.state,
     agricultureSinks.state,
+    timberSinks.state,
     industriesReducer(action$, { derived$ }).map(reducer => state =>
       update(state, "industries", reducer)
     )

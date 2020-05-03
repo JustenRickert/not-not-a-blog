@@ -12,7 +12,8 @@ import {
   a,
   ul,
   li,
-  span
+  span,
+  nav
 } from "@cycle/dom";
 
 import { updateAll, setAll } from "../util";
@@ -24,9 +25,25 @@ import {
 } from "./constant";
 import User from "./user";
 import Industries from "./industries";
-import { makeFoodServiceDelta } from "./industry-util";
+import { makeFoodServiceDifferential } from "./industry-util";
+
+import "./style.css";
+
+function intent(sources) {
+  const action$ = sources.DOM.select(".tab button")
+    .events("click")
+    .map(e => ({ type: "switch-tab", which: e.target.className }));
+  return action$;
+}
 
 export default function NotNotABlog(sources) {
+  const action$ = intent(sources);
+
+  const tab$ = action$
+    .filter(a => a.type === "switch-tab")
+    .map(a => a.which)
+    .startWith("game-tab");
+
   const derivative$ = sources.state.stream
     .compose(throttle(1e3 * TIMEOUTS.derivativeThrottle))
     .map(state => {
@@ -34,11 +51,16 @@ export default function NotNotABlog(sources) {
         user: {
           food: -(FOOD_PER_PERSON * state.user.population)
         },
-        foodService: makeFoodServiceDelta(state),
+        foodService: makeFoodServiceDifferential(state),
         agriculture: {
           agriculture:
             INDUSTRIES_UPDATE_SUPPLY_RATE.agriculture *
             state.industries.agriculture.employed
+        },
+        timber: {
+          timber:
+            INDUSTRIES_UPDATE_SUPPLY_RATE.timber *
+            state.industries.timber.employed
         }
       };
     });
@@ -61,12 +83,20 @@ export default function NotNotABlog(sources) {
   const industriesSinks = Industries(sources, { derived$ });
 
   const dom$ = xs
-    .combine(sources.state.stream, userSinks.DOM, industriesSinks.DOM)
-    .map(([state, userDom, industriesDom]) =>
-      div(".not-not-a-blog", [
-        div(["last save ", relativeTime(state.info.lastSaveDate)]),
-        section([h2("User"), userDom]),
-        section([h2("Industries"), industriesDom])
+    .combine(tab$, sources.state.stream, userSinks.DOM, industriesSinks.DOM)
+    .map(([tab, state, userDom, industriesDom]) =>
+      div([
+        nav(".tab", [
+          button(".game-tab", "game"),
+          button(".achievements-tab", "achievements")
+        ]),
+        section(["last save ", relativeTime(state.info.lastSaveDate)]),
+        tab === "game-tab"
+          ? div(".not-not-a-blog", [
+              section([h2("User"), userDom]),
+              section([h2("Industries"), industriesDom])
+            ])
+          : div("achievements")
       ])
     );
 

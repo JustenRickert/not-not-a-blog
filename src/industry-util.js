@@ -1,7 +1,7 @@
 import xs from "xstream";
 
 import { INDUSTRIES_UPDATE_SUPPLY_RATE, TIMEOUTS } from "./constant";
-import { withRandomOffset } from "../util";
+import { withRandomOffset, clamp } from "../util";
 
 // TODO: employ/layoff actions should temporarily disable employ/layoff
 export function makeEmploymentAction(sources, industryName) {
@@ -30,17 +30,23 @@ export function makeIndustrySupplyUpdate(sources, industryName) {
   const industry$ = sources.state.stream.map(
     state => state.industries[industryName]
   );
-  const supplyUpdate$ = xs.periodic(1e3 * time).mapTo(industry => ({
-    ...industry,
-    supply: industry.supply + withRandomOffset(rate * time * industry.employed)
-  }));
+  const supplyUpdate$ = xs.periodic(1e3 * time).mapTo(industry => {
+    const delta = withRandomOffset(rate * time * industry.employed);
+    if (delta < 0)
+      console.log("THIS SHOULDNT BE NEGATIVE BUT IT IS", delta, industryName);
+    return {
+      ...industry,
+      supply: industry.supply + delta
+    };
+  });
   return supplyUpdate$;
 }
 
-export function makeFoodServiceDelta(state) {
+// _differential_ is without time, _delta_ is with time. Totally not
+// confusing...
+export function makeFoodServiceDifferential(state) {
   const rate = INDUSTRIES_UPDATE_SUPPLY_RATE.foodService;
-  const time = TIMEOUTS.industries.foodService.agricultureToFood;
-  const maxFoodDelta = rate.unit * time * state.industries.foodService.employed;
+  const maxFoodDelta = rate.unit * state.industries.foodService.employed;
   const maxAgricultureSupplyDelta = maxFoodDelta * rate.agriculture;
   return {
     food: maxFoodDelta,
@@ -49,20 +55,24 @@ export function makeFoodServiceDelta(state) {
 }
 
 export function agricultureToFoodDelta(state) {
-  const maxDelta = makeFoodServiceDelta(state);
-  if (maxDelta.food === 0) {
+  const time = TIMEOUTS.industries.foodService.agricultureToFood;
+  const maxDelta = makeFoodServiceDifferential(state);
+  const maxFoodDelta = maxDelta.food * time;
+  const maxAgricultureDelta = maxDelta.agriculture * time;
+  if (maxFoodDelta === 0) {
     return {
       foodDelta: 0,
       agricultureSupplyDelta: 0
     };
   }
-  const ratio = Math.min(
-    1,
-    Math.abs(state.industries.agriculture.supply / maxDelta.agriculture)
+  const agricultureDelta = -Math.min(
+    state.industries.agriculture.supply,
+    Math.abs(maxAgricultureDelta)
   );
+  const ratio = Math.min(1, agricultureDelta / maxAgricultureDelta);
   return {
-    foodDelta: ratio * maxDelta.food,
-    // TODO(investigate): Do we need this `Math.min(0, ...)`?
-    agricultureSupplyDelta: Math.min(0, ratio * maxDelta.agriculture)
+    foodDelta: ratio * maxFoodDelta,
+    agricultureSupplyDelta: agricultureDelta,
+    ratio
   };
 }

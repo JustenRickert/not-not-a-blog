@@ -34,7 +34,10 @@ module.exports = [
     //   }
     // },
     entry: {
-      index: [isDev && "webpack-hot-middleware/client", "./src"].filter(Boolean)
+      index: [
+        isDev && "webpack-hot-middleware/client?reload=true",
+        "./src"
+      ].filter(Boolean)
     },
     output: {
       path: path.resolve("public"),

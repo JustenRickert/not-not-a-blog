@@ -14,24 +14,54 @@ function intent(sources) {
 
 function stateUpdate(sources) {
   const time = TIMEOUTS.industries.foodService.agricultureToFood;
-  const update$ = xs
-    .periodic(1e3 * TIMEOUTS.industries.foodService.agricultureToFood)
-    .mapTo(state => {
-      const { foodDelta, agricultureSupplyDelta } = agricultureToFoodDelta(
-        state
-      );
-      return updateAll(state, [
-        ["user.food", food => food + withRandomOffset(foodDelta * time)],
+  const agricultureToFoodDelta$ = xs
+    .periodic(1e3 * time)
+    // accounts for time already
+    .mapTo(agricultureToFoodDelta)
+    .compose(sampleCombine(sources.state.stream))
+    .map(([reducer, state]) => reducer(state))
+    .map(delta =>
+      updateAll(delta, [
+        ["foodDelta", withRandomOffset],
+        ["agricultureSupplyDelta", withRandomOffset]
+      ])
+    );
+  // a bit annoying that we have to thread through state twice... once to
+  // compute the delta, then again to actually reduce the result
+  const reducer$ = agricultureToFoodDelta$.map(
+    ({ foodDelta, agricultureSupplyDelta }) => state =>
+      updateAll(state, [
+        ["user.food", food => food + foodDelta],
         [
           "industries.agriculture.supply",
-          supply => supply + withRandomOffset(agricultureSupplyDelta * time)
+          supply => Math.max(0, supply + agricultureSupplyDelta) // avoid negative supply
         ]
-      ]);
-    });
-  return update$;
+      ])
+  );
+  return {
+    reducer: reducer$,
+    agricultureToFoodDelta: agricultureToFoodDelta$
+  };
 }
 
 export default function FoodService(sources, { derived$ }) {
+  const stateUpdateSinks = stateUpdate(sources);
+
+  const notEnoughAgriculture$ = stateUpdateSinks.agricultureToFoodDelta.filter(
+    ({ ratio }) => typeof ratio === "number" && ratio < 1
+  );
+
+  notEnoughAgriculture$.addListener({
+    next: delta => {
+      console.log("TODO");
+      console.log(
+        "There is not enough agriculture to support the amount of food",
+        "employed to produce it!",
+        "Probably just want to show like an error or something"
+      );
+    }
+  });
+
   const foodService$ = sources.state.stream.map(
     state => state.industries.foodService
   );
@@ -53,11 +83,10 @@ export default function FoodService(sources, { derived$ }) {
     });
 
   const action$ = intent(sources);
-  const stateReducer$ = stateUpdate(sources);
 
   return {
     DOM: dom$,
     action: action$,
-    state: stateReducer$
+    state: stateUpdateSinks.reducer
   };
 }
