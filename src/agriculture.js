@@ -6,6 +6,7 @@ import {
   makeEmploymentAction,
   makeIndustrySupplyUpdate
 } from "./industry-util";
+import { whole, perSecond, plural } from "./format";
 
 function intent(sources) {
   const employmentAction$ = makeEmploymentAction(sources, "agriculture");
@@ -17,26 +18,27 @@ function industryUpdate(sources) {
   return update$;
 }
 
-export default function Agriculture(sources, { info$ }) {
+export default function Agriculture(sources, { derived$ }) {
   const agriculture$ = sources.state.stream.map(
     state => state.industries.agriculture
   );
 
   const dom$ = xs
-    .combine(agriculture$, info$)
+    .combine(agriculture$, derived$)
     .map(([{ supply, employed }, { derivative }]) =>
       div(".agriculture", [
         h3("Agriculture"),
         ul([
-          li(["employed", " ", employed]),
+          li([whole(employed), " ", plural(employed, "worker", "workers")]),
           li([
-            "supply",
+            whole(supply),
             " ",
-            supply,
+            plural(supply, "supply", "supplies"),
             " ",
-            derivative.agriculture.agriculture +
-              derivative.foodService.agriculture,
-            "/s"
+            perSecond(
+              derivative.agriculture.agriculture +
+                derivative.foodService.agriculture
+            )
           ])
         ]),
         button(".employ", "employ"),

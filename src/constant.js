@@ -1,16 +1,16 @@
 export const TIMEOUTS = {
-  saveData: 30e3,
-  points: 1e3,
-  population: 10e3,
-  food: 3e3,
-  unlockIndustries: 120e3,
-  derivativeThrottle: 15e3,
+  saveData: 30,
+  points: 1,
+  population: 10,
+  food: 3,
+  unlockIndustries: 7,
+  derivativeThrottle: 4,
   industries: {
     agriculture: {
-      supply: 4e3
+      supply: 2
     },
     foodService: {
-      agricultureToFood: 7e3
+      agricultureToFood: 3
     }
   }
 };

@@ -45,8 +45,7 @@ const initialDataPromise = fetch("/user-data")
         update(
           state,
           "user.points",
-          points =>
-            points + (Date.now() - state.info.lastSaveDate) / TIMEOUTS.points
+          points => points + (Date.now() - state.info.lastSaveDate) / 1000
         )
       );
   })
@@ -54,7 +53,7 @@ const initialDataPromise = fetch("/user-data")
 
 function main(sources) {
   const saveData$ = xs
-    .periodic(TIMEOUTS.saveData)
+    .periodic(1e3 * TIMEOUTS.saveData)
     .compose(sampleCombine(sources.state.stream))
     .map(([, state]) => state)
     .map(state => set(state, "info.lastSaveDate", Date.now()));

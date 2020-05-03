@@ -16,6 +16,7 @@ import {
 } from "@cycle/dom";
 
 import { updateAll, setAll } from "../util";
+import { relativeTime } from "./format";
 import {
   TIMEOUTS,
   INDUSTRIES_UPDATE_SUPPLY_RATE,
@@ -27,34 +28,22 @@ import { makeFoodServiceDelta } from "./industry-util";
 
 export default function NotNotABlog(sources) {
   const derivative$ = sources.state.stream
-    .compose(throttle(TIMEOUTS.derivativeThrottle))
+    .compose(throttle(1e3 * TIMEOUTS.derivativeThrottle))
     .map(state => {
-      const foodServiceDelta = makeFoodServiceDelta(state);
-      const agricultureSupplyDelta =
-        INDUSTRIES_UPDATE_SUPPLY_RATE.agriculture *
-        state.industries.agriculture.employed;
       return {
         user: {
-          food:
-            -(FOOD_PER_PERSON * state.user.population) / (TIMEOUTS.food / 1000)
+          food: -(FOOD_PER_PERSON * state.user.population)
         },
-        foodService: {
-          food:
-            foodServiceDelta.food /
-            (TIMEOUTS.industries.foodService.agricultureToFood / 1000),
-          agriculture:
-            foodServiceDelta.agriculture /
-            (TIMEOUTS.industries.foodService.agricultureToFood / 1000)
-        },
+        foodService: makeFoodServiceDelta(state),
         agriculture: {
           agriculture:
-            agricultureSupplyDelta /
-            (TIMEOUTS.industries.agriculture.supply / 1000)
+            INDUSTRIES_UPDATE_SUPPLY_RATE.agriculture *
+            state.industries.agriculture.employed
         }
       };
     });
 
-  const info$ = xs
+  const derived$ = xs
     .combine(sources.state.stream, derivative$)
     .map(([{ user, industries }, derivative]) => {
       const employed = Object.values(industries).reduce(
@@ -68,14 +57,14 @@ export default function NotNotABlog(sources) {
       };
     });
 
-  const userSinks = User(sources, { info$ });
-  const industriesSinks = Industries(sources, { info$ });
+  const userSinks = User(sources, { derived$ });
+  const industriesSinks = Industries(sources, { derived$ });
 
   const dom$ = xs
     .combine(sources.state.stream, userSinks.DOM, industriesSinks.DOM)
     .map(([state, userDom, industriesDom]) =>
       div(".not-not-a-blog", [
-        div(["last save ", state.info.lastSaveDate]),
+        div(["last save ", relativeTime(state.info.lastSaveDate)]),
         section([h2("User"), userDom]),
         section([h2("Industries"), industriesDom])
       ])

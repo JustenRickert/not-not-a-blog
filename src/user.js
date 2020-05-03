@@ -10,35 +10,38 @@ import {
   LEAST_POPULATION,
   POPULATION_GROWTH_RATE
 } from "./constant";
+import { whole, percentage, perSecond } from "./format";
 
 const logisticDeltaEquation = (p, capacity, rate) =>
   p * rate * (1 - p / capacity);
 
-const makeStateUpdateStream = (sources, { info$ }) => {
+const makeStateUpdateStream = (sources, { derived$ }) => {
   // TODO(maybe) If points updating changes in the future, make sure to update
   // the way points are updated since last save.
-  const pointsReducer$ = xs.periodic(TIMEOUTS.points).mapTo(state => {
-    return update(state, "user.points", points => points + 1);
+  const pointsReducer$ = xs.periodic(1e3 * TIMEOUTS.points).mapTo(state => {
+    return update(state, "user.points", points => points + TIMEOUTS.points);
   });
 
   // TODO(probably not) population growth while not playing would be tricky to
   // calculate with `food` in play. If it should be supported, it needs to be
   // figured out...
   const populationReducer$ = xs
-    .periodic(TIMEOUTS.population)
-    .compose(sampleCombine(info$))
+    .periodic(1e3 * TIMEOUTS.population)
+    .compose(sampleCombine(derived$))
     .map(([, { employed }]) => state => {
       const { population } = state.user;
-      const foodRequired = FOOD_PER_PERSON * population;
+      const foodRequired = FOOD_PER_PERSON * TIMEOUTS.population * population;
       const upperCapacity =
         LEAST_POPULATION + POPULATION_CAPACITY_PER_POINT * state.user.points;
       if (state.user.food < foodRequired) {
         // delta is negative here
-        const delta = logisticDeltaEquation(
-          population,
-          LEAST_POPULATION,
-          POPULATION_GROWTH_RATE
-        );
+        const delta =
+          TIMEOUTS.population *
+          logisticDeltaEquation(
+            population,
+            LEAST_POPULATION,
+            POPULATION_GROWTH_RATE
+          );
         const newPopulation = Math.max(LEAST_POPULATION, population + delta);
         const newPopulationPercentage = newPopulation / population;
         const newEmployedPercentage =
@@ -53,11 +56,13 @@ const makeStateUpdateStream = (sources, { info$ }) => {
           )
         ]);
       } else {
-        const delta = logisticDeltaEquation(
-          population,
-          upperCapacity,
-          POPULATION_GROWTH_RATE
-        );
+        const delta =
+          TIMEOUTS.population *
+          logisticDeltaEquation(
+            population,
+            upperCapacity,
+            POPULATION_GROWTH_RATE
+          );
         return set(
           state,
           "user.population",
@@ -69,39 +74,38 @@ const makeStateUpdateStream = (sources, { info$ }) => {
       }
     });
 
-  const foodReducer$ = xs.periodic(TIMEOUTS.food).mapTo(state => {
-    const foodDelta = FOOD_PER_PERSON * state.user.population;
+  const foodReducer$ = xs.periodic(1e3 * TIMEOUTS.food).mapTo(state => {
+    const foodDelta = FOOD_PER_PERSON * TIMEOUTS.food * state.user.population;
     return update(state, "user.food", food => Math.max(0, food - foodDelta));
   });
 
   return xs.merge(pointsReducer$, populationReducer$, foodReducer$);
 };
 
-export default function User(sources, { info$ }) {
+export default function User(sources, { derived$ }) {
   const user$ = sources.state.stream.map(state => state.user);
 
   const dom$ = xs
-    .combine(user$, info$)
+    .combine(user$, derived$)
     .map(([{ population, points, food }, { unemployed, derivative }]) =>
       div(
         ".user",
         ul([
-          li(["points", " ", points]),
-          li(["population", " ", population]),
-          li(["unemployment", " ", 100 * (unemployed / population), "%"]),
+          li(["points", " ", whole(points)]),
+          li(["population", " ", whole(population)]),
+          li(["unemployment", " ", percentage(unemployed / population)]),
           li([
             "food",
             " ",
-            food,
+            whole(food),
             " ",
-            derivative.foodService.food + derivative.user.food,
-            "/s"
+            perSecond(derivative.foodService.food + derivative.user.food)
           ])
         ])
       )
     );
 
-  const reducer$ = makeStateUpdateStream(sources, { info$ });
+  const reducer$ = makeStateUpdateStream(sources, { derived$ });
 
   return {
     DOM: dom$,

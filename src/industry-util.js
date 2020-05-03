@@ -1,6 +1,7 @@
 import xs from "xstream";
 
 import { INDUSTRIES_UPDATE_SUPPLY_RATE, TIMEOUTS } from "./constant";
+import { withRandomOffset } from "../util";
 
 // TODO: employ/layoff actions should temporarily disable employ/layoff
 export function makeEmploymentAction(sources, industryName) {
@@ -25,21 +26,21 @@ export function makeEmploymentAction(sources, industryName) {
 
 export function makeIndustrySupplyUpdate(sources, industryName) {
   const rate = INDUSTRIES_UPDATE_SUPPLY_RATE[industryName];
+  const time = TIMEOUTS.industries[industryName].supply;
   const industry$ = sources.state.stream.map(
     state => state.industries[industryName]
   );
-  const supplyUpdate$ = xs
-    .periodic(TIMEOUTS.industries[industryName].supply)
-    .mapTo(industry => ({
-      ...industry,
-      supply: industry.supply + rate * industry.employed
-    }));
+  const supplyUpdate$ = xs.periodic(1e3 * time).mapTo(industry => ({
+    ...industry,
+    supply: industry.supply + withRandomOffset(rate * time * industry.employed)
+  }));
   return supplyUpdate$;
 }
 
 export function makeFoodServiceDelta(state) {
   const rate = INDUSTRIES_UPDATE_SUPPLY_RATE.foodService;
-  const maxFoodDelta = rate.unit * state.industries.foodService.employed;
+  const time = TIMEOUTS.industries.foodService.agricultureToFood;
+  const maxFoodDelta = rate.unit * time * state.industries.foodService.employed;
   const maxAgricultureSupplyDelta = maxFoodDelta * rate.agriculture;
   return {
     food: maxFoodDelta,
