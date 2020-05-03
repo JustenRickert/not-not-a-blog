@@ -65,8 +65,8 @@ const industriesReducer = (action$, { info$ }) => {
 };
 
 export default function Industries(sources, { info$ }) {
-  const agricultureSinks = Agriculture(sources);
-  const foodServiceSinks = FoodService(sources);
+  const agricultureSinks = Agriculture(sources, { info$ });
+  const foodServiceSinks = FoodService(sources, { info$ });
 
   const action$ = xs.merge(agricultureSinks.action, foodServiceSinks.action);
 

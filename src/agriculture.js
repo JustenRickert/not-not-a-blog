@@ -17,19 +17,32 @@ function industryUpdate(sources) {
   return update$;
 }
 
-export default function Agriculture(sources) {
+export default function Agriculture(sources, { info$ }) {
   const agriculture$ = sources.state.stream.map(
     state => state.industries.agriculture
   );
 
-  const dom$ = agriculture$.map(({ supply, employed }) =>
-    div(".agriculture", [
-      h3("Agriculture"),
-      ul([li(["supply", " ", supply]), li(["employed", " ", employed])]),
-      button(".employ", "employ"),
-      button(".layoff", "layoff")
-    ])
-  );
+  const dom$ = xs
+    .combine(agriculture$, info$)
+    .map(([{ supply, employed }, { derivative }]) =>
+      div(".agriculture", [
+        h3("Agriculture"),
+        ul([
+          li(["employed", " ", employed]),
+          li([
+            "supply",
+            " ",
+            supply,
+            " ",
+            derivative.agriculture.agriculture +
+              derivative.foodService.agriculture,
+            "/s"
+          ])
+        ]),
+        button(".employ", "employ"),
+        button(".layoff", "layoff")
+      ])
+    );
 
   const action$ = intent(sources);
   const update$ = industryUpdate(sources);

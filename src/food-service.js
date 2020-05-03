@@ -12,7 +12,6 @@ function intent(sources) {
 }
 
 function stateUpdate(sources) {
-  const rate = INDUSTRIES_UPDATE_SUPPLY_RATE.foodService;
   const update$ = xs
     .periodic(TIMEOUTS.industries.foodService.agricultureToFood)
     .mapTo(state => {

@@ -4,12 +4,13 @@ export const TIMEOUTS = {
   population: 10e3,
   food: 3e3,
   unlockIndustries: 120e3,
+  derivativeThrottle: 15e3,
   industries: {
     agriculture: {
-      supply: 5e3
+      supply: 4e3
     },
     foodService: {
-      agricultureToFood: 5e3
+      agricultureToFood: 7e3
     }
   }
 };
@@ -25,7 +26,7 @@ export const makeUserStub = () => ({
   population: LEAST_POPULATION,
   points: 0,
   food: 100
-  // TODO: ...
+  // TODO: implement timber industry and then housing ...
   // housing: 0
 });
 
@@ -55,9 +56,9 @@ export const EMPLOYMENT = {
 };
 
 export const INDUSTRIES_UPDATE_SUPPLY_RATE = {
-  agriculture: 0.05,
+  agriculture: 0.5,
   foodService: {
-    unit: 0.5,
-    agriculture: 3
+    unit: 0.9,
+    agriculture: -1
   }
 };

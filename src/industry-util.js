@@ -2,6 +2,7 @@ import xs from "xstream";
 
 import { INDUSTRIES_UPDATE_SUPPLY_RATE, TIMEOUTS } from "./constant";
 
+// TODO: employ/layoff actions should temporarily disable employ/layoff
 export function makeEmploymentAction(sources, industryName) {
   const employmentClick$ = xs.merge(
     sources.DOM.select(`.${industryName} .employ`)
@@ -36,23 +37,31 @@ export function makeIndustrySupplyUpdate(sources, industryName) {
   return supplyUpdate$;
 }
 
-export function agricultureToFoodDelta(state) {
+export function makeFoodServiceDelta(state) {
   const rate = INDUSTRIES_UPDATE_SUPPLY_RATE.foodService;
   const maxFoodDelta = rate.unit * state.industries.foodService.employed;
-  if (maxFoodDelta === 0) {
+  const maxAgricultureSupplyDelta = maxFoodDelta * rate.agriculture;
+  return {
+    food: maxFoodDelta,
+    agriculture: maxAgricultureSupplyDelta
+  };
+}
+
+export function agricultureToFoodDelta(state) {
+  const maxDelta = makeFoodServiceDelta(state);
+  if (maxDelta.food === 0) {
     return {
       foodDelta: 0,
       agricultureSupplyDelta: 0
     };
   }
-  const maxAgricultureSupplyDelta = maxFoodDelta * rate.agriculture;
   const ratio = Math.min(
     1,
-    state.industries.agriculture.supply / maxAgricultureSupplyDelta
+    Math.abs(state.industries.agriculture.supply / maxDelta.agriculture)
   );
   return {
-    foodDelta: ratio * maxFoodDelta,
-    // TODO(investigate): Do we need this `Math.max(0, ...)`?
-    agricultureSupplyDelta: -Math.max(0, ratio * maxAgricultureSupplyDelta)
+    foodDelta: ratio * maxDelta.food,
+    // TODO(investigate): Do we need this `Math.min(0, ...)`?
+    agricultureSupplyDelta: Math.min(0, ratio * maxDelta.agriculture)
   };
 }
