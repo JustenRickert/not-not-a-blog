@@ -26,6 +26,7 @@ import {
 } from "./constant";
 import User from "./user";
 import Industries from "./industries";
+import Achievements from "./achievements";
 import { makeFoodServiceDerivative } from "./industry-util";
 
 import "./style.css";
@@ -33,43 +34,64 @@ import "./style.css";
 function intent(sources) {
   const action$ = sources.DOM.select(".tab button")
     .events("click")
-    .map(e => ({ type: "switch-tab", which: e.target.className }));
+    .map(e => ({
+      type: "switch-tab",
+      which: e.target.className.replace(/-tab/, "")
+    }));
   return action$;
 }
 
 export default function NotNotABlog(sources) {
   const action$ = intent(sources);
 
-  const tab$ = action$
-    .filter(a => a.type === "switch-tab")
-    .map(a => a.which)
-    .startWith("game-tab");
+  const forwardAndBackward$ = sources.history
+    .drop(1)
+    .filter(({ type }) => type === undefined);
+
+  const tab$ = xs
+    .merge(
+      action$.filter(a => a.type === "switch-tab").map(a => "#" + a.which),
+      forwardAndBackward$.map(a => a.hash) // TODO this only goes back once... could maybe be better
+    )
+    .startWith(location.hash || "#game");
 
   const userSinks = User(sources);
   const industriesSinks = Industries(sources);
+  const achievementsSinks = Achievements(sources);
 
   const dom$ = xs
-    .combine(tab$, sources.state.stream, userSinks.DOM, industriesSinks.DOM)
-    .map(([tab, state, userDom, industriesDom]) =>
+    .combine(
+      tab$,
+      sources.state.stream,
+      userSinks.DOM,
+      industriesSinks.DOM,
+      achievementsSinks.DOM
+    )
+    .map(([tab, state, userDom, industriesDom, achievementsDom]) =>
       div([
         nav(".tab", [
           button(".game-tab", "game"),
           button(".achievements-tab", "achievements")
         ]),
         section(["last save ", relativeTime(state.info.lastSaveDate)]),
-        tab === "game-tab"
+        tab === "#game"
           ? div(".not-not-a-blog", [
               section([h2("User"), userDom]),
               section([h2("Industries"), industriesDom])
             ])
-          : div("achievements")
+          : achievementsDom
       ])
     );
 
-  const reducer$ = xs.merge(userSinks.state, industriesSinks.state);
+  const reducer$ = xs.merge(
+    userSinks.state,
+    industriesSinks.state,
+    achievementsSinks.state
+  );
 
   return {
     DOM: dom$,
-    state: reducer$
+    state: reducer$,
+    history: tab$
   };
 }

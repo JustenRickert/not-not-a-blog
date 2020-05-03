@@ -12,7 +12,6 @@ import {
 import {
   FOOD_PER_PERSON,
   TIMEOUTS,
-  POPULATION_CAPACITY_PER_POINT,
   LEAST_POPULATION,
   POPULATION_GROWTH_RATE,
   LEAST_UPPER_CAPACITY
@@ -36,7 +35,6 @@ const makeStateUpdateStream = (sources, { derived$ }) => {
       const { population } = state.user;
       const foodRequired = FOOD_PER_PERSON * TIMEOUTS.population * population;
       if (state.user.food < foodRequired) {
-        // delta is negative here
         const delta =
           TIMEOUTS.population *
           logisticDeltaEquation(
@@ -44,6 +42,7 @@ const makeStateUpdateStream = (sources, { derived$ }) => {
             LEAST_POPULATION,
             POPULATION_GROWTH_RATE
           );
+        if (delta > 0) throw new Error("`delta` should be negative here!");
         const newPopulation = Math.max(LEAST_POPULATION, population + delta);
         const newPopulationPercentage = newPopulation / population;
         const newEmployedPercentage =
@@ -59,12 +58,8 @@ const makeStateUpdateStream = (sources, { derived$ }) => {
         ]);
       } else {
         const delta = TIMEOUTS.population * derivative.user.population;
-        return set(
-          state,
-          "user.population",
-          // TODO Need min-max here?
-          population + delta
-        );
+        // TODO Need min-max here? (I don't think so :thinking:)
+        return set(state, "user.population", population + delta);
       }
     });
 

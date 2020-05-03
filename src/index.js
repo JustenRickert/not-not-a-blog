@@ -5,6 +5,7 @@ import xs from "xstream";
 import sampleCombine from "xstream/extra/sampleCombine";
 import { makeDOMDriver } from "@cycle/dom";
 import isolate from "@cycle/isolate";
+import { makeHistoryDriver } from "@cycle/history";
 
 import { update, set, setAll, logisticDeltaEquation } from "../util";
 import {
@@ -15,8 +16,9 @@ import {
   INDUSTRIES_UPDATE_SUPPLY_RATE,
   FOOD_PER_PERSON,
   POPULATION_GROWTH_RATE,
-  POPULATION_CAPACITY_PER_POINT,
-  LEAST_UPPER_CAPACITY
+  POPULATION_CAPACITY,
+  LEAST_UPPER_CAPACITY,
+  makeAchievementsStub
 } from "./constant";
 import {
   makeFoodServiceDerivative,
@@ -27,7 +29,31 @@ import NotNotABlog from "./not-not-a-blog";
 const initState = {
   info: makeInfoStub(),
   user: makeUserStub(),
-  industries: makeIndustriesStub()
+  industries: makeIndustriesStub(),
+  achievements: makeAchievementsStub()
+};
+
+const stubMissingTopLevel = state => {
+  const initialState = Object.entries(initState);
+  return setAll(
+    state,
+    initialState
+      .filter(([stateName]) => !state[stateName])
+      .map(([stateName, stub]) => [stateName, stub])
+  );
+};
+
+const stubMissingAchievements = state => {
+  const initialAchievements = Object.entries(initState.achievements);
+  return setAll(
+    state,
+    initialAchievements
+      .filter(([achievementName]) => !state.achievements[achievementName])
+      .map(([achievementName, stub]) => [
+        ["achievements", achievementName],
+        stub
+      ])
+  );
 };
 
 const stubMissingIndustries = state => {
@@ -58,13 +84,17 @@ const initialDataPromise = fetch("/user-data")
         )
       );
   })
+  .then(stubMissingTopLevel)
+  .then(stubMissingAchievements)
   .then(stubMissingIndustries);
 
 const deriveDeritave = state => ({
   user: {
     population: logisticDeltaEquation(
       state.user.population,
-      LEAST_UPPER_CAPACITY + POPULATION_CAPACITY_PER_POINT * state.user.points,
+      LEAST_UPPER_CAPACITY +
+        POPULATION_CAPACITY.perPoint * state.user.points +
+        POPULATION_CAPACITY.perHouse * state.user.houses,
       POPULATION_GROWTH_RATE
     ),
     food: -(FOOD_PER_PERSON * state.user.population)
@@ -131,13 +161,15 @@ function main(sources) {
         .map(initialState => () => initialState),
       saveData$.map(state => () => state),
       notNotABlogSinks.state
-    )
+    ),
+    history: notNotABlogSinks.history
   };
 }
 
 run(withState(main), {
   DOM: makeDOMDriver("#root"),
-  Time: timeDriver
+  Time: timeDriver,
+  history: makeHistoryDriver()
 });
 
 if (module.hot) {
