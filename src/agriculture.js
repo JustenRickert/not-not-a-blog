@@ -29,7 +29,7 @@ export default function Agriculture(sources) {
     .combine(user$, agriculture$, derived$)
     .map(([{ population }, { supply, employed }, { derivative }]) =>
       div(".agriculture", [
-        h3("Agriculture"),
+        h3("Agriculture 🚜"),
         ul([
           li([
             whole(employed),

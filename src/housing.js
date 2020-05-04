@@ -75,12 +75,13 @@ export default function Housing(sources) {
     ({
       user: { population },
       industries: {
-        housing: { employed }
+        housing: { employed, unlocked }
       },
       derived: { derivative }
-    }) =>
-      div(".housing", [
-        h3("Housing"),
+    }) => {
+      if (!unlocked) return null;
+      return div(".housing", [
+        h3("Housing 🏠"),
         ul([
           li([
             whole(employed),
@@ -93,7 +94,8 @@ export default function Housing(sources) {
         ]),
         button(".employ", "employ"),
         button(".layoff", "layoff")
-      ])
+      ]);
+    }
   );
 
   const action$ = intent(sources);

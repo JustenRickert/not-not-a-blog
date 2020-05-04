@@ -28,7 +28,7 @@ export default function Timber(sources) {
     .map(([{ population }, { supply, employed, unlocked }, { derivative }]) => {
       if (!unlocked) return null;
       return div(".timber", [
-        h3("Timber"),
+        h3("Timber 🌲"),
         ul([
           li([
             whole(employed),

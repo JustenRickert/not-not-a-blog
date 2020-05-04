@@ -1,23 +1,22 @@
 export const TIMEOUTS = {
-  saveData: 30,
+  saveData: 31,
   points: 1,
-  population: 10,
-  food: 3,
-  unlockIndustries: 7,
-  unlockAchievements: 13,
-  derivativeThrottle: 4,
+  food: 1,
+  population: 5,
+  unlockIndustries: 15,
+  unlockAchievements: 15,
   industries: {
     agriculture: {
-      supply: 2
+      supply: 1
     },
     foodService: {
-      agricultureToFood: 2
+      agricultureToFood: 5
     },
     timber: {
-      supply: 3.5
+      supply: 1
     },
     housing: {
-      timberToHouses: 1
+      timberToHouses: 5
     }
   }
 };
@@ -51,7 +50,7 @@ export const makeUserStub = () => ({
 });
 
 const INDUSTRY_STUB = {
-  unlocked: false,
+  unlocked: null,
   employed: 0
 };
 
@@ -78,7 +77,8 @@ export const ACHIEVEMENTS_LABELS = {
   agricultureStockpiler1_000_000: "Agriculture Stockpiler One-million",
   agricultureEmployer10_000: "Agriculture Employer Ten-thousand",
   timberStockpiler1_000_000: "Timber Stockpiler One-million",
-  timberEmployer10_000: "Timber Employer Ten-thousand"
+  timberEmployer10_000: "Timber Employer Ten-thousand",
+  collapseHappens: "Experience Collapse"
 };
 
 export const ACHIEVEMENTS_UNLOCK_CONDITIONS = {
@@ -92,7 +92,10 @@ export const ACHIEVEMENTS_UNLOCK_CONDITIONS = {
   agricultureEmployer10_000: state =>
     state.industries.agriculture.employed > 10e3,
   timberStockpiler1_000_000: state => state.industries.timber.supply > 1e6,
-  timberEmployer10_000: state => state.industries.timber.employed > 10e3
+  timberEmployer10_000: state => state.industries.timber.employed > 10e3,
+  collapseHappens: state =>
+    Object.values(state.achievements).some(ach => ach.unlocked) &&
+    state.population < 500
 };
 
 export const makeAchievementsStub = () =>
@@ -114,7 +117,7 @@ export const POPULATION_CAPACITY = {
   perHouse: 5
 };
 
-export const POPULATION_GROWTH_RATE = 0.00025;
+export const POPULATION_GROWTH_RATE = 0.0025;
 
 export const EMPLOYMENT = {
   layoffRate: 0.02,

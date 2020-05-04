@@ -6,5 +6,20 @@
 
 .not-not-a-blog section {
     margin: 1rem 4rem;
-    min-width: 14rem;
+    min-width: 16rem;
+}
+
+.tab-nav {
+    display: flex;
+    flex-direction: column;
+    min-width: 8rem;
+}
+
+.tab-nav button {
+    margin: 0.5rem 1rem 0.5rem 1rem;
+    padding: 0.25rem;
+}
+
+.container {
+    display: flex;
 }

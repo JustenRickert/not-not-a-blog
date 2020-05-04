@@ -22,7 +22,8 @@ import {
 } from "./constant";
 import {
   makeFoodServiceDerivative,
-  makeHousingDerivative
+  makeHousingDerivative,
+  makeUserPopulationDerivative
 } from "./industry-util";
 import NotNotABlog from "./not-not-a-blog";
 
@@ -88,15 +89,12 @@ const initialDataPromise = fetch("/user-data")
   .then(stubMissingAchievements)
   .then(stubMissingIndustries);
 
+const tap = (ex, x) => (console.log(ex), console.log(x), x);
+
 const deriveDeritave = state => ({
   user: {
-    population: logisticDeltaEquation(
-      state.user.population,
-      LEAST_UPPER_CAPACITY +
-        POPULATION_CAPACITY.perPoint * state.user.points +
-        POPULATION_CAPACITY.perHouse * state.user.houses,
-      POPULATION_GROWTH_RATE
-    ),
+    points: 1,
+    population: makeUserPopulationDerivative(state),
     food: -(FOOD_PER_PERSON * state.user.population)
   },
   foodService: makeFoodServiceDerivative(state),

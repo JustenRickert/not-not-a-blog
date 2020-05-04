@@ -73,7 +73,7 @@ export default function FoodService(sources) {
     .map(([{ population }, { supply, employed, unlocked }, { derivative }]) => {
       if (!unlocked) return null;
       return div(".foodService", [
-        h3("Food Service"),
+        h3("Food Service 🍽"),
         ul([
           li([
             whole(employed),

@@ -27,12 +27,13 @@ import {
 import User from "./user";
 import Industries from "./industries";
 import Achievements from "./achievements";
+import QuickView from "./quick-view";
 import { makeFoodServiceDerivative } from "./industry-util";
 
 import "./style.css";
 
 function intent(sources) {
-  const action$ = sources.DOM.select(".tab button")
+  const action$ = sources.DOM.select(".tab-nav button")
     .events("click")
     .map(e => ({
       type: "switch-tab",
@@ -58,35 +59,59 @@ export default function NotNotABlog(sources) {
   const userSinks = User(sources);
   const industriesSinks = Industries(sources);
   const achievementsSinks = Achievements(sources);
+  const worldSinks = {
+    // TODO What happens in the world? :o
+    DOM: xs.of("uh oh").mapTo(div("uh oh!"))
+  };
+  const quickView = QuickView(sources);
 
   const dom$ = xs
     .combine(
       tab$,
       sources.state.stream,
+      quickView.DOM,
       userSinks.DOM,
       industriesSinks.DOM,
+      worldSinks.DOM,
       achievementsSinks.DOM
     )
-    .map(([tab, state, userDom, industriesDom, achievementsDom]) =>
-      div([
-        nav(".tab", [
-          button(".game-tab", "game"),
-          button(".achievements-tab", "achievements")
-        ]),
-        section(["last save ", relativeTime(state.info.lastSaveDate)]),
-        tab === "#game"
-          ? div(".not-not-a-blog", [
-              section([h2("User"), userDom]),
-              section([h2("Industries"), industriesDom])
+    .map(
+      ([
+        tab,
+        state,
+        quickViewDom,
+        userDom,
+        industriesDom,
+        worldDom,
+        achievementsDom
+      ]) =>
+        div(".container", [
+          div(
+            nav(".tab-nav", [
+              button(".game-tab", "Game"),
+              button(".world-tab", "World"),
+              button(".achievements-tab", "Achievements"),
+              section(["last save ", relativeTime(state.info.lastSaveDate)]),
+              quickViewDom
             ])
-          : achievementsDom
-      ])
+          ),
+          div(
+            tab === "#game"
+              ? div(".not-not-a-blog", [
+                  section([h2("User"), userDom]),
+                  section([h2("Industries"), industriesDom])
+                ])
+              : tab === "#world"
+              ? worldDom
+              : achievementsDom
+          )
+        ])
     );
 
   const reducer$ = xs.merge(
-    userSinks.state,
+    achievementsSinks.state,
     industriesSinks.state,
-    achievementsSinks.state
+    userSinks.state
   );
 
   return {

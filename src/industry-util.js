@@ -1,7 +1,15 @@
 import xs from "xstream";
 
-import { INDUSTRIES_UPDATE_SUPPLY_RATE, TIMEOUTS } from "./constant";
-import { withRandomOffset, clamp } from "../util";
+import {
+  INDUSTRIES_UPDATE_SUPPLY_RATE,
+  TIMEOUTS,
+  LEAST_POPULATION,
+  POPULATION_GROWTH_RATE,
+  POPULATION_CAPACITY,
+  FOOD_PER_PERSON,
+  LEAST_UPPER_CAPACITY
+} from "./constant";
+import { withRandomOffset, clamp, logisticDeltaEquation } from "../util";
 import sampleCombine from "xstream/extra/sampleCombine";
 
 // TODO: employ/layoff actions should temporarily disable employ/layoff
@@ -44,6 +52,26 @@ export function makeIndustrySupplyUpdate(sources, industryName) {
       };
     });
   return supplyUpdate$;
+}
+
+export function makeUserPopulationDerivative(state) {
+  const foodRequired =
+    FOOD_PER_PERSON * TIMEOUTS.population * state.user.population;
+  if (state.user.food < foodRequired) {
+    return logisticDeltaEquation(
+      state.user.population,
+      LEAST_POPULATION,
+      POPULATION_GROWTH_RATE
+    );
+  } else {
+    return logisticDeltaEquation(
+      state.user.population,
+      LEAST_UPPER_CAPACITY +
+        POPULATION_CAPACITY.perPoint * state.user.points +
+        POPULATION_CAPACITY.perHouse * state.user.houses,
+      POPULATION_GROWTH_RATE
+    );
+  }
 }
 
 // _derivative_ is without time, _delta_ is with time. Totally not confusing...
