@@ -26,18 +26,25 @@ function stateUpdate(sources) {
         ["agricultureSupplyDelta", withRandomOffset]
       ])
     );
-  // a bit annoying that we have to thread through state twice... once to
-  // compute the delta, then again to actually reduce the result
-  const reducer$ = agricultureToFoodDelta$.map(
-    ({ foodDelta, agricultureSupplyDelta }) => state =>
-      updateAll(state, [
-        ["user.food", food => food + foodDelta],
-        [
-          "industries.agriculture.supply",
-          supply => Math.max(0, supply + agricultureSupplyDelta) // avoid negative supply
-        ]
-      ])
-  );
+  const reducer$ = xs.periodic(1e3 * time).mapTo(state => {
+    const {
+      derived: { derivative }
+    } = state;
+    const foodDelta = derivative.foodService.food * time;
+    const agricultureSupplyDelta = derivative.foodService.agriculture * time;
+    if (foodDelta === 0) return state;
+    const ratio = Math.min(
+      1,
+      Math.abs(state.industries.agriculture.supply / agricultureSupplyDelta)
+    );
+    return updateAll(state, [
+      ["user.food", food => food + ratio * foodDelta],
+      [
+        "industries.agriculture.supply",
+        supply => supply + ratio * agricultureSupplyDelta
+      ]
+    ]);
+  });
   return {
     reducer: reducer$,
     agricultureToFoodDelta: agricultureToFoodDelta$

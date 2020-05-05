@@ -7,7 +7,7 @@ import { makeDOMDriver } from "@cycle/dom";
 import isolate from "@cycle/isolate";
 import { makeHistoryDriver } from "@cycle/history";
 
-import { update, set, setAll, logisticDeltaEquation } from "../util";
+import { update, set, setAll, logisticDeltaEquation, omit } from "../util";
 import {
   makeIndustriesStub,
   makeUserStub,
@@ -18,7 +18,8 @@ import {
   POPULATION_GROWTH_RATE,
   POPULATION_CAPACITY,
   LEAST_UPPER_CAPACITY,
-  makeAchievementsStub
+  makeAchievementsStub,
+  makeProgressionStub
 } from "./constant";
 import {
   makeFoodServiceDerivative,
@@ -31,7 +32,8 @@ const initState = {
   info: makeInfoStub(),
   user: makeUserStub(),
   industries: makeIndustriesStub(),
-  achievements: makeAchievementsStub()
+  achievements: makeAchievementsStub(),
+  progression: makeProgressionStub()
 };
 
 const stubMissingTopLevel = state => {
@@ -89,8 +91,6 @@ const initialDataPromise = fetch("/user-data")
   .then(stubMissingAchievements)
   .then(stubMissingIndustries);
 
-const tap = (ex, x) => (console.log(ex), console.log(x), x);
-
 const deriveDeritave = state => ({
   user: {
     points: 1,
@@ -125,7 +125,7 @@ const withDerivedLens = {
       }
     };
   },
-  set: (_, { derived, ...state }) => state
+  set: (_, state) => omit(state, ["derived"])
 };
 
 function main(sources) {

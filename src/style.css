@@ -1,7 +1,10 @@
+.game {
+    width: 100%;
+}
+
 .not-not-a-blog {
     display: flex;
     flex-wrap: wrap;
-    justify-content: center;
 }
 
 .not-not-a-blog section {
@@ -12,14 +15,28 @@
 .tab-nav {
     display: flex;
     flex-direction: column;
-    min-width: 8rem;
+    min-width: 10rem;
 }
 
 .tab-nav button {
-    margin: 0.5rem 1rem 0.5rem 1rem;
+    margin: 0.25rem 0.5rem 0.25rem 0.5rem;
     padding: 0.25rem;
 }
 
 .container {
     display: flex;
+}
+
+.quick-view-tab {
+    padding: 0 0.5rem;
+    margin: 0.25rem 0;
+}
+
+.user-quick-view {
+    display: flex;
+    margin: 1rem;
+}
+
+.user-quick-view-stat {
+    margin: 0.25rem;
 }

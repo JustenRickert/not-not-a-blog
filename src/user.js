@@ -18,53 +18,53 @@ import {
 } from "./constant";
 import { whole, percentage, perSecond, relativeTime, time } from "./format";
 
-const makeStateUpdateStream = sources => {
-  const pointsReducer$ = xs
-    .periodic(1e3 * TIMEOUTS.points)
-    .mapTo(state =>
-      update(
-        state,
-        "user.points",
-        points =>
-          points + TIMEOUTS.points * state.derived.derivative.user.points
-      )
-    );
+// const makeStateUpdateStream = sources => {
+//   const pointsReducer$ = xs
+//     .periodic(1e3 * TIMEOUTS.points)
+//     .mapTo(state =>
+//       update(
+//         state,
+//         "user.points",
+//         points =>
+//           points + TIMEOUTS.points * state.derived.derivative.user.points
+//       )
+//     );
 
-  const populationReducer$ = xs
-    .periodic(1e3 * TIMEOUTS.population)
-    .mapTo(state => {
-      const {
-        user: { population },
-        industries,
-        derived: { employed, unemployed, derivative }
-      } = state;
-      const delta = TIMEOUTS.population * derivative.user.population;
-      if (delta < 0) {
-        const newPopulation = Math.max(LEAST_POPULATION, population + delta);
-        const populationLost = population - newPopulation;
-        // lose the unemployed first to prevent collapse...
-        // It's like Vlad the Impaler-esque :)
-        const unemployedLost = Math.min(unemployed, populationLost);
-        const employedLost = populationLost - unemployedLost;
-        return setAll(state, [
-          ["user.population", population - unemployedLost - employedLost],
-          ...Object.entries(industries).map(([industryName, industry]) => [
-            ["industries", industryName, "employed"],
-            industry.employed - employedLost * (industry.employed / employed)
-          ])
-        ]);
-      } else {
-        return set(state, "user.population", state.user.population + delta);
-      }
-    });
+//   const populationReducer$ = xs
+//     .periodic(1e3 * TIMEOUTS.population)
+//     .mapTo(state => {
+//       const {
+//         user: { population },
+//         industries,
+//         derived: { employed, unemployed, derivative }
+//       } = state;
+//       const delta = TIMEOUTS.population * derivative.user.population;
+//       if (delta < 0) {
+//         const newPopulation = Math.max(LEAST_POPULATION, population + delta);
+//         const populationLost = population - newPopulation;
+//         // lose the unemployed first to prevent collapse...
+//         // It's like Vlad the Impaler-esque :)
+//         const unemployedLost = Math.min(unemployed, populationLost);
+//         const employedLost = populationLost - unemployedLost;
+//         return setAll(state, [
+//           ["user.population", population - unemployedLost - employedLost],
+//           ...Object.entries(industries).map(([industryName, industry]) => [
+//             ["industries", industryName, "employed"],
+//             industry.employed - employedLost * (industry.employed / employed)
+//           ])
+//         ]);
+//       } else {
+//         return set(state, "user.population", state.user.population + delta);
+//       }
+//     });
 
-  const foodReducer$ = xs.periodic(1e3 * TIMEOUTS.food).mapTo(state => {
-    const delta = TIMEOUTS.food * state.derived.derivative.user.food;
-    return update(state, "user.food", food => Math.max(0, food - delta));
-  });
+//   const foodReducer$ = xs.periodic(1e3 * TIMEOUTS.food).mapTo(state => {
+//     const delta = TIMEOUTS.food * state.derived.derivative.user.food;
+//     return update(state, "user.food", food => Math.max(0, food + delta));
+//   });
 
-  return xs.merge(pointsReducer$, populationReducer$, foodReducer$);
-};
+//   return xs.merge(pointsReducer$, populationReducer$, foodReducer$);
+// };
 
 export default function User(sources) {
   const dom$ = sources.state.stream.map(
@@ -103,10 +103,9 @@ export default function User(sources) {
       )
   );
 
-  const reducer$ = makeStateUpdateStream(sources);
+  // const reducer$ = makeStateUpdateStream(sources);
 
   return {
-    DOM: dom$,
-    state: reducer$
+    DOM: dom$
   };
 }

@@ -14,6 +14,14 @@ import {
 } from "@cycle/dom";
 import { whole, perSecond } from "./format";
 
+const tab = (symbol, number, rate) => {
+  return div(
+    ".quick-view-tab",
+    { style: { backgroundColor: rate < 0 ? "pink" : undefined } },
+    [symbol, " ", whole(number), " ", perSecond(rate)]
+  );
+};
+
 export default function QuickView(sources) {
   const dom$ = sources.state.stream.map(
     ({
@@ -21,42 +29,17 @@ export default function QuickView(sources) {
       industries: { agriculture, foodService, timber, housing },
       derived: { derivative }
     }) =>
-      section([
-        div([
-          "👤 ",
-          whole(population),
-          " ",
-          perSecond(derivative.user.population)
-        ]),
-        div([
-          "🚜 ",
-          whole(agriculture.supply),
-          " ",
-          perSecond(derivative.agriculture.agriculture)
-        ]),
-        foodService.unlocked &&
-          div([
-            "🍽",
-            whole(food),
-            " ",
-            perSecond(derivative.foodService.food + derivative.user.food)
-          ]),
+      section(".quick-view", [
+        tab("👽", population, derivative.user.population),
+        tab("🚜", agriculture.supply, derivative.agriculture.agriculture),
+        tab("🍽", food, derivative.foodService.food + derivative.user.food),
         timber.unlocked &&
-          div([
-            "🌲 ",
-            whole(timber.supply),
-            " ",
-            perSecond(
-              derivative.timber.timber + derivative.housing.timber.supply
-            )
-          ]),
-        housing.unlocked &&
-          div([
-            "🏠 ",
-            whole(houses),
-            " ",
-            perSecond(derivative.housing.user.houses)
-          ])
+          tab(
+            "🌲",
+            timber.supply,
+            derivative.timber.timber + derivative.housing.timber.supply
+          ),
+        housing.unlocked && tab("🏠", houses, derivative.housing.user.houses)
       ])
   );
 

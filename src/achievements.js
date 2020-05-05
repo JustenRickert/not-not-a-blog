@@ -23,31 +23,6 @@ import {
 import sampleCombine from "xstream/extra/sampleCombine";
 import { setAll, updateAll } from "../util";
 
-function makeUpdateState(sources) {
-  const unlockReducer$ = xs
-    .periodic(1e3 * TIMEOUTS.unlockAchievements)
-    .compose(sampleCombine(sources.state.stream))
-    .map(([, state]) =>
-      Object.entries(ACHIEVEMENTS_UNLOCK_CONDITIONS)
-        .filter(([, predicate]) => predicate(state))
-        .map(([achievementKey]) => achievementKey)
-    )
-    .map(unlockedAchievements => state =>
-      updateAll(
-        state,
-        unlockedAchievements.map(achievementKey => [
-          ["achievements", achievementKey],
-          achievement => ({
-            ...achievement,
-            unlocked: true,
-            unlockDate: Date.now()
-          })
-        ])
-      )
-    );
-  return unlockReducer$;
-}
-
 export default function Achievements(sources) {
   const achievements$ = sources.state.stream.map(state => state.achievements);
 
@@ -62,10 +37,7 @@ export default function Achievements(sources) {
     )
   );
 
-  const reducer$ = makeUpdateState(sources);
-
   return {
-    DOM: dom$,
-    state: reducer$
+    DOM: dom$
   };
 }

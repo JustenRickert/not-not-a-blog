@@ -9,50 +9,28 @@ import FoodService from "./food-service";
 import Timber from "./timber";
 import Housing from "./housing";
 
-const makeUnlockIndustries = sources => {
-  const state$ = sources.state.stream;
-  const unlock$ = xs
-    .periodic(1e3 * TIMEOUTS.unlockIndustries)
-    .compose(sampleCombine(state$))
-    .map(([, state]) =>
-      Object.entries(INDUSTRIES_UNLOCK_CONDITIONS)
-        .filter(
-          ([industryName, predicate]) =>
-            !state.industries[industryName].unlocked && predicate(state)
-        )
-        .map(([industryName]) => industryName)
-    )
-    .map(industryNames => state =>
-      setAll(
-        state,
-        industryNames.map(industryName => [
-          ["industries", industryName, "unlocked"],
-          true
-        ])
-      )
-    );
-  return unlock$;
-};
-
-const industriesReducer = (action$, { derived$ }) => {
+const industriesReducer = action$ => {
   const employmentReducer = action$
     .filter(a => a.type === "employment")
-    .compose(sampleCombine(derived$))
-    .map(([action, info]) => industries => {
+    .map(action => state => {
+      const {
+        industries,
+        derived: { unemployed, employed }
+      } = state;
       switch (action.reason) {
         case "employ": {
           const percentage = withRandomOffset(EMPLOYMENT.employRate);
           return update(
-            industries,
-            [action.payload.industryName, "employed"],
-            employed => employed + percentage * info.unemployed
+            state,
+            ["industries", action.payload.industryName, "employed"],
+            employed => employed + percentage * unemployed
           );
         }
         case "layoff":
           const percentage = withRandomOffset(EMPLOYMENT.layoffRate);
           return update(
-            industries,
-            [action.payload.industryName, "employed"],
+            state,
+            ["industries", action.payload.industryName, "employed"],
             employed => employed - percentage * employed
           );
         default:
@@ -87,17 +65,12 @@ export default function Industries(sources) {
       div([agricultureDom, foodServiceDom, timberDom, housingDom])
     );
 
-  const unlockIndustries$ = makeUnlockIndustries(sources);
-
   const reducer$ = xs.merge(
-    unlockIndustries$,
     foodServiceSinks.state,
     agricultureSinks.state,
     timberSinks.state,
     housingSinks.state,
-    industriesReducer(action$, { derived$ }).map(reducer => state =>
-      update(state, "industries", reducer)
-    )
+    industriesReducer(action$)
   );
 
   return {

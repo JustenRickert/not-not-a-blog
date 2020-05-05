@@ -1,4 +1,5 @@
 import xs from "xstream";
+import isolate from "@cycle/isolate";
 import sampleCombine from "xstream/extra/sampleCombine";
 import throttle from "xstream/extra/throttle";
 import debounce from "xstream/extra/debounce";
@@ -27,12 +28,24 @@ import {
 import User from "./user";
 import Industries from "./industries";
 import Achievements from "./achievements";
-import QuickView from "./quick-view";
+import UserQuickView from "./user-quick-view";
 import { makeFoodServiceDerivative } from "./industry-util";
+import makeUserUpdateReducer from "./update-sinks/user";
+import makeIndustriesUpdateReducer from "./update-sinks/industries";
+import makeAchievementsUpdateReducer from "./update-sinks/achievements";
+import makeEmploymentSinks from "./actions/employment";
+import GameView from "./game-view";
 
 import "./style.css";
 
-function intent(sources) {
+function makeUpdateReducer(sources) {
+  const user$ = makeUserUpdateReducer(sources);
+  const industries$ = makeIndustriesUpdateReducer(sources);
+  const achievements$ = makeAchievementsUpdateReducer(sources);
+  return xs.merge(user$, industries$, achievements$);
+}
+
+function tabIntent(sources) {
   const action$ = sources.DOM.select(".tab-nav button")
     .events("click")
     .map(e => ({
@@ -43,7 +56,7 @@ function intent(sources) {
 }
 
 export default function NotNotABlog(sources) {
-  const action$ = intent(sources);
+  const tabAction$ = tabIntent(sources);
 
   const forwardAndBackward$ = sources.history
     .drop(1)
@@ -51,7 +64,7 @@ export default function NotNotABlog(sources) {
 
   const tab$ = xs
     .merge(
-      action$.filter(a => a.type === "switch-tab").map(a => "#" + a.which),
+      tabAction$.filter(a => a.type === "switch-tab").map(a => "#" + a.which),
       forwardAndBackward$.map(a => a.hash) // TODO this only goes back once... could maybe be better
     )
     .startWith(location.hash || "#game");
@@ -63,27 +76,30 @@ export default function NotNotABlog(sources) {
     // TODO What happens in the world? :o
     DOM: xs.of("uh oh").mapTo(div("uh oh!"))
   };
-  const quickView = QuickView(sources);
+  const userQuickView = UserQuickView(sources);
+  const gameView = GameView(sources);
 
   const dom$ = xs
     .combine(
       tab$,
       sources.state.stream,
-      quickView.DOM,
+      userQuickView.DOM,
       userSinks.DOM,
       industriesSinks.DOM,
       worldSinks.DOM,
-      achievementsSinks.DOM
+      achievementsSinks.DOM,
+      gameView.DOM
     )
     .map(
       ([
         tab,
         state,
-        quickViewDom,
+        userQuickViewDom,
         userDom,
         industriesDom,
         worldDom,
-        achievementsDom
+        achievementsDom,
+        gameViewDom
       ]) =>
         div(".container", [
           div(
@@ -91,27 +107,28 @@ export default function NotNotABlog(sources) {
               button(".game-tab", "Game"),
               button(".world-tab", "World"),
               button(".achievements-tab", "Achievements"),
-              section(["last save ", relativeTime(state.info.lastSaveDate)]),
-              quickViewDom
+              section(["last save ", relativeTime(state.info.lastSaveDate)])
             ])
           ),
-          div(
-            tab === "#game"
-              ? div(".not-not-a-blog", [
+          tab === "#game"
+            ? div(".game", [
+                gameViewDom,
+                div(".not-not-a-blog", [
                   section([h2("User"), userDom]),
                   section([h2("Industries"), industriesDom])
                 ])
-              : tab === "#world"
-              ? worldDom
-              : achievementsDom
-          )
+              ])
+            : tab === "#world"
+            ? worldDom
+            : achievementsDom
         ])
     );
 
+  const updateReducer$ = makeUpdateReducer(sources);
   const reducer$ = xs.merge(
-    achievementsSinks.state,
+    updateReducer$,
     industriesSinks.state,
-    userSinks.state
+    gameView.state
   );
 
   return {

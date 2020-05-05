@@ -14,6 +14,7 @@ import sampleCombine from "xstream/extra/sampleCombine";
 
 // TODO: employ/layoff actions should temporarily disable employ/layoff
 export function makeEmploymentAction(sources, industryName) {
+  console.warn("DEPRECATE ME");
   const employmentClick$ = xs.merge(
     sources.DOM.select(`.${industryName} .employ`)
       .events("click")

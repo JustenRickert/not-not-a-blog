@@ -1,22 +1,22 @@
 export const TIMEOUTS = {
-  saveData: 31,
+  saveData: 30,
   points: 1,
   food: 1,
-  population: 5,
-  unlockIndustries: 15,
-  unlockAchievements: 15,
+  population: 1,
+  unlockIndustries: 1,
+  unlockAchievements: 1,
   industries: {
     agriculture: {
       supply: 1
     },
     foodService: {
-      agricultureToFood: 5
+      agricultureToFood: 1
     },
     timber: {
       supply: 1
     },
     housing: {
-      timberToHouses: 5
+      timberToHouses: 1
     }
   }
 };
@@ -65,7 +65,7 @@ export const INDUSTRIES_UNLOCK_CONDITIONS = {
   foodService: state => state.industries.agriculture.supply > 100,
   timber: state => state.user.population > 150 && state.user.points > 1000,
   housing: state =>
-    state.user.population > 2250 && state.industries.timber.supply > 1e6
+    state.user.population > 1250 && state.industries.timber.supply > 1e6
 };
 
 export const ACHIEVEMENTS_LABELS = {
@@ -109,6 +109,11 @@ export const makeAchievementsStub = () =>
     }),
     {}
   );
+
+export const makeProgressionStub = () => ({
+  makeFirstWorker: false,
+  introduction: false
+});
 
 export const FOOD_PER_PERSON = 0.01;
 

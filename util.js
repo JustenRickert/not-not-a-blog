@@ -33,6 +33,18 @@ export function set(o, key, value) {
   };
 }
 
+export function omit(o, keys) {
+  return Object.entries(o)
+    .filter(([k]) => !keys.includes(k))
+    .reduce(
+      (o, [k, v]) => ({
+        ...o,
+        [k]: v
+      }),
+      {}
+    );
+}
+
 export function setAll(o, keyValues) {
   return keyValues.reduce((o, [key, value]) => set(o, key, value), o);
 }
@@ -96,4 +108,41 @@ export function clamp(n, min, max) {
 
 export function logisticDeltaEquation(p, capacity, rate) {
   return p * rate * (1 - p / capacity);
+}
+
+export function not(p) {
+  return x => !p(x);
+}
+
+export function thread(...fns) {
+  return state => fns.reduce((state, fn) => fn(state), state);
+}
+
+// like which, but without either function
+export function cases(...pairs) {
+  return x => {
+    for (const [key, value] of pairs) {
+      if (x === key) return value;
+    }
+    throw new Error("need to handle all cases");
+  };
+}
+
+// like cond, but without the second function
+export function which(...conditions) {
+  return x => {
+    for (const [predicate, result] of conditions) {
+      if (predicate(x)) return result;
+    }
+    throw new Error("need to handle all cases");
+  };
+}
+
+export function cond(...conditions) {
+  return x => {
+    for (const [predicate, resultFn] of conditions) {
+      if (predicate(x)) return resultFn(x);
+    }
+    throw new Error("need to handle all cases");
+  };
 }
