@@ -58,14 +58,9 @@ function tabIntent(sources) {
 export default function NotNotABlog(sources) {
   const tabAction$ = tabIntent(sources);
 
-  const forwardAndBackward$ = sources.history
-    .drop(1)
-    .filter(({ type }) => type === undefined);
-
   const tab$ = xs
     .merge(
-      tabAction$.filter(a => a.type === "switch-tab").map(a => "#" + a.which),
-      forwardAndBackward$.map(a => a.hash) // TODO this only goes back once... could maybe be better
+      tabAction$.filter(a => a.type === "switch-tab").map(a => "#" + a.which)
     )
     .startWith(location.hash || "#game");
 
@@ -112,6 +107,7 @@ export default function NotNotABlog(sources) {
           ),
           tab === "#game"
             ? div(".game", [
+                userQuickViewDom,
                 gameViewDom,
                 div(".not-not-a-blog", [
                   section([h2("User"), userDom]),
@@ -133,7 +129,6 @@ export default function NotNotABlog(sources) {
 
   return {
     DOM: dom$,
-    state: reducer$,
-    history: tab$
+    state: reducer$
   };
 }

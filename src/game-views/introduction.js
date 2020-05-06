@@ -28,9 +28,6 @@ import { which, cases, set, omit, update } from "../../util";
 import { whole, perSecond } from "../format";
 import { TRACTOR, DINNER_PLATE, ALIEN } from "../string";
 
-const makeAtStep = i => (step, element) =>
-  i > step ? element : Array.isArray(element) ? [] : null;
-
 export default function Introduction(sources) {
   const employmentAction$ = makeEmploymentClickAction(sources);
 
@@ -46,18 +43,10 @@ export default function Introduction(sources) {
   const outbound$ = employmentAction$
     .compose(sampleCombine(sources.state.stream))
     .map(([, state]) => state.industries.foodService.employed > 3)
-    .fold((_, state) => state, false)
-    .debug("outbound?");
-
-  const steps$ = xs.periodic(2500).startWith(-1);
+    .fold((_, state) => state, false);
 
   const dom$ = xs
-    .combine(
-      sources.state.stream,
-      steps$.map(makeAtStep),
-      buttonAttrs$,
-      outbound$
-    )
+    .combine(sources.state.stream, buttonAttrs$, outbound$)
     .map(
       ([
         {
@@ -65,7 +54,6 @@ export default function Introduction(sources) {
           industries: { agriculture, foodService },
           derived: { derivative }
         },
-        atStep,
         buttonAttrs,
         outbound
       ]) =>
@@ -73,42 +61,32 @@ export default function Introduction(sources) {
           ? div([
               p("Alrighty."),
               p("Okey dokey."),
+              p(["So. This is a numbers game.", " ", "..."]),
+              p("What does that mean?"),
+              p("..."),
+              p("Umm. Well. Who cares?"),
               p([
-                "So. This is a numbers game.",
-                atStep(0, "..."),
-                atStep(1, "..."),
-                atStep(2, "...")
+                "Not that we have some ",
+                TRACTOR,
+                whole(agriculture.supply),
+                ", let's make it into smoething"
               ]),
-              atStep(3, p("What does that mean?")),
-              atStep(5, p("...")),
-              ...atStep(7, [
-                p("Umm. Well. Who cares?"),
-                p([
-                  "Not that we have some ",
-                  TRACTOR,
-                  whole(agriculture.supply),
-                  ", let's make it into smoething"
-                ])
+              p([
+                "Click this button",
+                button(
+                  ".employ",
+                  {
+                    attrs: buttonAttrs,
+                    dataset: { industryName: "foodService" }
+                  },
+                  "Employ"
+                ),
+                "to ",
+                i('"employ"'),
+                " some ",
+                DINNER_PLATE,
+                whole(foodService.employed)
               ]),
-              atStep(
-                8,
-                p([
-                  "Click this button",
-                  button(
-                    ".employ",
-                    {
-                      attrs: buttonAttrs,
-                      dataset: { industry: "foodService" }
-                    },
-                    "Employ"
-                  ),
-                  "to ",
-                  i('"employ"'),
-                  " some ",
-                  DINNER_PLATE,
-                  whole(foodService.employed)
-                ])
-              ),
               foodService.employed > 3
                 ? p([
                     "Dope. Now we're cooking. Literally. Or, well, maybe literally. They're ",

@@ -146,3 +146,10 @@ export function cond(...conditions) {
     throw new Error("need to handle all cases");
   };
 }
+
+export function assert(condition, text, ...additionalInformation) {
+  if (!condition) {
+    console.error(...additionalInformation);
+    throw new Error(text);
+  }
+}

@@ -112,7 +112,8 @@ export const makeAchievementsStub = () =>
 
 export const makeProgressionStub = () => ({
   makeFirstWorker: false,
-  introduction: false
+  introduction: false,
+  beginning: false
 });
 
 export const FOOD_PER_PERSON = 0.01;

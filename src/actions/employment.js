@@ -1,7 +1,7 @@
 import xs from "xstream";
 
 import { EMPLOYMENT } from "../constant";
-import { update, withRandomOffset } from "../../util";
+import { assert, update, withRandomOffset } from "../../util";
 
 export function makeEmploymentClickAction(sources) {
   const action$ = xs.merge(
@@ -10,14 +10,14 @@ export function makeEmploymentClickAction(sources) {
       .map(event => ({
         type: "employment",
         reason: "employ",
-        industryName: event.target.dataset.industry
+        industryName: event.target.dataset.industryName
       })),
     sources.DOM.select(".layoff")
       .events("click")
       .map(event => ({
         type: "employment",
         reason: "layoff",
-        industryName: event.target.dataset.industry
+        industryName: event.target.dataset.industryName
       }))
   );
 
@@ -30,7 +30,11 @@ export function employmentActionReducer(action) {
       industries,
       derived: { unemployed }
     } = state;
-    console.log(action, state);
+    assert(
+      action.industryName,
+      "Employment button needs `industryName`",
+      action
+    );
     switch (action.reason) {
       case "employ": {
         const percentage = withRandomOffset(EMPLOYMENT.employRate);

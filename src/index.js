@@ -5,7 +5,6 @@ import xs from "xstream";
 import sampleCombine from "xstream/extra/sampleCombine";
 import { makeDOMDriver } from "@cycle/dom";
 import isolate from "@cycle/isolate";
-import { makeHistoryDriver } from "@cycle/history";
 
 import { update, set, setAll, logisticDeltaEquation, omit } from "../util";
 import {
@@ -159,15 +158,13 @@ function main(sources) {
         .map(initialState => () => initialState),
       saveData$.map(state => () => state),
       notNotABlogSinks.state
-    ),
-    history: notNotABlogSinks.history
+    )
   };
 }
 
 run(withState(main), {
   DOM: makeDOMDriver("#root"),
-  Time: timeDriver,
-  history: makeHistoryDriver()
+  Time: timeDriver
 });
 
 if (module.hot) {
