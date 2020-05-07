@@ -15,17 +15,32 @@ import {
 } from "@cycle/dom";
 
 import { set, update } from "../util";
-import { RED_TRIANGLE, ALIEN, DINNER_PLATE, TRACTOR, HOUSE } from "./string";
-import { whole, perSecond } from "./format";
+import {
+  RED_TRIANGLE,
+  ALIEN,
+  DINNER_PLATE,
+  TRACTOR,
+  HOUSE,
+  TREE
+} from "./string";
+import { whole, perSecond, percentage } from "./format";
 import throttle from "xstream/extra/throttle";
+import { populationCapacity } from "./industry-util";
+
+const maybeStatButton = (condition, props, children) =>
+  condition
+    ? button(".user-quick-view-stat-button", props, children)
+    : div(".user-quick-view-stat-info", children);
 
 const dropdownStat = (
   name,
   { dropdown, symbol, amount, rate, dropdownContent }
 ) =>
   div(".user-quick-view-stat", [
-    button(".user-quick-view-stat-button", { dataset: { name } }, [
-      div(span([symbol, whole(amount), perSecond(rate)]))
+    maybeStatButton(dropdownContent, { dataset: { name } }, [
+      symbol,
+      whole(amount),
+      perSecond(rate)
     ]),
     dropdown.selected === name && dropdownContent
       ? div(".dropdown", [
@@ -41,14 +56,11 @@ export default function UserQuickView(sources) {
       sources.DOM.select(".user-quick-view-stat-button")
         .events("blur")
         .mapTo({ selected: "" }),
-      xs
-        .merge(
-          sources.DOM.select(".user-quick-view-stat-button").events("focus"),
-          sources.DOM.select(".user-quick-view-stat-button").events("click")
-        )
+      sources.DOM.select(".user-quick-view-stat-button")
+        .events("click")
         .map(e => ({ selected: e.currentTarget.dataset.name }))
     )
-    .compose(throttle(100));
+    .compose(throttle(200));
 
   const dropdownState$ = xs
     .merge(
@@ -63,64 +75,84 @@ export default function UserQuickView(sources) {
     });
 
   const dom$ = xs
-    .combine(sources.state.stream, dropdownState$)
-    .map(
-      ([
-        {
-          user,
-          industries: { agriculture, housing, foodService },
-          derived: { derivative }
-        },
-        dropdown
-      ]) =>
-        div(".user-quick-view-stat", [
-          div(".user-quick-view-stat-info", [
-            RED_TRIANGLE,
-            whole(user.points),
-            perSecond(derivative.user.points)
-          ]),
-          div(".user-quick-view-stat-info", [
-            ALIEN,
-            whole(user.population),
-            perSecond(derivative.user.population)
-          ]),
-          foodService.employed
-            ? dropdownStat("food", {
-                dropdown,
-                symbol: DINNER_PLATE,
-                amount: user.food,
-                rate: derivative.user.food + derivative.foodService.food,
-                dropdownContent: ul([
-                  li([ALIEN, perSecond(derivative.user.food)]),
-                  li([DINNER_PLATE, perSecond(derivative.foodService.food)])
-                ])
-              })
-            : null,
-          housing.unlocked &&
-            dropdownStat("houses", {
+    .combine(sources.state.stream.compose(throttle(100)), dropdownState$)
+    .debug()
+    .map(([state, dropdown]) => {
+      const {
+        user,
+        industries: { agriculture, housing, foodService, timber },
+        derived: { unemployed, derivative }
+      } = state;
+      return div(".user-quick-view-stat", [
+        div(".user-quick-view-stat-info", [
+          RED_TRIANGLE,
+          whole(user.points),
+          perSecond(derivative.user.points)
+        ]),
+        dropdownStat("user", {
+          dropdown,
+          symbol: ALIEN,
+          amount: user.population,
+          rate: derivative.user.population,
+          dropdownContent: ul([
+            li(["unemployment ", percentage(unemployed / user.population)]),
+            user.houses
+              ? li(["pop. cap. ", whole(populationCapacity(state))])
+              : null
+          ])
+        }),
+        foodService.employed
+          ? dropdownStat("food", {
               dropdown,
-              symbol: HOUSE,
-              amount: user.houses
-            }),
-          agriculture.employed
-            ? dropdownStat("agriculture-supply", {
-                dropdown,
-                symbol: TRACTOR,
-                amount: agriculture.supply,
-                rate:
-                  derivative.agriculture.agriculture +
-                  derivative.foodService.agriculture,
-                dropdownContent: ul([
-                  li([TRACTOR, perSecond(derivative.agriculture.agriculture)]),
-                  li([
-                    DINNER_PLATE,
-                    perSecond(derivative.foodService.agriculture)
-                  ])
+              symbol: DINNER_PLATE,
+              amount: user.food,
+              rate: derivative.user.food + derivative.foodService.food,
+              dropdownContent: ul([
+                li([ALIEN, perSecond(derivative.user.food)]),
+                li([DINNER_PLATE, perSecond(derivative.foodService.food)])
+              ])
+            })
+          : null,
+        housing.unlocked &&
+          dropdownStat("houses", {
+            dropdown,
+            symbol: HOUSE,
+            amount: user.houses,
+            rate: derivative.housing.user.houses
+          }),
+        agriculture.employed
+          ? dropdownStat("agriculture-supply", {
+              dropdown,
+              symbol: TRACTOR,
+              amount: agriculture.supply,
+              rate:
+                derivative.agriculture.agriculture +
+                derivative.foodService.agriculture,
+              dropdownContent: ul([
+                li([TRACTOR, perSecond(derivative.agriculture.agriculture)]),
+                li([
+                  DINNER_PLATE,
+                  perSecond(derivative.foodService.agriculture)
                 ])
-              })
-            : null
-        ])
-    );
+              ])
+            })
+          : null,
+        timber.employed
+          ? dropdownStat("timber-supply", {
+              dropdown,
+              symbol: TREE,
+              amount: timber.supply,
+              rate: derivative.timber.timber + derivative.housing.timber.supply,
+              dropdownContent: housing.employed
+                ? ul([
+                    li([TREE, perSecond(derivative.timber.timber)]),
+                    li([HOUSE, perSecond(derivative.housing.timber.supply)])
+                  ])
+                : null
+            })
+          : null
+      ]);
+    });
 
   return {
     DOM: dom$

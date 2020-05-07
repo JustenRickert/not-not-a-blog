@@ -13,11 +13,6 @@ function intent(sources) {
   return xs.merge(employmentAction$);
 }
 
-function industryUpdate(sources) {
-  const update$ = makeIndustrySupplyUpdate(sources, "agriculture");
-  return update$;
-}
-
 export default function Agriculture(sources) {
   const derived$ = sources.state.stream.map(state => state.derived);
   const user$ = sources.state.stream.map(state => state.user);
@@ -54,15 +49,9 @@ export default function Agriculture(sources) {
     );
 
   const action$ = intent(sources);
-  const update$ = industryUpdate(sources);
-
-  const updateReducer$ = update$.map(reducer => state =>
-    update(state, "industries.agriculture", reducer)
-  );
 
   return {
     DOM: dom$,
-    action: action$,
-    state: updateReducer$
+    action: action$
   };
 }

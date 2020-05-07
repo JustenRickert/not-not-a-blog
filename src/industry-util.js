@@ -55,6 +55,14 @@ export function makeIndustrySupplyUpdate(sources, industryName) {
   return supplyUpdate$;
 }
 
+export function populationCapacity(state) {
+  return (
+    LEAST_UPPER_CAPACITY +
+    POPULATION_CAPACITY.perPoint * state.user.points +
+    POPULATION_CAPACITY.perHouse * state.user.houses
+  );
+}
+
 export function makeUserPopulationDerivative(state) {
   const foodRequired =
     FOOD_PER_PERSON * TIMEOUTS.population * state.user.population;
@@ -67,9 +75,7 @@ export function makeUserPopulationDerivative(state) {
   } else {
     return logisticDeltaEquation(
       state.user.population,
-      LEAST_UPPER_CAPACITY +
-        POPULATION_CAPACITY.perPoint * state.user.points +
-        POPULATION_CAPACITY.perHouse * state.user.houses,
+      populationCapacity(state),
       POPULATION_GROWTH_RATE
     );
   }
@@ -97,28 +103,5 @@ export function makeHousingDerivative(state) {
     timber: {
       supply: timberSupplyDerivative
     }
-  };
-}
-
-export function agricultureToFoodDelta(state) {
-  const time = TIMEOUTS.industries.foodService.agricultureToFood;
-  const maxDelta = makeFoodServiceDerivative(state);
-  const maxFoodDelta = maxDelta.food * time;
-  const maxAgricultureDelta = maxDelta.agriculture * time;
-  if (maxFoodDelta === 0) {
-    return {
-      foodDelta: 0,
-      agricultureSupplyDelta: 0
-    };
-  }
-  const agricultureDelta = -Math.min(
-    state.industries.agriculture.supply,
-    Math.abs(maxAgricultureDelta)
-  );
-  const ratio = Math.min(1, agricultureDelta / maxAgricultureDelta);
-  return {
-    foodDelta: ratio * maxFoodDelta,
-    agricultureSupplyDelta: agricultureDelta,
-    ratio
   };
 }

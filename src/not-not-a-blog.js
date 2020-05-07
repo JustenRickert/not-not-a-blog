@@ -31,7 +31,10 @@ import Achievements from "./achievements";
 import UserQuickView from "./user-quick-view";
 import { makeFoodServiceDerivative } from "./industry-util";
 import makeUserUpdateReducer from "./update-sinks/user";
-import makeIndustriesUpdateReducer from "./update-sinks/industries";
+import {
+  makeIndustriesUnlockReducer,
+  makeIndustriesUpdateReducer
+} from "./update-sinks/industries";
 import makeAchievementsUpdateReducer from "./update-sinks/achievements";
 import makeEmploymentSinks from "./actions/employment";
 import GameView from "./game-view";
@@ -40,7 +43,10 @@ import "./style.css";
 
 function makeUpdateReducer(sources) {
   const user$ = makeUserUpdateReducer(sources);
-  const industries$ = makeIndustriesUpdateReducer(sources);
+  const industries$ = xs.merge(
+    makeIndustriesUnlockReducer(sources),
+    makeIndustriesUpdateReducer(sources)
+  );
   const achievements$ = makeAchievementsUpdateReducer(sources);
   return xs.merge(user$, industries$, achievements$);
 }
@@ -123,6 +129,7 @@ export default function NotNotABlog(sources) {
   const updateReducer$ = makeUpdateReducer(sources);
   const reducer$ = xs.merge(
     updateReducer$,
+    // TODO Don't rely on industriesSinks.state
     industriesSinks.state,
     gameView.state
   );

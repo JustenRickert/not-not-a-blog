@@ -65,7 +65,7 @@ export const INDUSTRIES_UNLOCK_CONDITIONS = {
   foodService: state => state.industries.agriculture.supply > 100,
   timber: state => state.user.population > 150 && state.user.points > 1000,
   housing: state =>
-    state.user.population > 1250 && state.industries.timber.supply > 1e6
+    state.user.population > 250 && state.industries.timber.supply > 3e3
 };
 
 export const ACHIEVEMENTS_LABELS = {
@@ -126,6 +126,6 @@ export const POPULATION_CAPACITY = {
 export const POPULATION_GROWTH_RATE = 0.0025;
 
 export const EMPLOYMENT = {
-  layoffRate: 0.02,
-  employRate: 0.02
+  layoffRate: 0.08,
+  employRate: 0.04
 };

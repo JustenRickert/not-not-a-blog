@@ -16,14 +16,17 @@ import {
   nav
 } from "@cycle/dom";
 import delay from "xstream/extra/delay";
+import throttle from "xstream/extra/throttle";
 
-import { TRACTOR, DINNER_PLATE } from "../string";
+import { DINNER_PLATE, TRACTOR, TREE, HOUSE } from "../string";
 import { whole, percentage } from "../format";
 import {
   makeEmploymentClickAction,
   employmentActionReducer
 } from "../actions/employment";
 import { update, set } from "../../util";
+
+import "./beginning.css";
 
 const industryView = (
   industryName,
@@ -32,26 +35,22 @@ const industryView = (
   const {
     user: { population }
   } = state;
-  return div([
-    ul(
-      li([
-        h4(".compact-header", [
-          symbol,
-          whole(industry.employed),
-          " ",
-          `(${percentage(industry.employed / population)})`
-        ]),
-        button(
-          ".employ",
-          { ...buttonState.employ, dataset: { industryName } },
-          "Employ"
-        ),
-        button(
-          ".layoff",
-          { ...buttonState.layoff, dataset: { industryName } },
-          "Layoff"
-        )
-      ])
+  return div(".industry-item", [
+    h4(".compact-header", [
+      symbol,
+      whole(industry.employed),
+      " ",
+      `(${percentage(industry.employed / population)})`
+    ]),
+    button(
+      ".employ",
+      { ...buttonState.employ, dataset: { industryName } },
+      "Employ"
+    ),
+    button(
+      ".layoff",
+      { ...buttonState.layoff, dataset: { industryName } },
+      "Layoff"
     )
   ]);
 };
@@ -63,7 +62,9 @@ const singleButtonState = {
 
 const initButtonState = {
   agriculture: singleButtonState,
-  foodService: singleButtonState
+  foodService: singleButtonState,
+  timber: singleButtonState,
+  housing: singleButtonState
 };
 
 const setDisabled = toggle => ({ reason, industryName }) => state =>
@@ -80,12 +81,12 @@ export default function Beginning(sources) {
     .fold((state, reducer) => reducer(state), initButtonState);
 
   const dom$ = xs
-    .combine(sources.state.stream, buttonState$)
+    .combine(sources.state.stream.compose(throttle(100)), buttonState$)
     .map(([state, buttonState]) => {
       const {
-        industries: { agriculture, foodService }
+        industries: { agriculture, foodService, timber, housing }
       } = state;
-      return div([
+      return div(".industry-grid", [
         industryView("agriculture", {
           industry: agriculture,
           symbol: TRACTOR,
@@ -97,7 +98,21 @@ export default function Beginning(sources) {
           symbol: DINNER_PLATE,
           buttonState: buttonState["foodService"],
           state
-        })
+        }),
+        timber.unlocked &&
+          industryView("timber", {
+            industry: timber,
+            symbol: TREE,
+            buttonState: buttonState["timber"],
+            state
+          }),
+        housing.unlocked &&
+          industryView("housing", {
+            industry: housing,
+            symbol: HOUSE,
+            buttonState: buttonState["housing"],
+            state
+          })
       ]);
     });
 

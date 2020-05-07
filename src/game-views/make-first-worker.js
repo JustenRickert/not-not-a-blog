@@ -25,8 +25,6 @@ import {
 import { which, cases, set, omit, thread } from "../../util";
 import { whole, perSecond } from "../format";
 
-const tap = x => (console.log(x), x);
-
 export default function MakeFirstWorker(sources) {
   const employmentAction$ = makeEmploymentClickAction(sources);
 
@@ -100,14 +98,14 @@ Anyway, click this button to make them start doing something:
           ".employ",
           {
             attrs: { disabled: Boolean(local.buttonClicked) },
-            dataset: { industry: "agriculture" }
+            dataset: { industryName: "agriculture" }
           },
           "Employ"
         ),
         "."
       ]),
       local.buttonClicked && p("Nice!"),
-      tap(local).showingNewWorkerInfo &&
+      local.showingNewWorkerInfo &&
         p([
           "Check these ",
           i("aliens"),

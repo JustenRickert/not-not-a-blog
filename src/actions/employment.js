@@ -4,21 +4,26 @@ import { EMPLOYMENT } from "../constant";
 import { assert, update, withRandomOffset } from "../../util";
 
 export function makeEmploymentClickAction(sources) {
+  const toAction = reason => event => {
+    const { industryName } = event.target.dataset;
+    assert(
+      industryName,
+      "Employment button needs `industryName` in dataset",
+      event
+    );
+    return {
+      type: "employment",
+      reason,
+      industryName
+    };
+  };
   const action$ = xs.merge(
     sources.DOM.select(".employ")
       .events("click")
-      .map(event => ({
-        type: "employment",
-        reason: "employ",
-        industryName: event.target.dataset.industryName
-      })),
+      .map(toAction("employ")),
     sources.DOM.select(".layoff")
       .events("click")
-      .map(event => ({
-        type: "employment",
-        reason: "layoff",
-        industryName: event.target.dataset.industryName
-      }))
+      .map(toAction("layoff"))
   );
 
   return action$;
@@ -30,11 +35,6 @@ export function employmentActionReducer(action) {
       industries,
       derived: { unemployed }
     } = state;
-    assert(
-      action.industryName,
-      "Employment button needs `industryName`",
-      action
-    );
     switch (action.reason) {
       case "employ": {
         const percentage = withRandomOffset(EMPLOYMENT.employRate);

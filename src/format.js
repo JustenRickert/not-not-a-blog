@@ -1,3 +1,5 @@
+import { assert } from "../util";
+
 export function whole(n) {
   return Math.floor(n).toLocaleString("en", {
     maximumFractionDigits: 0
@@ -5,6 +7,10 @@ export function whole(n) {
 }
 
 export function decimal(n) {
+  if (n < 0.1)
+    return n.toLocaleString(undefined, {
+      maximumSignificantDigits: 1
+    });
   return n.toLocaleString(undefined, {
     maximumFractionDigits: 1
   });
@@ -19,6 +25,7 @@ const withPlus = s => {
 };
 
 export function perSecond(n) {
+  assert(typeof n === "number" && !isNaN(n), "`n` should be a good number", n);
   return withPlus(decimal(n)) + "/s";
 }
 

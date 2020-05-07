@@ -44,17 +44,13 @@ const whichView = which(
 function GameView(sources) {
   const sinks$ = sources.state.stream
     .compose(dropRepeats((s1, s2) => s1.currentView === s2.currentView))
-    .debug("currentView")
     .map(whichView)
     .map(xs.fromPromise)
     .flatten()
     .map(({ default: View }) => View(sources));
 
   return {
-    DOM: sinks$
-      .map(s => s.DOM)
-      .debug("DOM")
-      .flatten(),
+    DOM: sinks$.map(s => s.DOM).flatten(),
     state: sinks$.map(s => s.state).flatten()
   };
 }

@@ -2,10 +2,6 @@
     width: 100%;
 }
 
-.compact-header {
-    margin: 0.25rem 0.25rem;
-}
-
 .not-not-a-blog {
     display: flex;
     flex-wrap: wrap;
@@ -43,6 +39,7 @@
 
 .user-quick-view-stat {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
 }
 
@@ -70,6 +67,10 @@
     background-color: aliceblue;
     border: 1px solid cadetblue;
 }
+
+/**
+ * TODO: This translateY doesn't seem to work 100% of the time...
+ */
 
 .dropdown {
     position: absolute;

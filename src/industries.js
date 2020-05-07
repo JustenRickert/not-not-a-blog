@@ -66,8 +66,7 @@ export default function Industries(sources) {
     );
 
   const reducer$ = xs.merge(
-    foodServiceSinks.state,
-    agricultureSinks.state,
+    // TODO these should be moved to update-sinks
     timberSinks.state,
     housingSinks.state,
     industriesReducer(action$)

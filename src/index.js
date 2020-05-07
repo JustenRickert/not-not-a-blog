@@ -40,7 +40,7 @@ const stubMissingTopLevel = state => {
   return setAll(
     state,
     initialState
-      .filter(([stateName]) => !state[stateName])
+      .filter(([stateName]) => state[stateName] === undefined)
       .map(([stateName, stub]) => [stateName, stub])
   );
 };
@@ -50,7 +50,9 @@ const stubMissingAchievements = state => {
   return setAll(
     state,
     initialAchievements
-      .filter(([achievementName]) => !state.achievements[achievementName])
+      .filter(
+        ([achievementName]) => state.achievements[achievementName] === undefined
+      )
       .map(([achievementName, stub]) => [
         ["achievements", achievementName],
         stub
@@ -63,7 +65,7 @@ const stubMissingIndustries = state => {
   return setAll(
     state,
     initialIndustries
-      .filter(([industryName]) => !state.industries[industryName])
+      .filter(([industryName]) => state.industries[industryName] === undefined)
       .map(([industryName, industryStub]) => [
         ["industries", industryName],
         industryStub
@@ -86,6 +88,7 @@ const initialDataPromise = fetch("/user-data")
         )
       );
   })
+  .then(x => (console.log(x), x))
   .then(stubMissingTopLevel)
   .then(stubMissingAchievements)
   .then(stubMissingIndustries);
@@ -136,6 +139,7 @@ function main(sources) {
 
   saveData$.addListener({
     next: data => {
+      console.log("SAVE", data);
       fetch("/user-data", {
         method: "POST",
         headers: {

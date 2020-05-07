@@ -36,13 +36,14 @@ export default function Introduction(sources) {
       employmentAction$.mapTo(state => set(state, "disabled", true)),
       employmentAction$
         .mapTo(state => set(state, "disabled", false))
-        .compose(delay(5e3))
+        .compose(delay(15e3))
     )
     .fold((state, reducer) => reducer(state), { disabled: false });
 
   const outbound$ = employmentAction$
     .compose(sampleCombine(sources.state.stream))
     .map(([, state]) => state.industries.foodService.employed > 3)
+    .compose(delay(5e3))
     .fold((_, state) => state, false);
 
   const dom$ = xs
@@ -72,7 +73,7 @@ export default function Introduction(sources) {
                 ", let's make it into smoething"
               ]),
               p([
-                "Click this button",
+                "Click this button ",
                 button(
                   ".employ",
                   {
@@ -81,7 +82,7 @@ export default function Introduction(sources) {
                   },
                   "Employ"
                 ),
-                "to ",
+                " to ",
                 i('"employ"'),
                 " some ",
                 DINNER_PLATE,
