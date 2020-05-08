@@ -46,36 +46,14 @@ function makeIndustrySupplyReducer(sources, industryName) {
         typeof delta === "number" && !isNaN(delta) && delta >= 0,
         "`delta` has to be a positive number"
       );
-      return update(state, ["industries", industryName], industry => ({
-        ...industry,
-        supply: industry.supply + delta
-      }));
+      return update(
+        state,
+        ["industries", industryName, "supply"],
+        supply => supply + delta
+      );
     });
   return supplyUpdate$;
 }
-
-// function agricultureToFoodDelta(state) {
-//   const time = TIMEOUTS.industries.foodService.agricultureToFood;
-//   const maxDelta = makeFoodServiceDerivative(state);
-//   const maxFoodDelta = maxDelta.food * time;
-//   const maxAgricultureDelta = maxDelta.agriculture * time;
-//   if (maxFoodDelta === 0) {
-//     return {
-//       foodDelta: 0,
-//       agricultureSupplyDelta: 0
-//     };
-//   }
-//   const agricultureDelta = -Math.min(
-//     state.industries.agriculture.supply,
-//     Math.abs(maxAgricultureDelta)
-//   );
-//   const ratio = Math.min(1, agricultureDelta / maxAgricultureDelta);
-//   return {
-//     foodDelta: ratio * maxFoodDelta,
-//     agricultureSupplyDelta: agricultureDelta,
-//     ratio
-//   };
-// }
 
 function makeFoodServiceUpdateReducer(sources) {
   const time = TIMEOUTS.industries.foodService.agricultureToFood;
@@ -94,15 +72,50 @@ function makeFoodServiceUpdateReducer(sources) {
       ["user.food", food => food + ratio * foodDelta],
       [
         "industries.agriculture.supply",
-        supply => supply + ratio * agricultureSupplyDelta
+        supply => Math.max(0, supply + ratio * agricultureSupplyDelta) // clamping?
       ]
     ]);
   });
   return reducer$;
 }
 
+function makeHousingUpdateReducer(sources) {
+  const time = TIMEOUTS.industries.housing.timberToHouses;
+  const timberToHousesDelta$ = xs
+    .periodic(1e3 * time)
+    .compose(sampleCombine(sources.state.stream))
+    .map(([, { industries, derived: { derivative } }]) => {
+      const maxUserHousesDelta = time * derivative.housing.user.houses;
+      if (maxUserHousesDelta === 0)
+        return {
+          userHouses: 0,
+          timberSupply: 0
+        };
+      const maxTimberSupplyDelta = time * derivative.housing.timber.supply;
+      const ratio = Math.min(
+        1,
+        Math.abs(industries.timber.supply / maxTimberSupplyDelta)
+      );
+      return {
+        ratio,
+        userHouses: ratio * maxUserHousesDelta,
+        timberSupply: ratio * maxTimberSupplyDelta
+      };
+    });
+  const reducer$ = timberToHousesDelta$.map(
+    ({ userHouses, timberSupply }) => state =>
+      updateAll(state, [
+        ["user.houses", houses => houses + userHouses],
+        ["industries.timber.supply", supply => supply + timberSupply]
+      ])
+  );
+  return reducer$;
+}
+
 export function makeIndustriesUpdateReducer(sources) {
   const agriculture$ = makeIndustrySupplyReducer(sources, "agriculture");
+  const timber$ = makeIndustrySupplyReducer(sources, "timber");
   const foodService$ = makeFoodServiceUpdateReducer(sources);
-  return xs.merge(agriculture$, foodService$);
+  const housing$ = makeHousingUpdateReducer(sources);
+  return xs.merge(agriculture$, timber$, foodService$, housing$);
 }

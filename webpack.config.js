@@ -1,8 +1,20 @@
 const nodeExternals = require("webpack-node-externals");
 const webpack = require("webpack");
 const path = require("path");
+const marked = require("marked");
+
+const CustomString = require("./src/string");
 
 const isDev = process.env.NODE_ENV !== "production";
+
+const markdownRenderer = new class MarkdownRenderer extends marked.Renderer {
+  paragraph(text) {
+    Object.entries(CustomString).forEach(([name, symbol]) => {
+      text = text.replace(new RegExp(`{${name}} ?`, "g"), symbol);
+    });
+    return "<p>" + text + "<p>\n";
+  }
+}();
 
 module.exports = [
   !isDev && {
@@ -57,6 +69,21 @@ module.exports = [
         {
           test: /.css$/,
           loader: ["style-loader", "css-loader"]
+        },
+        {
+          test: /\.md$/,
+          use: [
+            {
+              loader: "html-loader"
+            },
+            {
+              loader: "markdown-loader",
+              options: {
+                pedantic: true,
+                renderer: markdownRenderer
+              }
+            }
+          ]
         }
       ]
     },

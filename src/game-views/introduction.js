@@ -130,8 +130,9 @@ export default function Introduction(sources) {
                 DINNER_PLATE,
                 " ",
                 `
-to live and repopulate. So yeah. Numbers game. I put that same information
-above. You can click it for some further details too if you want.
+to live and repopulate. So yeah. Numbers game. I'll put that same information
+above. In future panes you can click the quick view for some further details too
+if you want.
 `
               ])
             ])

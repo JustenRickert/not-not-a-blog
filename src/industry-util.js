@@ -7,7 +7,8 @@ import {
   POPULATION_GROWTH_RATE,
   POPULATION_CAPACITY,
   FOOD_PER_PERSON,
-  LEAST_UPPER_CAPACITY
+  LEAST_UPPER_CAPACITY,
+  POPULATION_LOSS_RATE
 } from "./constant";
 import { withRandomOffset, clamp, logisticDeltaEquation } from "../util";
 import sampleCombine from "xstream/extra/sampleCombine";
@@ -70,7 +71,7 @@ export function makeUserPopulationDerivative(state) {
     return logisticDeltaEquation(
       state.user.population,
       LEAST_POPULATION,
-      POPULATION_GROWTH_RATE
+      POPULATION_LOSS_RATE
     );
   } else {
     return logisticDeltaEquation(

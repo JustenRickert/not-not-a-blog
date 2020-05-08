@@ -93,7 +93,7 @@ const initialDataPromise = fetch("/user-data")
   .then(stubMissingAchievements)
   .then(stubMissingIndustries);
 
-const deriveDeritave = state => ({
+const deriveDerivative = state => ({
   user: {
     points: 1,
     population: makeUserPopulationDerivative(state),
@@ -123,7 +123,7 @@ const withDerivedLens = {
       derived: {
         employed,
         unemployed: state.user.population - employed,
-        derivative: deriveDeritave(state)
+        derivative: deriveDerivative(state)
       }
     };
   },

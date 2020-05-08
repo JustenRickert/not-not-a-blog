@@ -1,3 +1,19 @@
+@import url('https://fonts.googleapis.com/css?family=DM+Mono');
+@import url('https://fonts.googleapis.com/css?family=Roboto');
+
+* {
+    font-family: 'DM Mono';
+}
+
+p {
+    font-family: 'Roboto';
+}
+
+button {
+    margin: 0 0.15rem;
+    border-radius: 0.12rem;
+}
+
 .game {
     width: 100%;
 }

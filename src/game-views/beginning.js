@@ -26,6 +26,8 @@ import {
 } from "../actions/employment";
 import { update, set } from "../../util";
 
+import One from "./beginning/one.md";
+
 import "./beginning.css";
 
 const industryView = (
@@ -86,33 +88,37 @@ export default function Beginning(sources) {
       const {
         industries: { agriculture, foodService, timber, housing }
       } = state;
-      return div(".industry-grid", [
-        industryView("agriculture", {
-          industry: agriculture,
-          symbol: TRACTOR,
-          buttonState: buttonState["agriculture"],
-          state
-        }),
-        industryView("foodService", {
-          industry: foodService,
-          symbol: DINNER_PLATE,
-          buttonState: buttonState["foodService"],
-          state
-        }),
-        timber.unlocked &&
-          industryView("timber", {
-            industry: timber,
-            symbol: TREE,
-            buttonState: buttonState["timber"],
+      return div([
+        section(".industry-grid", [
+          industryView("agriculture", {
+            industry: agriculture,
+            symbol: TRACTOR,
+            buttonState: buttonState["agriculture"],
             state
           }),
-        housing.unlocked &&
-          industryView("housing", {
-            industry: housing,
-            symbol: HOUSE,
-            buttonState: buttonState["housing"],
+          industryView("foodService", {
+            industry: foodService,
+            symbol: DINNER_PLATE,
+            buttonState: buttonState["foodService"],
             state
-          })
+          }),
+          timber.unlocked &&
+            industryView("timber", {
+              industry: timber,
+              symbol: TREE,
+              buttonState: buttonState["timber"],
+              state
+            }),
+          housing.unlocked &&
+            industryView("housing", {
+              industry: housing,
+              symbol: HOUSE,
+              buttonState: buttonState["housing"],
+              state
+            })
+        ]),
+        section(".upgrade-grid", []),
+        section(".story-grid", { props: { innerHTML: One } }, [])
       ]);
     });
 

@@ -1,12 +1,36 @@
-import { assert } from "../util";
+import { assert, cond } from "../util";
+
+const translateWhole = (k, symbol) => n =>
+  (n / k).toLocaleString("en", {
+    maximumSignificantDigits: 3
+  }) + symbol;
+
+const wholeCond = cond(
+  [n => Math.abs(n) >= 1e18, translateWhole(1e18, "Qi")],
+  [n => Math.abs(n) >= 1e15, translateWhole(1e15, "Qu")],
+  [n => Math.abs(n) >= 1e12, translateWhole(1e12, "T")],
+  [n => Math.abs(n) >= 1e9, translateWhole(1e9, "B")],
+  [n => Math.abs(n) >= 1e6, translateWhole(1e6, "M")],
+  [n => Math.abs(n) >= 1e3, translateWhole(1e3, "K")],
+  [
+    () => true,
+    n =>
+      n.toLocaleString("en", {
+        maximumFractionDigits: 0
+      })
+  ]
+);
+
+function toNiceWhole(n) {
+  return wholeCond(n);
+}
 
 export function whole(n) {
-  return Math.floor(n).toLocaleString("en", {
-    maximumFractionDigits: 0
-  });
+  return toNiceWhole(Math.floor(n));
 }
 
 export function decimal(n) {
+  if (Math.abs(n) >= 1e3) return wholeCond(n);
   if (n < 0.1)
     return n.toLocaleString(undefined, {
       maximumSignificantDigits: 1

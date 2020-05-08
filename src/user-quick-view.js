@@ -34,7 +34,7 @@ const maybeStatButton = (condition, props, children) =>
 
 const dropdownStat = (
   name,
-  { dropdown, symbol, amount, rate, dropdownContent }
+  { dropdown, symbol, amount, rate, dropdownContent, state }
 ) =>
   div(".user-quick-view-stat", [
     maybeStatButton(dropdownContent, { dataset: { name } }, [
@@ -42,7 +42,9 @@ const dropdownStat = (
       whole(amount),
       perSecond(rate)
     ]),
-    dropdown.selected === name && dropdownContent
+    state.progression.introduction &&
+    dropdown.selected === name &&
+    dropdownContent
       ? div(".dropdown", [
           div("#triangle"),
           div(".dropdown-content", dropdownContent)
@@ -90,6 +92,7 @@ export default function UserQuickView(sources) {
           perSecond(derivative.user.points)
         ]),
         dropdownStat("user", {
+          state,
           dropdown,
           symbol: ALIEN,
           amount: user.population,
@@ -103,6 +106,7 @@ export default function UserQuickView(sources) {
         }),
         foodService.employed
           ? dropdownStat("food", {
+              state,
               dropdown,
               symbol: DINNER_PLATE,
               amount: user.food,
@@ -115,6 +119,7 @@ export default function UserQuickView(sources) {
           : null,
         housing.unlocked &&
           dropdownStat("houses", {
+            state,
             dropdown,
             symbol: HOUSE,
             amount: user.houses,
@@ -122,6 +127,7 @@ export default function UserQuickView(sources) {
           }),
         agriculture.employed
           ? dropdownStat("agriculture-supply", {
+              state,
               dropdown,
               symbol: TRACTOR,
               amount: agriculture.supply,
@@ -139,6 +145,7 @@ export default function UserQuickView(sources) {
           : null,
         timber.employed
           ? dropdownStat("timber-supply", {
+              state,
               dropdown,
               symbol: TREE,
               amount: timber.supply,

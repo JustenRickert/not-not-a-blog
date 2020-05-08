@@ -25,8 +25,6 @@ import {
   INDUSTRIES_UPDATE_SUPPLY_RATE,
   FOOD_PER_PERSON
 } from "./constant";
-import User from "./user";
-import Industries from "./industries";
 import Achievements from "./achievements";
 import UserQuickView from "./user-quick-view";
 import { makeFoodServiceDerivative } from "./industry-util";
@@ -70,8 +68,6 @@ export default function NotNotABlog(sources) {
     )
     .startWith(location.hash || "#game");
 
-  const userSinks = User(sources);
-  const industriesSinks = Industries(sources);
   const achievementsSinks = Achievements(sources);
   const worldSinks = {
     // TODO What happens in the world? :o
@@ -85,8 +81,6 @@ export default function NotNotABlog(sources) {
       tab$,
       sources.state.stream,
       userQuickView.DOM,
-      userSinks.DOM,
-      industriesSinks.DOM,
       worldSinks.DOM,
       achievementsSinks.DOM,
       gameView.DOM
@@ -96,8 +90,6 @@ export default function NotNotABlog(sources) {
         tab,
         state,
         userQuickViewDom,
-        userDom,
-        industriesDom,
         worldDom,
         achievementsDom,
         gameViewDom
@@ -112,14 +104,7 @@ export default function NotNotABlog(sources) {
             ])
           ),
           tab === "#game"
-            ? div(".game", [
-                userQuickViewDom,
-                gameViewDom,
-                div(".not-not-a-blog", [
-                  section([h2("User"), userDom]),
-                  section([h2("Industries"), industriesDom])
-                ])
-              ])
+            ? div(".game", [userQuickViewDom, gameViewDom])
             : tab === "#world"
             ? worldDom
             : achievementsDom
@@ -127,12 +112,7 @@ export default function NotNotABlog(sources) {
     );
 
   const updateReducer$ = makeUpdateReducer(sources);
-  const reducer$ = xs.merge(
-    updateReducer$,
-    // TODO Don't rely on industriesSinks.state
-    industriesSinks.state,
-    gameView.state
-  );
+  const reducer$ = xs.merge(updateReducer$, gameView.state);
 
   return {
     DOM: dom$,

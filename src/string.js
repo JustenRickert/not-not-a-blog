@@ -1,6 +1,6 @@
-export const RED_TRIANGLE = "🔺";
-export const ALIEN = "👽";
-export const TREE = "🌲";
-export const DINNER_PLATE = "🍽";
-export const TRACTOR = "🚜";
-export const HOUSE = "🏠";
+module.exports.RED_TRIANGLE = "🔺";
+module.exports.ALIEN = "👽";
+module.exports.TREE = "🌲";
+module.exports.DINNER_PLATE = "🍽";
+module.exports.TRACTOR = "🚜";
+module.exports.HOUSE = "🏠";

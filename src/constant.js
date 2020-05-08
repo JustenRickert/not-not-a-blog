@@ -27,10 +27,10 @@ export const INDUSTRIES_UPDATE_SUPPLY_RATE = {
     unit: 0.12,
     agriculture: -1.5
   },
-  timber: 0.75,
+  timber: 0.1,
   housing: {
-    unit: 1 / 1000,
-    timber: -1000
+    unit: 1 / 5000,
+    timber: -500
   }
 };
 
@@ -120,12 +120,13 @@ export const FOOD_PER_PERSON = 0.01;
 
 export const POPULATION_CAPACITY = {
   perPoint: 1 / 10,
-  perHouse: 5
+  perHouse: 4
 };
 
-export const POPULATION_GROWTH_RATE = 0.0025;
+export const POPULATION_GROWTH_RATE = 0.002;
+export const POPULATION_LOSS_RATE = 0.0005;
 
 export const EMPLOYMENT = {
   layoffRate: 0.08,
-  employRate: 0.04
+  employRate: 0.06
 };
