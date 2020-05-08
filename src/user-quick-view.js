@@ -27,6 +27,8 @@ import { whole, perSecond, percentage } from "./format";
 import throttle from "xstream/extra/throttle";
 import { populationCapacity } from "./industry-util";
 
+import "./user-quick-view.css";
+
 const maybeStatButton = (condition, props, children) =>
   condition
     ? button(".user-quick-view-stat-button", props, children)

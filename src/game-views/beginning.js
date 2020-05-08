@@ -24,11 +24,12 @@ import {
   makeEmploymentClickAction,
   employmentActionReducer
 } from "../actions/employment";
-import { update, set } from "../../util";
-
-import One from "./beginning/one.md";
+import { update, set, ofWhich, range, cond } from "../../util";
 
 import "./beginning.css";
+import "./loading.css";
+
+const loading = div(".loading", range(4).map(() => div(["."])));
 
 const industryView = (
   industryName,
@@ -72,23 +73,85 @@ const initButtonState = {
 const setDisabled = toggle => ({ reason, industryName }) => state =>
   set(state, [industryName, reason, "attrs", "disabled"], toggle);
 
-export default function Beginning(sources) {
-  const employmentAction$ = makeEmploymentClickAction(sources);
+const isCurrentPagination = page => state => state.page === page;
 
-  const buttonState$ = xs
+const storyViewsSwitch = cond(
+  [isCurrentPagination("one"), () => import("./beginning/one.md")],
+  [isCurrentPagination("two"), () => import("./beginning/two.md")]
+);
+
+const wait = x =>
+  new Promise(resolve => {
+    setTimeout(() => resolve(x), 60e3);
+  });
+
+function intent(sources) {
+  const employmentAction$ = makeEmploymentClickAction(sources);
+  const storyPagination$ = sources.DOM.select(
+    ".story .table-of-contents .index"
+  )
+    .events("click")
+    .map(
+      ({
+        currentTarget: {
+          dataset: { page }
+        }
+      }) => page
+    );
+
+  return {
+    employment: employmentAction$,
+    pagination: storyPagination$
+  };
+}
+
+export default function Beginning(sources) {
+  const {
+    employment: employmentAction$,
+    pagination: paginationAction$
+  } = intent(sources);
+
+  const paginationState$ = paginationAction$
+    .debug()
+    .map(page => state => update(state, "page", page))
+    .fold(
+      (state, reducer) => reducer(state),
+      JSON.parse(localStorage.getItem("beginning-story-pagination")) || {
+        page: "one"
+      }
+    );
+
+  paginationState$.addListener({
+    next: page => {
+      localStorage.setItem("beginning-story-pagination", JSON.stringify(page));
+    }
+  });
+
+  const industryGridButtonState$ = xs
     .merge(
       employmentAction$.map(setDisabled(true)),
       employmentAction$.map(setDisabled(false)).compose(delay(15e3))
     )
     .fold((state, reducer) => reducer(state), initButtonState);
 
+  const story$ = paginationState$
+    .map(storyViewsSwitch)
+    .map(xs.fromPromise)
+    .flatten()
+    .map(m => m.default)
+    .startWith(null);
+
   const dom$ = xs
-    .combine(sources.state.stream.compose(throttle(100)), buttonState$)
-    .map(([state, buttonState]) => {
+    .combine(
+      sources.state.stream.compose(throttle(100)),
+      industryGridButtonState$,
+      story$
+    )
+    .map(([state, buttonState, story]) => {
       const {
         industries: { agriculture, foodService, timber, housing }
       } = state;
-      return div([
+      return div(".beginning", [
         section(".industry-grid", [
           industryView("agriculture", {
             industry: agriculture,
@@ -118,7 +181,14 @@ export default function Beginning(sources) {
             })
         ]),
         section(".upgrade-grid", []),
-        section(".story-grid", { props: { innerHTML: One } }, [])
+        section(".story", [
+          nav(".table-of-contents.tab-nav", [
+            h3("Contents"),
+            button(".index", { dataset: { page: "one" } }, "Productivity"),
+            button(".index", { dataset: { page: "two" } }, "Tree Felling")
+          ]),
+          story ? div(".chapter", { props: { innerHTML: story } }) : loading
+        ])
       ]);
     });
 

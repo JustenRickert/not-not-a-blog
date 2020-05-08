@@ -1,5 +1,9 @@
+.beginning {
+    height: 100%;
+}
+
 .compact-header {
-    margin: 0.25rem 0.25rem;
+    margin: 0 0.5rem 0.5rem 0;
 }
 
 .industry-grid {
@@ -8,5 +12,20 @@
 }
 
 .industry-item {
-    margin: 0.5rem 0.5rem;
+    margin: 0 1rem 1rem 0;
+}
+
+.story {
+    display: flex;
+    height: 100%;
+}
+
+.table-of-contents {
+    min-width: 10rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.chapter p {
+    max-width: 40rem;
 }

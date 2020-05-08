@@ -132,6 +132,12 @@ export function thread(...fns) {
   return state => fns.reduce((state, fn) => fn(state), state);
 }
 
+export function range(n) {
+  return Array(n)
+    .fill()
+    .map((_, i) => i);
+}
+
 // like which, but without either function
 export function cases(...pairs) {
   return x => {
@@ -147,6 +153,16 @@ export function which(...conditions) {
   return x => {
     for (const [predicate, result] of conditions) {
       if (predicate(x)) return result;
+    }
+    throw new Error("need to handle all cases");
+  };
+}
+
+// like which, but without the first function
+export function ofWhich(...conditions) {
+  return x => {
+    for (const [y, fn] of conditions) {
+      if (x === y) return fn(x);
     }
     throw new Error("need to handle all cases");
   };

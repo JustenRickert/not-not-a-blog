@@ -19,7 +19,7 @@ import {
   nav
 } from "@cycle/dom";
 
-import { which, cases, set, omit, not } from "../util";
+import { which, cases, set, omit, not, cond } from "../util";
 import { whole } from "./format";
 
 const isProgressed = key => state => Boolean(state.progression[key]);
@@ -32,13 +32,13 @@ const whichProgression = which(
 
 const isCurrentView = key => state => state.currentView === key;
 
-const whichView = which(
+const whichView = cond(
   [
     isCurrentView("make-first-worker"),
-    import("./game-views/make-first-worker")
+    () => import("./game-views/make-first-worker")
   ],
-  [isCurrentView("introduction"), import("./game-views/introduction")],
-  [isCurrentView("beginning"), import("./game-views/beginning")]
+  [isCurrentView("introduction"), () => import("./game-views/introduction")],
+  [isCurrentView("beginning"), () => import("./game-views/beginning")]
 );
 
 function GameView(sources) {
