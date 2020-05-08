@@ -1,6 +1,6 @@
 import xs from "xstream";
 
-import { set, setAll, update } from "../../util";
+import { assert, set, setAll, sum, partition, update } from "../../util";
 import {
   FOOD_PER_PERSON,
   TIMEOUTS,
@@ -21,6 +21,15 @@ export default function makeUserUpdateReducer(sources) {
       )
     );
 
+  /*
+   * Industries to not layoff when there's population collapse... TODO: Keep an
+   * eye on this because as things become more complicated in the future so
+   * might this function... They unsafe in the sense that losing them would mean
+   * that more people would die, not that the industry itself is inherently
+   * unsafe.
+   */
+  const safeIndustryNames = ["agriculture", "foodService"];
+
   const populationReducer$ = xs
     .periodic(1e3 * TIMEOUTS.population)
     .mapTo(state => {
@@ -37,12 +46,42 @@ export default function makeUserUpdateReducer(sources) {
         // It's like Vlad the Impaler-esque :)
         const unemployedLost = Math.min(unemployed, populationLost);
         const employedLost = populationLost - unemployedLost;
+        const industryEntries = Object.entries(industries);
+        const [unsafeIndustries, safeIndustries] = partition(
+          industryEntries,
+          ([industryName]) => !safeIndustryNames.includes(industryName)
+        );
+        const totalIndustriesLength = industryEntries.length;
+        const safeLosses = sum(
+          safeIndustries,
+          ([, industry]) => (industry.employed / employed) * employedLost
+        );
         return setAll(state, [
           ["user.population", population - unemployedLost - employedLost],
-          ...Object.entries(industries).map(([industryName, industry]) => [
-            ["industries", industryName, "employed"],
-            industry.employed - employedLost * (industry.employed / employed)
-          ])
+          // TODO should safe industries be allowed to lose employees? :/
+          ...unsafeIndustries.map(([industryName, industry]) => {
+            const lost = employedLost * (industry.employed / employed);
+            const lossTransferredFromSafeIndustries = employedLost
+              ? (safeLosses * lost) / (employedLost - safeLosses)
+              : 0;
+            assert(
+              !isNaN(lossTransferredFromSafeIndustries),
+              "unsafe losses component needs to be a number",
+              {
+                lost,
+                safeLosses,
+                employedLost,
+                lossTransferredFromSafeIndustries
+              }
+            );
+            return [
+              ["industries", industryName, "employed"],
+              Math.max(
+                0,
+                industry.employed - lost - lossTransferredFromSafeIndustries
+              )
+            ];
+          })
         ]);
       } else {
         return set(state, "user.population", state.user.population + delta);

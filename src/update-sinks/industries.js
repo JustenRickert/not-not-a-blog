@@ -37,21 +37,30 @@ function makeIndustrySupplyReducer(sources, industryName) {
   const derivative$ = sources.state.stream.map(
     state => state.derived.derivative[industryName][industryName]
   );
-  const supplyUpdate$ = xs
-    .periodic(1e3 * time)
-    .compose(sampleCombine(derivative$))
-    .map(([, derivative]) => state => {
-      const delta = withRandomOffset(derivative * time);
-      assert(
-        typeof delta === "number" && !isNaN(delta) && delta >= 0,
-        "`delta` has to be a positive number"
-      );
-      return update(
-        state,
-        ["industries", industryName, "supply"],
-        supply => supply + delta
-      );
-    });
+  const supplyUpdate$ = xs.periodic(1e3 * time).mapTo(state => {
+    const {
+      derived: {
+        derivative: {
+          [industryName]: { [industryName]: derivative }
+        }
+      }
+    } = state;
+    const delta = withRandomOffset(derivative * time);
+    assert(
+      typeof delta === "number" && !isNaN(delta) && delta >= 0,
+      "`delta` has to be a positive number",
+      {
+        delta,
+        industryName,
+        state
+      }
+    );
+    return update(
+      state,
+      ["industries", industryName, "supply"],
+      supply => supply + delta
+    );
+  });
   return supplyUpdate$;
 }
 
@@ -81,34 +90,25 @@ function makeFoodServiceUpdateReducer(sources) {
 
 function makeHousingUpdateReducer(sources) {
   const time = TIMEOUTS.industries.housing.timberToHouses;
-  const timberToHousesDelta$ = xs
-    .periodic(1e3 * time)
-    .compose(sampleCombine(sources.state.stream))
-    .map(([, { industries, derived: { derivative } }]) => {
-      const maxUserHousesDelta = time * derivative.housing.user.houses;
-      if (maxUserHousesDelta === 0)
-        return {
-          userHouses: 0,
-          timberSupply: 0
-        };
-      const maxTimberSupplyDelta = time * derivative.housing.timber.supply;
-      const ratio = Math.min(
-        1,
-        Math.abs(industries.timber.supply / maxTimberSupplyDelta)
-      );
-      return {
-        ratio,
-        userHouses: ratio * maxUserHousesDelta,
-        timberSupply: ratio * maxTimberSupplyDelta
-      };
-    });
-  const reducer$ = timberToHousesDelta$.map(
-    ({ userHouses, timberSupply }) => state =>
-      updateAll(state, [
-        ["user.houses", houses => houses + userHouses],
-        ["industries.timber.supply", supply => supply + timberSupply]
-      ])
-  );
+  const reducer$ = xs.periodic(1e3 * time).mapTo(state => {
+    const {
+      industries,
+      derived: { derivative }
+    } = state;
+    const maxUserHousesDelta = time * derivative.housing.user.houses;
+    if (maxUserHousesDelta === 0) return state;
+    const maxTimberSupplyDelta = time * derivative.housing.timber.supply;
+    const ratio = Math.min(
+      1,
+      Math.abs(industries.timber.supply / maxTimberSupplyDelta)
+    );
+    const housesDelta = ratio * maxUserHousesDelta;
+    const timberDelta = ratio * maxTimberSupplyDelta;
+    return updateAll(state, [
+      ["user.houses", houses => houses + housesDelta],
+      ["industries.timber.supply", supply => supply + timberDelta]
+    ]);
+  });
   return reducer$;
 }
 

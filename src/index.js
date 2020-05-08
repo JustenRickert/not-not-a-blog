@@ -6,7 +6,7 @@ import sampleCombine from "xstream/extra/sampleCombine";
 import { makeDOMDriver } from "@cycle/dom";
 import isolate from "@cycle/isolate";
 
-import { update, set, setAll, logisticDeltaEquation, omit } from "../util";
+import { update, set, setAll, logisticDeltaEquation, omit, sum } from "../util";
 import {
   makeIndustriesStub,
   makeUserStub,
@@ -75,7 +75,7 @@ const stubMissingIndustries = state => {
 
 // TODO: user-data should maybe be fetched with a timestamp to make sure people
 // aren't cheating by moving their computer time into the future
-const initialDataPromise = fetch("/user-data")
+const initialDataPromise = fetch("/user-data" + "?" + "cacheBust=" + Date.now())
   .then(r => {
     if (r.status === 404) return initState;
     return r
@@ -114,9 +114,9 @@ const deriveDerivative = state => ({
 
 const withDerivedLens = {
   get: state => {
-    const employed = Object.values(state.industries).reduce(
-      (employed, i) => employed + i.employed,
-      0
+    const employed = sum(
+      Object.values(state.industries),
+      industry => industry.employed
     );
     return {
       ...state,

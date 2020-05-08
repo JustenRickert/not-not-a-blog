@@ -31,12 +31,12 @@ export function whole(n) {
 
 export function decimal(n) {
   if (Math.abs(n) >= 1e3) return wholeCond(n);
-  if (n < 0.1)
+  if (Math.abs(n) >= 1)
     return n.toLocaleString(undefined, {
-      maximumSignificantDigits: 1
+      maximumFractionDigits: 1
     });
   return n.toLocaleString(undefined, {
-    maximumFractionDigits: 1
+    maximumSignificantDigits: 1
   });
 }
 

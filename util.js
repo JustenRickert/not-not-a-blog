@@ -33,6 +33,10 @@ export function set(o, key, value) {
   };
 }
 
+export function sum(xs, toNumeric = x => x) {
+  return xs.reduce((s, x) => s + toNumeric(x), 0);
+}
+
 export function omit(o, keys) {
   return Object.entries(o)
     .filter(([k]) => !keys.includes(k))
@@ -43,6 +47,16 @@ export function omit(o, keys) {
       }),
       {}
     );
+}
+
+export function partition(xs, predicate) {
+  const left = [];
+  const right = [];
+  xs.forEach(x => {
+    if (predicate(x)) left.push(x);
+    else right.push(x);
+  });
+  return [left, right];
 }
 
 export function setAll(o, keyValues) {

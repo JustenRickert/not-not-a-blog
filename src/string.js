@@ -4,3 +4,4 @@ module.exports.TREE = "🌲";
 module.exports.DINNER_PLATE = "🍽";
 module.exports.TRACTOR = "🚜";
 module.exports.HOUSE = "🏠";
+module.exports.FEDERATION = "👾";

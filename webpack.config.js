@@ -10,7 +10,7 @@ const isDev = process.env.NODE_ENV !== "production";
 const markdownRenderer = new class MarkdownRenderer extends marked.Renderer {
   paragraph(text) {
     Object.entries(CustomString).forEach(([name, symbol]) => {
-      text = text.replace(new RegExp(`{${name}} ?`, "g"), symbol);
+      text = text.replace(new RegExp(`{${name}} *`, "g"), symbol);
     });
     return "<p>" + text + "<p>\n";
   }

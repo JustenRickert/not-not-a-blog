@@ -37,14 +37,12 @@ const dropdownStat = (
   { dropdown, symbol, amount, rate, dropdownContent, state }
 ) =>
   div(".user-quick-view-stat", [
-    maybeStatButton(dropdownContent, { dataset: { name } }, [
-      symbol,
-      whole(amount),
-      perSecond(rate)
-    ]),
-    state.progression.introduction &&
-    dropdown.selected === name &&
-    dropdownContent
+    maybeStatButton(
+      dropdownContent && state.progression.introduction,
+      { dataset: { name } },
+      [symbol, whole(amount), perSecond(rate)]
+    ),
+    dropdown.selected === name && dropdownContent
       ? div(".dropdown", [
           div("#triangle"),
           div(".dropdown-content", dropdownContent)
@@ -78,7 +76,6 @@ export default function UserQuickView(sources) {
 
   const dom$ = xs
     .combine(sources.state.stream.compose(throttle(100)), dropdownState$)
-    .debug()
     .map(([state, dropdown]) => {
       const {
         user,
