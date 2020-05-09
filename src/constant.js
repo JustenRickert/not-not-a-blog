@@ -45,6 +45,7 @@ export const LEAST_UPPER_CAPACITY = 1000;
 export const makeUserStub = () => ({
   population: LEAST_POPULATION,
   points: 0,
+  lastPointsUpdate: Date.now(),
   food: 100,
   houses: 0
 });
@@ -109,12 +110,6 @@ export const makeAchievementsStub = () =>
     }),
     {}
   );
-
-export const makeProgressionStub = () => ({
-  makeFirstWorker: false,
-  introduction: false,
-  beginning: false
-});
 
 export const FOOD_PER_PERSON = 0.01;
 

@@ -17,8 +17,7 @@ import {
   POPULATION_GROWTH_RATE,
   POPULATION_CAPACITY,
   LEAST_UPPER_CAPACITY,
-  makeAchievementsStub,
-  makeProgressionStub
+  makeAchievementsStub
 } from "./constant";
 import {
   makeFoodServiceDerivative,
@@ -31,8 +30,7 @@ const initState = {
   info: makeInfoStub(),
   user: makeUserStub(),
   industries: makeIndustriesStub(),
-  achievements: makeAchievementsStub(),
-  progression: makeProgressionStub()
+  achievements: makeAchievementsStub()
 };
 
 const stubMissingTopLevel = state => {
@@ -78,15 +76,7 @@ const stubMissingIndustries = state => {
 const initialDataPromise = fetch("/user-data" + "?" + "cacheBust=" + Date.now())
   .then(r => {
     if (r.status === 404) return initState;
-    return r
-      .json()
-      .then(state =>
-        update(
-          state,
-          "user.points",
-          points => points + (Date.now() - state.info.lastSaveDate) / 1000
-        )
-      );
+    return r.json();
   })
   .then(x => (console.log(x), x))
   .then(stubMissingTopLevel)

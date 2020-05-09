@@ -39,11 +39,11 @@ const dropdownStat = (
   { dropdown, symbol, amount, rate, dropdownContent, state }
 ) =>
   div(".user-quick-view-stat", [
-    maybeStatButton(
-      dropdownContent && state.progression.introduction,
-      { dataset: { name } },
-      [symbol, whole(amount), perSecond(rate)]
-    ),
+    maybeStatButton(dropdownContent, { dataset: { name } }, [
+      symbol,
+      whole(amount),
+      perSecond(rate)
+    ]),
     dropdown.selected === name && dropdownContent
       ? div(".dropdown", [
           div("#triangle"),

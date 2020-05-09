@@ -1,66 +1,15 @@
-import xs from "xstream";
-import dropRepeats from "xstream/extra/dropRepeats";
-import delay from "xstream/extra/delay";
 import isolate from "@cycle/isolate";
-import {
-  div,
-  section,
-  button,
-  h1,
-  h2,
-  h3,
-  h4,
-  i,
-  a,
-  p,
-  ul,
-  li,
-  span,
-  nav
-} from "@cycle/dom";
+import Beginning from "./game-views/beginning";
 
-import { which, cases, set, omit, not, cond } from "../util";
-import { whole } from "./format";
+/**
+ * FIXME: I originally had different ideas about `game-views`, but have since
+ * changed my mind. As such, `Beginning` is a terrible name. It is the main game
+ * view. Don't think anything different. :)
+ */
 
-const isProgressed = key => state => Boolean(state.progression[key]);
-
-const whichProgression = which(
-  [not(isProgressed("makeFirstWorker")), "make-first-worker"],
-  [not(isProgressed("introduction")), "introduction"],
-  [not(isProgressed("beginning")), "beginning"]
-);
-
-const isCurrentView = key => state => state.currentView === key;
-
-const whichView = cond(
-  [
-    isCurrentView("make-first-worker"),
-    () => import("./game-views/make-first-worker")
-  ],
-  [isCurrentView("introduction"), () => import("./game-views/introduction")],
-  [isCurrentView("beginning"), () => import("./game-views/beginning")]
-);
-
-function GameView(sources) {
-  const sinks$ = sources.state.stream
-    .compose(dropRepeats((s1, s2) => s1.currentView === s2.currentView))
-    .map(whichView)
-    .map(xs.fromPromise)
-    .flatten()
-    .map(({ default: View }) => View(sources));
-
-  return {
-    DOM: sinks$.map(s => s.DOM).flatten(),
-    state: sinks$.map(s => s.state).flatten()
-  };
-}
-
-export default isolate(GameView, {
+export default isolate(Beginning, {
   state: {
-    get: state => ({
-      ...state,
-      currentView: whichProgression(state)
-    }),
-    set: (_, state) => omit(state, ["currentView"])
+    get: state => state,
+    set: (_, state) => state
   }
 });

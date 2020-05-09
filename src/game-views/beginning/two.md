@@ -1,9 +1,9 @@
-### Tree Felling
+### Trees
 
-Your aliens {ALIEN} are apparently tree felling folk. After they chopped down the amount that they thought was enough, they started to think through what they might actually be able to do them.
+The aliens {ALIEN} are sick of food!
 
-This is an important breakthrough for the new aliens {ALIEN}. The ability to see through the mere material aspects of the things around them for the _potential_ that those mere material things might give them makes them able to conceive of such things as houses {HOUSE}. They no longer wish to just keep themselves dry in the rain by sheltering in a cave. They've carved out enough makeshift hand axes from the insides of flint or chert, and tied together enough pieces of twisted tree bark fibers to create string that they need somewhere to put all of it.
+Well, not actually, I guess. But they're starting to be more interested in other things. They've taken their thoughts to the trees. Or---rather---they're bringing the trees to their thoughts. Timber {TREE} is now unlocked.
 
-Being able to create houses {HOUSE} allows them to settle down and increase their alien {ALIEN} population capacity. Slowly their population will explode. Or something I'm sure. They might even one day be able to create enough resources to start trading measurable amounts of material with the rest of the Federation of Socialist Planets {FEDERATION}.
+It was once explained to me that the desire to bring down nature was the genesis of disbelief in God. It was that the time of tilling the earth for crops and making shelter from anything other than dirt and rock, was the time of Godlessness. Ancient Greek religious beliefs kept nature and their mythological objects close together. When Hades kidnaps Persephone, daughter of the agriculture goddess Demeter, endless winter descends and famine becomes widespread.
 
-You just keep at it!
+The other point of view says that the land was a gift from the Almighty, and so could be changed without any moral insinuations---God's conferral of dominion over creation in Christianity. I guess it is yet to be determined what the aliens {ALIEN} think about gifts from the Almighty.

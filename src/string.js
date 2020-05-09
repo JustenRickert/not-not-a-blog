@@ -5,3 +5,5 @@ module.exports.DINNER_PLATE = "🍽";
 module.exports.TRACTOR = "🚜";
 module.exports.HOUSE = "🏠";
 module.exports.FEDERATION = "👾";
+module.exports.THE_GAME = "💽";
+module.exports.CONTRAXIS = "🚀";

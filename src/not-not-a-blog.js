@@ -1,5 +1,4 @@
 import xs from "xstream";
-import isolate from "@cycle/isolate";
 import sampleCombine from "xstream/extra/sampleCombine";
 import throttle from "xstream/extra/throttle";
 import debounce from "xstream/extra/debounce";
@@ -71,7 +70,7 @@ export default function NotNotABlog(sources) {
   const achievementsSinks = Achievements(sources);
   const worldSinks = {
     // TODO What happens in the world? :o
-    DOM: xs.of("uh oh").mapTo(div("uh oh!"))
+    DOM: xs.of("uh oh").mapTo(div("TODO! :)"))
   };
   const userQuickView = UserQuickView(sources);
   const gameView = GameView(sources);

@@ -12,6 +12,8 @@ const markdownRenderer = new class MarkdownRenderer extends marked.Renderer {
     Object.entries(CustomString).forEach(([name, symbol]) => {
       text = text.replace(new RegExp(`{${name}} *`, "g"), symbol);
     });
+    text = text.replace(/---/g, "—"); // emdash
+    text = text.replace(/--/g, "–"); // endash
     return "<p>" + text + "<p>\n";
   }
 }();

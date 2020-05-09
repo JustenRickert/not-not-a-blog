@@ -1,6 +1,14 @@
 import xs from "xstream";
 
-import { assert, set, setAll, sum, partition, update } from "../../util";
+import {
+  assert,
+  set,
+  setAll,
+  sum,
+  partition,
+  update,
+  updateAll
+} from "../../util";
 import {
   FOOD_PER_PERSON,
   TIMEOUTS,
@@ -10,16 +18,18 @@ import {
 } from "../constant";
 
 export default function makeUserUpdateReducer(sources) {
-  const pointsReducer$ = xs
-    .periodic(1e3 * TIMEOUTS.points)
-    .mapTo(state =>
-      update(
-        state,
-        "user.points",
-        points =>
-          points + TIMEOUTS.points * state.derived.derivative.user.points
-      )
-    );
+  const pointsReducer$ = xs.periodic(1e3 * TIMEOUTS.points).mapTo(state => {
+    const {
+      user: { lastPointsUpdate },
+      derived: { derivative }
+    } = state;
+    const now = Date.now();
+    const since = (now - lastPointsUpdate) / 1000;
+    return updateAll(state, [
+      ["user.points", points => points + since * derivative.user.points],
+      ["user.lastPointsUpdate", () => now]
+    ]);
+  });
 
   /*
    * Industries to not layoff when there's population collapse... TODO: Keep an

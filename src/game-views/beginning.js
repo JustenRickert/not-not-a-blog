@@ -13,6 +13,7 @@ import {
   ul,
   li,
   span,
+  sup,
   nav
 } from "@cycle/dom";
 import delay from "xstream/extra/delay";
@@ -24,7 +25,7 @@ import {
   makeEmploymentClickAction,
   employmentActionReducer
 } from "../actions/employment";
-import { update, set, ofWhich, range, cond } from "../../util";
+import { update, set, ofWhich, range, cond, setAll } from "../../util";
 
 import "./beginning.css";
 import "./loading.css";
@@ -58,12 +59,25 @@ const industryView = (
   ]);
 };
 
+const buttonIndexView = ({ page, label, pageState }) => {
+  const { isNew } = pageState;
+  return button(".index", { dataset: { page } }, [
+    label,
+    isNew ? sup("new") : null
+  ]);
+};
+
+const wait = x =>
+  new Promise(resolve => {
+    setTimeout(() => resolve(x), 60e3);
+  });
+
 const singleButtonState = {
   employ: { attrs: { disabled: false } },
   layoff: { attrs: { disabled: false } }
 };
 
-const initButtonState = {
+const initIndustryGridButtonState = {
   agriculture: singleButtonState,
   foodService: singleButtonState,
   timber: singleButtonState,
@@ -76,14 +90,35 @@ const setDisabled = toggle => ({ reason, industryName }) => state =>
 const isCurrentPagination = page => state => state.page === page;
 
 const storyViewsSwitch = cond(
-  [isCurrentPagination("one"), () => import("./beginning/one.md")],
-  [isCurrentPagination("two"), () => import("./beginning/two.md")]
+  [
+    isCurrentPagination("introduction"),
+    () =>
+      import(/* webpackChunkName: "introduction" */
+      "./beginning/introduction.md")
+  ],
+  [
+    isCurrentPagination("one"),
+    () =>
+      import(/* webpackChunkName: "one" */
+      "./beginning/one.md")
+  ],
+  [
+    isCurrentPagination("two"),
+    () => import(/* webpackChunkName: "two" */ "./beginning/two.md")
+  ],
+  [
+    isCurrentPagination("tree-felling"),
+    () =>
+      import(/* webpackChunkName: "tree-felling" */ "./beginning/tree-felling.md")
+  ]
 );
 
-const wait = x =>
-  new Promise(resolve => {
-    setTimeout(() => resolve(x), 60e3);
-  });
+const initPaginationStates = {
+  introduction: { isNew: false },
+  one: { isNew: true },
+  two: { isNew: true },
+  "tree-felling": { isNew: true }
+};
 
 function intent(sources) {
   const employmentAction$ = makeEmploymentClickAction(sources);
@@ -112,15 +147,18 @@ export default function Beginning(sources) {
   } = intent(sources);
 
   const paginationState$ = paginationAction$
-    .debug()
-    .map(page => state => update(state, "page", page))
+    .map(page => state =>
+      setAll(state, [["page", page], [["states", page, "isNew"], false]])
+    )
     .fold(
       (state, reducer) => reducer(state),
       JSON.parse(localStorage.getItem("beginning-story-pagination")) || {
-        page: "one"
+        page: "introduction",
+        states: initPaginationStates
       }
     );
 
+  // TODO: should this be global state? 'O_o
   paginationState$.addListener({
     next: page => {
       localStorage.setItem("beginning-story-pagination", JSON.stringify(page));
@@ -132,7 +170,7 @@ export default function Beginning(sources) {
       employmentAction$.map(setDisabled(true)),
       employmentAction$.map(setDisabled(false)).compose(delay(15e3))
     )
-    .fold((state, reducer) => reducer(state), initButtonState);
+    .fold((state, reducer) => reducer(state), initIndustryGridButtonState);
 
   const story$ = paginationState$
     .map(storyViewsSwitch)
@@ -145,13 +183,15 @@ export default function Beginning(sources) {
     .combine(
       sources.state.stream.compose(throttle(100)),
       industryGridButtonState$,
-      story$
+      story$,
+      paginationState$
     )
-    .map(([state, buttonState, story]) => {
+    .map(([state, buttonState, story, paginationState]) => {
       const {
         industries: { agriculture, foodService, timber, housing }
       } = state;
       return div(".beginning", [
+        // TODO(probably?): move to separate view
         section(".industry-grid", [
           industryView("agriculture", {
             industry: agriculture,
@@ -159,12 +199,13 @@ export default function Beginning(sources) {
             buttonState: buttonState["agriculture"],
             state
           }),
-          industryView("foodService", {
-            industry: foodService,
-            symbol: DINNER_PLATE,
-            buttonState: buttonState["foodService"],
-            state
-          }),
+          foodService.unlocked &&
+            industryView("foodService", {
+              industry: foodService,
+              symbol: DINNER_PLATE,
+              buttonState: buttonState["foodService"],
+              state
+            }),
           timber.unlocked &&
             industryView("timber", {
               industry: timber,
@@ -180,12 +221,36 @@ export default function Beginning(sources) {
               state
             })
         ]),
+        // TODO: implement
         section(".upgrade-grid", []),
+        // TODO: move to separate view
         section(".story", [
           nav(".table-of-contents.tab-nav", [
             h3("Contents"),
-            button(".index", { dataset: { page: "one" } }, "Productivity"),
-            button(".index", { dataset: { page: "two" } }, "Tree Felling")
+            ...[
+              {
+                page: "introduction",
+                label: "Introduction",
+                pageState: paginationState.states["introduction"]
+              },
+              foodService.unlocked && {
+                page: "one",
+                label: "Productivity",
+                pageState: paginationState.states["one"]
+              },
+              timber.unlocked && {
+                page: "two",
+                label: "Trees",
+                pageState: paginationState.states["two"]
+              },
+              housing.unlocked && {
+                page: "tree-felling",
+                label: "Tree Felling Folk",
+                pageState: paginationState.states["tree-felling"]
+              }
+            ]
+              .filter(Boolean)
+              .map(buttonIndexView)
           ]),
           story ? div(".chapter", { props: { innerHTML: story } }) : loading
         ])

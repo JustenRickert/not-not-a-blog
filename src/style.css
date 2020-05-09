@@ -15,8 +15,19 @@ body {
     font-family: 'DM Mono';
 }
 
-p, em {
+p, p em, p sub, p sup {
     font-family: 'Roboto';
+    line-height: 1.6;
+}
+
+p sup {
+    vertical-align: top;
+    font-size: 0.85rem;
+}
+
+p sub {
+    vertical-align: bottom;
+    font-size: 0.85rem;
 }
 
 button {
@@ -47,6 +58,7 @@ button {
 .tab-nav button {
     margin: 0 1rem 0.5rem 0;
     padding: 0.25rem;
+    min-height: 1.75rem;
 }
 
 .container {
