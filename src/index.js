@@ -4,26 +4,15 @@ import { timeDriver } from "@cycle/time";
 import xs from "xstream";
 import sampleCombine from "xstream/extra/sampleCombine";
 import { makeDOMDriver } from "@cycle/dom";
-import isolate from "@cycle/isolate";
 
-import { update, set, setAll, logisticDeltaEquation, omit, sum } from "../util";
+import { set, setAll } from "../util";
 import {
   makeIndustriesStub,
   makeUserStub,
   makeInfoStub,
   TIMEOUTS,
-  INDUSTRIES_UPDATE_SUPPLY_RATE,
-  FOOD_PER_PERSON,
-  POPULATION_GROWTH_RATE,
-  POPULATION_CAPACITY,
-  LEAST_UPPER_CAPACITY,
   makeAchievementsStub
 } from "./constant";
-import {
-  makeFoodServiceDerivative,
-  makeHousingDerivative,
-  makeUserPopulationDerivative
-} from "./industry-util";
 import NotNotABlog from "./not-not-a-blog";
 
 const initState = {
@@ -83,43 +72,6 @@ const initialDataPromise = fetch("/user-data" + "?" + "cacheBust=" + Date.now())
   .then(stubMissingAchievements)
   .then(stubMissingIndustries);
 
-const deriveDerivative = state => ({
-  user: {
-    points: 1,
-    population: makeUserPopulationDerivative(state),
-    food: -(FOOD_PER_PERSON * state.user.population)
-  },
-  foodService: makeFoodServiceDerivative(state),
-  agriculture: {
-    agriculture:
-      INDUSTRIES_UPDATE_SUPPLY_RATE.agriculture *
-      state.industries.agriculture.employed
-  },
-  timber: {
-    timber:
-      INDUSTRIES_UPDATE_SUPPLY_RATE.timber * state.industries.timber.employed
-  },
-  housing: makeHousingDerivative(state)
-});
-
-const withDerivedLens = {
-  get: state => {
-    const employed = sum(
-      Object.values(state.industries),
-      industry => industry.employed
-    );
-    return {
-      ...state,
-      derived: {
-        employed,
-        unemployed: state.user.population - employed,
-        derivative: deriveDerivative(state)
-      }
-    };
-  },
-  set: (_, state) => omit(state, ["derived"])
-};
-
 function main(sources) {
   const saveData$ = xs
     .periodic(1e3 * TIMEOUTS.saveData)
@@ -140,9 +92,7 @@ function main(sources) {
     }
   });
 
-  const notNotABlogSinks = isolate(NotNotABlog, { state: withDerivedLens })(
-    sources
-  );
+  const notNotABlogSinks = NotNotABlog(sources);
 
   return {
     DOM: notNotABlogSinks.DOM,
@@ -160,13 +110,6 @@ run(withState(main), {
   DOM: makeDOMDriver("#root"),
   Time: timeDriver
 });
-
-if (module.hot) {
-  module.hot.accept("./index.js", () => {
-    // TODO probably a way to do this nicer :shrug:
-    window.location.reload();
-  });
-}
 
 // TODO hash on save :)
 

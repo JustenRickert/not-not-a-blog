@@ -21,7 +21,10 @@ import {
   DINNER_PLATE,
   TRACTOR,
   HOUSE,
-  TREE
+  TREE,
+  OPEN_BOOK,
+  ELECTRICITY,
+  AESCULAPIUS
 } from "./string";
 import { whole, perSecond, percentage } from "./format";
 import throttle from "xstream/extra/throttle";
@@ -81,7 +84,15 @@ export default function UserQuickView(sources) {
     .map(([state, dropdown]) => {
       const {
         user,
-        industries: { agriculture, housing, foodService, timber },
+        industries: {
+          agriculture,
+          housing,
+          foodService,
+          timber,
+          education,
+          energy,
+          health
+        },
         derived: { unemployed, derivative }
       } = state;
       return div(".user-quick-view-stat", [
@@ -112,7 +123,15 @@ export default function UserQuickView(sources) {
               rate: derivative.user.food + derivative.foodService.food,
               dropdownContent: ul([
                 li([ALIEN, perSecond(derivative.user.food)]),
-                li([DINNER_PLATE, perSecond(derivative.foodService.food)])
+                li([DINNER_PLATE, perSecond(derivative.foodService.food)]),
+                education.unlocked &&
+                  li([
+                    OPEN_BOOK,
+                    perSecond(
+                      derivative.foodService.food *
+                        (derivative.foodService.educationMultiplier - 1)
+                    )
+                  ])
               ])
             })
           : null,
@@ -131,10 +150,10 @@ export default function UserQuickView(sources) {
               symbol: TRACTOR,
               amount: agriculture.supply,
               rate:
-                derivative.agriculture.agriculture +
+                derivative.agriculture.supply +
                 derivative.foodService.agriculture,
               dropdownContent: ul([
-                li([TRACTOR, perSecond(derivative.agriculture.agriculture)]),
+                li([TRACTOR, perSecond(derivative.agriculture.supply)]),
                 li([
                   DINNER_PLATE,
                   perSecond(derivative.foodService.agriculture)
@@ -148,13 +167,40 @@ export default function UserQuickView(sources) {
               dropdown,
               symbol: TREE,
               amount: timber.supply,
-              rate: derivative.timber.timber + derivative.housing.timber.supply,
+              rate: derivative.timber.supply + derivative.housing.timber,
               dropdownContent: housing.employed
                 ? ul([
-                    li([TREE, perSecond(derivative.timber.timber)]),
-                    li([HOUSE, perSecond(derivative.housing.timber.supply)])
+                    li([TREE, perSecond(derivative.timber.supply)]),
+                    li([HOUSE, perSecond(derivative.housing.timber)])
                   ])
                 : null
+            })
+          : null,
+        education.employed
+          ? dropdownStat("education-supply", {
+              state,
+              dropdown,
+              symbol: OPEN_BOOK,
+              amount: education.supply,
+              rate: derivative.education.supply
+            })
+          : null,
+        energy.employed
+          ? dropdownStat("energy-supply", {
+              state,
+              dropdown,
+              symbol: ELECTRICITY,
+              amount: energy.supply,
+              rate: derivative.energy.supply
+            })
+          : null,
+        health.employed
+          ? dropdownStat("health-supply", {
+              state,
+              dropdown,
+              symbol: AESCULAPIUS,
+              amount: health.supply,
+              rate: derivative.health.supply
             })
           : null
       ]);

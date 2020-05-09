@@ -30,4 +30,4 @@ You can go ahead and proceed with your life without me! :) I won't mind.
 
 The other numbers you start out with are aliens {ALIEN} and agriculture {TRACTOR}.
 
-I'll talk about them in more detail later. Just go ahead and click the _employ_ button 'round the agriculture {TRACTOR}. If you've already found it and clicked it: Stick around a bit. When you get one-hundred agricultural supplies {AGRICULTURE} the aliens {ALIEN} will figure out what to do with it.
+I'll talk about them in more detail later. Just go ahead and click the _employ_ button 'round the agriculture {TRACTOR}. If you've already found it and clicked it: Stick around a bit. When you get one-hundred agricultural supplies {TRACTOR} the aliens {ALIEN} will figure out what to do with it.

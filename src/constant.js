@@ -6,18 +6,13 @@ export const TIMEOUTS = {
   unlockIndustries: 1,
   unlockAchievements: 1,
   industries: {
-    agriculture: {
-      supply: 1
-    },
-    foodService: {
-      agricultureToFood: 1
-    },
-    timber: {
-      supply: 1
-    },
-    housing: {
-      timberToHouses: 1
-    }
+    agriculture: 1,
+    foodService: 1,
+    timber: 1,
+    housing: 1,
+    education: 5,
+    energy: 5,
+    health: 5
   }
 };
 
@@ -31,7 +26,10 @@ export const INDUSTRIES_UPDATE_SUPPLY_RATE = {
   housing: {
     unit: 1 / 5000,
     timber: -500
-  }
+  },
+  education: 0.01,
+  energy: 0.01,
+  health: 0.01
 };
 
 export const makeInfoStub = () => ({
@@ -59,14 +57,20 @@ export const makeIndustriesStub = () => ({
   agriculture: { ...INDUSTRY_STUB, supply: 0, unlocked: true },
   foodService: INDUSTRY_STUB,
   timber: { ...INDUSTRY_STUB, supply: 0 },
-  housing: INDUSTRY_STUB
+  housing: INDUSTRY_STUB,
+  education: INDUSTRY_STUB,
+  energy: INDUSTRY_STUB,
+  health: INDUSTRY_STUB
 });
 
 export const INDUSTRIES_UNLOCK_CONDITIONS = {
   foodService: state => state.industries.agriculture.supply > 100,
   timber: state => state.user.population > 150 && state.user.points > 1000,
   housing: state =>
-    state.user.population > 250 && state.industries.timber.supply > 3e3
+    state.user.population > 250 && state.industries.timber.supply > 3e3,
+  education: state => state.user.population > 5e3,
+  energy: state => state.user.population > 5e3,
+  health: state => state.user.population > 5e3
 };
 
 export const ACHIEVEMENTS_LABELS = {
@@ -124,4 +128,18 @@ export const POPULATION_LOSS_RATE = 0.0005;
 export const EMPLOYMENT = {
   layoffRate: 0.08,
   employRate: 0.06
+};
+
+export const EDUCATION_DERIVATIVE_MULTIPLIER = {
+  agriculture: {
+    supply: 1 / 3e3
+  },
+  foodService: {
+    user: {
+      food: 1 / 5e3
+    }
+  },
+  timber: {
+    supply: 1 / 3e3
+  }
 };

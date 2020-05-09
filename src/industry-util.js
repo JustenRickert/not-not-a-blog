@@ -8,7 +8,8 @@ import {
   POPULATION_CAPACITY,
   FOOD_PER_PERSON,
   LEAST_UPPER_CAPACITY,
-  POPULATION_LOSS_RATE
+  POPULATION_LOSS_RATE,
+  EDUCATION_DERIVATIVE_MULTIPLIER
 } from "./constant";
 import { withRandomOffset, clamp, logisticDeltaEquation } from "../util";
 import sampleCombine from "xstream/extra/sampleCombine";
@@ -33,27 +34,6 @@ export function makeEmploymentAction(sources, industryName) {
       })
   );
   return xs.merge(employmentClick$);
-}
-
-export function makeIndustrySupplyUpdate(sources, industryName) {
-  const rate = INDUSTRIES_UPDATE_SUPPLY_RATE[industryName];
-  const time = TIMEOUTS.industries[industryName].supply;
-  const derivative$ = sources.state.stream.map(
-    state => state.derived.derivative[industryName][industryName]
-  );
-  const supplyUpdate$ = xs
-    .periodic(1e3 * time)
-    .compose(sampleCombine(derivative$))
-    .map(([, derivative]) => industry => {
-      const delta = withRandomOffset(derivative * time);
-      if (delta < 0)
-        console.log("THIS SHOULDNT BE NEGATIVE BUT IT IS", delta, industryName);
-      return {
-        ...industry,
-        supply: industry.supply + delta
-      };
-    });
-  return supplyUpdate$;
 }
 
 export function populationCapacity(state) {
@@ -84,10 +64,17 @@ export function makeUserPopulationDerivative(state) {
 
 // _derivative_ is without time, _delta_ is with time. Totally not confusing...
 export function makeFoodServiceDerivative(state) {
+  const {
+    industries: { foodService, education }
+  } = state;
   const rate = INDUSTRIES_UPDATE_SUPPLY_RATE.foodService;
-  const maxFoodDelta = rate.unit * state.industries.foodService.employed;
+  const maxFoodDelta = rate.unit * foodService.employed;
   const maxAgricultureSupplyDelta = maxFoodDelta * rate.agriculture;
+  const educationMultiplier =
+    1 +
+    EDUCATION_DERIVATIVE_MULTIPLIER.foodService.user.food * education.employed;
   return {
+    educationMultiplier,
     food: maxFoodDelta,
     agriculture: maxAgricultureSupplyDelta
   };
@@ -101,8 +88,6 @@ export function makeHousingDerivative(state) {
     user: {
       houses: userHousingDerivative
     },
-    timber: {
-      supply: timberSupplyDerivative
-    }
+    timber: timberSupplyDerivative
   };
 }

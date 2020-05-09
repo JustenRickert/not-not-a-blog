@@ -1,8 +1,8 @@
 ### Productivity
 
-Nice! Looks like you found out how to look these story panels. I hope the _new_ superscript was informative enough to... umm... <sub>inform</sub> you it this might be of interest...
+Nice! Looks like you found out how to look through these story panels. I hope the _new_ superscript was informative enough to... umm... <sub>inform</sub> you it might be of interest...
 
-<sup>I'm supposed to be good this, since I'm like a professional or whatever.</sup>
+<sup>I'm supposed to be good at like making websites or whatever, since I'm like a professional... or... whatever.</sup>
 
 Anyway...
 

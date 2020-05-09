@@ -9,15 +9,9 @@ import {
   update,
   updateAll
 } from "../../util";
-import {
-  FOOD_PER_PERSON,
-  TIMEOUTS,
-  LEAST_POPULATION,
-  POPULATION_GROWTH_RATE,
-  LEAST_UPPER_CAPACITY
-} from "../constant";
+import { TIMEOUTS, LEAST_POPULATION } from "../constant";
 
-export default function makeUserUpdateReducer(sources) {
+export default function makeUserUpdateReducer() {
   const pointsReducer$ = xs.periodic(1e3 * TIMEOUTS.points).mapTo(state => {
     const {
       user: { lastPointsUpdate },
@@ -61,7 +55,6 @@ export default function makeUserUpdateReducer(sources) {
           industryEntries,
           ([industryName]) => !safeIndustryNames.includes(industryName)
         );
-        const totalIndustriesLength = industryEntries.length;
         const safeLosses = sum(
           safeIndustries,
           ([, industry]) => (industry.employed / employed) * employedLost

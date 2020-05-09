@@ -7,3 +7,6 @@ module.exports.HOUSE = "🏠";
 module.exports.FEDERATION = "👾";
 module.exports.THE_GAME = "💽";
 module.exports.CONTRAXIS = "🚀";
+module.exports.OPEN_BOOK = "📖";
+module.exports.ELECTRICITY = "⚡";
+module.exports.AESCULAPIUS = "⚕";

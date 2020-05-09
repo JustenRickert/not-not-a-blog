@@ -1,48 +1,32 @@
 import xs from "xstream";
-import sampleCombine from "xstream/extra/sampleCombine";
-import throttle from "xstream/extra/throttle";
-import debounce from "xstream/extra/debounce";
-import {
-  div,
-  section,
-  button,
-  h1,
-  h2,
-  h3,
-  h4,
-  a,
-  ul,
-  li,
-  span,
-  nav
-} from "@cycle/dom";
+import { div, section, button, nav } from "@cycle/dom";
 
-import { updateAll, setAll } from "../util";
+import { omit, sum } from "../util";
 import { relativeTime } from "./format";
-import {
-  TIMEOUTS,
-  INDUSTRIES_UPDATE_SUPPLY_RATE,
-  FOOD_PER_PERSON
-} from "./constant";
+import { INDUSTRIES_UPDATE_SUPPLY_RATE, FOOD_PER_PERSON } from "./constant";
 import Achievements from "./achievements";
 import UserQuickView from "./user-quick-view";
-import { makeFoodServiceDerivative } from "./industry-util";
+import {
+  makeFoodServiceDerivative,
+  makeUserPopulationDerivative,
+  makeHousingDerivative
+} from "./industry-util";
 import makeUserUpdateReducer from "./update-sinks/user";
 import {
   makeIndustriesUnlockReducer,
   makeIndustriesUpdateReducer
 } from "./update-sinks/industries";
 import makeAchievementsUpdateReducer from "./update-sinks/achievements";
-import makeEmploymentSinks from "./actions/employment";
 import GameView from "./game-view";
 
 import "./style.css";
+import isolate from "@cycle/isolate";
 
 function makeUpdateReducer(sources) {
-  const user$ = makeUserUpdateReducer(sources);
+  const user$ = makeUserUpdateReducer();
   const industries$ = xs.merge(
-    makeIndustriesUnlockReducer(sources),
-    makeIndustriesUpdateReducer(sources)
+    makeIndustriesUnlockReducer(),
+    makeIndustriesUpdateReducer()
   );
   const achievements$ = makeAchievementsUpdateReducer(sources);
   return xs.merge(user$, industries$, achievements$);
@@ -58,7 +42,7 @@ function tabIntent(sources) {
   return action$;
 }
 
-export default function NotNotABlog(sources) {
+function NotNotABlog(sources) {
   const tabAction$ = tabIntent(sources);
 
   const tab$ = xs
@@ -99,7 +83,11 @@ export default function NotNotABlog(sources) {
               button(".game-tab", "Game"),
               button(".world-tab", "World"),
               button(".achievements-tab", "Achievements"),
-              section(["last save ", relativeTime(state.info.lastSaveDate)])
+              section([
+                "last save ",
+                relativeTime(state.info.lastSaveDate),
+                " ago"
+              ])
             ])
           ),
           tab === "#game"
@@ -118,3 +106,55 @@ export default function NotNotABlog(sources) {
     state: reducer$
   };
 }
+
+const deriveDerivative = state => ({
+  user: {
+    points: 1,
+    population: makeUserPopulationDerivative(state),
+    food: -(FOOD_PER_PERSON * state.user.population)
+  },
+  foodService: makeFoodServiceDerivative(state),
+  agriculture: {
+    supply:
+      INDUSTRIES_UPDATE_SUPPLY_RATE.agriculture *
+      state.industries.agriculture.employed
+  },
+  timber: {
+    supply:
+      INDUSTRIES_UPDATE_SUPPLY_RATE.timber * state.industries.timber.employed
+  },
+  housing: makeHousingDerivative(state),
+  education: {
+    supply:
+      INDUSTRIES_UPDATE_SUPPLY_RATE.education *
+      state.industries.education.employed
+  },
+  energy: {
+    supply:
+      INDUSTRIES_UPDATE_SUPPLY_RATE.energy * state.industries.energy.employed
+  },
+  health: {
+    supply:
+      INDUSTRIES_UPDATE_SUPPLY_RATE.health * state.industries.health.employed
+  }
+});
+
+const withDerivedLens = {
+  get: state => {
+    const employed = sum(
+      Object.values(state.industries),
+      industry => industry.employed
+    );
+    return {
+      ...state,
+      derived: {
+        employed,
+        unemployed: state.user.population - employed,
+        derivative: deriveDerivative(state)
+      }
+    };
+  },
+  set: (_, state) => omit(state, ["derived"])
+};
+
+export default isolate(NotNotABlog, { state: withDerivedLens });

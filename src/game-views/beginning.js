@@ -1,31 +1,23 @@
 import xs from "xstream";
-import {
-  div,
-  section,
-  button,
-  h1,
-  h2,
-  h3,
-  h4,
-  i,
-  a,
-  p,
-  ul,
-  li,
-  span,
-  sup,
-  nav
-} from "@cycle/dom";
+import { div, section, button, h3, h4, sup, nav } from "@cycle/dom";
 import delay from "xstream/extra/delay";
 import throttle from "xstream/extra/throttle";
 
-import { DINNER_PLATE, TRACTOR, TREE, HOUSE } from "../string";
+import {
+  DINNER_PLATE,
+  TRACTOR,
+  TREE,
+  HOUSE,
+  OPEN_BOOK,
+  ELECTRICITY,
+  AESCULAPIUS
+} from "../string";
 import { whole, percentage } from "../format";
 import {
   makeEmploymentClickAction,
   employmentActionReducer
 } from "../actions/employment";
-import { update, set, ofWhich, range, cond, setAll } from "../../util";
+import { set, range, cond, setAll } from "../../util";
 
 import "./beginning.css";
 import "./loading.css";
@@ -81,7 +73,10 @@ const initIndustryGridButtonState = {
   agriculture: singleButtonState,
   foodService: singleButtonState,
   timber: singleButtonState,
-  housing: singleButtonState
+  housing: singleButtonState,
+  education: singleButtonState,
+  energy: singleButtonState,
+  health: singleButtonState
 };
 
 const setDisabled = toggle => ({ reason, industryName }) => state =>
@@ -97,10 +92,10 @@ const storyViewsSwitch = cond(
       "./beginning/introduction.md")
   ],
   [
-    isCurrentPagination("one"),
+    isCurrentPagination("productivity"),
     () =>
-      import(/* webpackChunkName: "one" */
-      "./beginning/one.md")
+      import(/* webpackChunkName: "productivity" */
+      "./beginning/productivity.md")
   ],
   [
     isCurrentPagination("two"),
@@ -113,11 +108,15 @@ const storyViewsSwitch = cond(
   ]
 );
 
+const makePaginationStub = () => ({
+  isNew: true
+});
+
 const initPaginationStates = {
-  introduction: { isNew: false },
-  one: { isNew: true },
-  two: { isNew: true },
-  "tree-felling": { isNew: true }
+  introduction: { ...makePaginationStub(), isNew: false },
+  productivity: makePaginationStub(),
+  two: makePaginationStub(),
+  "tree-felling": makePaginationStub()
 };
 
 function intent(sources) {
@@ -188,7 +187,15 @@ export default function Beginning(sources) {
     )
     .map(([state, buttonState, story, paginationState]) => {
       const {
-        industries: { agriculture, foodService, timber, housing }
+        industries: {
+          agriculture,
+          foodService,
+          timber,
+          housing,
+          education,
+          energy,
+          health
+        }
       } = state;
       return div(".beginning", [
         // TODO(probably?): move to separate view
@@ -219,6 +226,27 @@ export default function Beginning(sources) {
               symbol: HOUSE,
               buttonState: buttonState["housing"],
               state
+            }),
+          education.unlocked &&
+            industryView("education", {
+              industry: education,
+              symbol: OPEN_BOOK,
+              buttonState: buttonState["education"],
+              state
+            }),
+          energy.unlocked &&
+            industryView("energy", {
+              industry: energy,
+              symbol: ELECTRICITY,
+              buttonState: buttonState["energy"],
+              state
+            }),
+          health.unlocked &&
+            industryView("health", {
+              industry: health,
+              symbol: AESCULAPIUS,
+              buttonState: buttonState["health"],
+              state
             })
         ]),
         // TODO: implement
@@ -234,9 +262,9 @@ export default function Beginning(sources) {
                 pageState: paginationState.states["introduction"]
               },
               foodService.unlocked && {
-                page: "one",
+                page: "productivity",
                 label: "Productivity",
-                pageState: paginationState.states["one"]
+                pageState: paginationState.states["productivity"]
               },
               timber.unlocked && {
                 page: "two",
