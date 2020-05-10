@@ -7,12 +7,7 @@ import {
   update,
   updateAll
 } from "../../util";
-import {
-  INDUSTRIES_UNLOCK_CONDITIONS,
-  INDUSTRIES_UPDATE_SUPPLY_RATE,
-  TIMEOUTS,
-  EDUCATION_DERIVATIVE_MULTIPLIER
-} from "../constant";
+import { INDUSTRIES_UNLOCK_CONDITIONS, TIMEOUTS } from "../constant";
 
 export function makeIndustriesUnlockReducer() {
   const unlock$ = xs.periodic(1e3 * TIMEOUTS.unlockIndustries).mapTo(state =>
@@ -31,20 +26,22 @@ export function makeIndustriesUnlockReducer() {
 }
 
 function makeIndustrySupplyReducer(industryName) {
-  // const rate = INDUSTRIES_UPDATE_SUPPLY_RATE[industryName];
   const time = TIMEOUTS.industries[industryName];
-  console.log(industryName);
-  const educationMultiplier =
-    EDUCATION_DERIVATIVE_MULTIPLIER[industryName]?.supply;
   const supplyUpdate$ = xs.periodic(1e3 * time).mapTo(state => {
     const {
       derived: {
         derivative: {
-          [industryName]: { supply: derivative }
+          [industryName]: { supply: derivative, multiplier }
         }
       }
     } = state;
-    const delta = withRandomOffset(derivative * time);
+    const supplyMultiplier = multiplier?.supply || 1;
+    const delta = withRandomOffset(derivative * time) * supplyMultiplier;
+    assert(
+      supplyMultiplier >= 1 && isFinite(supplyMultiplier),
+      "`supplyMultiplier` should be finite and greater than 1",
+      supplyMultiplier
+    );
     assert(
       typeof delta === "number" && isFinite(delta) && delta >= 0,
       "`delta` has to be a positive number",
@@ -104,7 +101,16 @@ function makeHousingUpdateReducer() {
       1,
       Math.abs(industries.timber.supply / maxTimberSupplyDelta)
     );
-    const housesDelta = ratio * maxUserHousesDelta;
+    const housesDelta =
+      ratio * maxUserHousesDelta * derivative.housing.multiplier;
+    assert(
+      derivative.housing.multiplier >= 1 &&
+        isFinite(derivative.housing.multiplier),
+      "housing multiplier should be nice",
+      {
+        derivative
+      }
+    );
     const timberDelta = ratio * maxTimberSupplyDelta;
     return updateAll(state, [
       ["user.houses", houses => houses + housesDelta],

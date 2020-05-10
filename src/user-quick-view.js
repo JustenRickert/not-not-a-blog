@@ -1,20 +1,7 @@
 import xs from "xstream";
-import {
-  div,
-  section,
-  button,
-  h1,
-  h2,
-  h3,
-  h4,
-  a,
-  ul,
-  li,
-  span,
-  nav
-} from "@cycle/dom";
+import { div, button, ul, li } from "@cycle/dom";
 
-import { set, update } from "../util";
+import { update } from "../util";
 import {
   RED_TRIANGLE,
   ALIEN,
@@ -39,7 +26,7 @@ const maybeStatButton = (condition, props, children) =>
 
 const dropdownStat = (
   name,
-  { dropdown, symbol, amount, rate, dropdownContent, state }
+  { dropdown, symbol, amount, rate, dropdownContent }
 ) =>
   div(".user-quick-view-stat", [
     maybeStatButton(dropdownContent, { dataset: { name } }, [
@@ -106,8 +93,18 @@ export default function UserQuickView(sources) {
           dropdown,
           symbol: ALIEN,
           amount: user.population,
-          rate: derivative.user.population,
+          rate:
+            derivative.user.population +
+            derivative.user.population * derivative.user.multiplier.population,
           dropdownContent: ul([
+            li([ALIEN, perSecond(derivative.user.population)]),
+            li([
+              ALIEN,
+              perSecond(
+                derivative.user.population *
+                  derivative.user.multiplier.population
+              )
+            ]),
             li(["unemployment ", percentage(unemployed / user.population)]),
             user.houses
               ? li(["pop. cap. ", whole(populationCapacity(state))])
@@ -120,7 +117,11 @@ export default function UserQuickView(sources) {
               dropdown,
               symbol: DINNER_PLATE,
               amount: user.food,
-              rate: derivative.user.food + derivative.foodService.food,
+              rate:
+                derivative.user.food +
+                derivative.foodService.food +
+                derivative.foodService.food *
+                  derivative.foodService.educationMultiplier,
               dropdownContent: ul([
                 li([ALIEN, perSecond(derivative.user.food)]),
                 li([DINNER_PLATE, perSecond(derivative.foodService.food)]),
@@ -129,7 +130,7 @@ export default function UserQuickView(sources) {
                     OPEN_BOOK,
                     perSecond(
                       derivative.foodService.food *
-                        (derivative.foodService.educationMultiplier - 1)
+                        derivative.foodService.educationMultiplier
                     )
                   ])
               ])
@@ -141,7 +142,18 @@ export default function UserQuickView(sources) {
             dropdown,
             symbol: HOUSE,
             amount: user.houses,
-            rate: derivative.housing.user.houses
+            rate:
+              derivative.housing.user.houses +
+              derivative.housing.user.houses * derivative.housing.multiplier,
+            dropdownContent: ul([
+              li([HOUSE, perSecond(derivative.housing.user.houses)]),
+              li([
+                ELECTRICITY,
+                perSecond(
+                  derivative.housing.user.houses * derivative.housing.multiplier
+                )
+              ])
+            ])
           }),
         agriculture.employed
           ? dropdownStat("agriculture-supply", {
@@ -151,9 +163,18 @@ export default function UserQuickView(sources) {
               amount: agriculture.supply,
               rate:
                 derivative.agriculture.supply +
-                derivative.foodService.agriculture,
+                derivative.foodService.agriculture +
+                derivative.agriculture.supply *
+                  derivative.agriculture.multiplier.supply,
               dropdownContent: ul([
                 li([TRACTOR, perSecond(derivative.agriculture.supply)]),
+                li([
+                  OPEN_BOOK,
+                  perSecond(
+                    derivative.agriculture.supply *
+                      derivative.agriculture.multiplier.supply
+                  )
+                ]),
                 li([
                   DINNER_PLATE,
                   perSecond(derivative.foodService.agriculture)
@@ -167,11 +188,21 @@ export default function UserQuickView(sources) {
               dropdown,
               symbol: TREE,
               amount: timber.supply,
-              rate: derivative.timber.supply + derivative.housing.timber,
+              rate:
+                derivative.housing.timber +
+                derivative.timber.supply +
+                derivative.timber.supply * derivative.timber.multiplier.supply,
               dropdownContent: housing.employed
                 ? ul([
                     li([TREE, perSecond(derivative.timber.supply)]),
-                    li([HOUSE, perSecond(derivative.housing.timber)])
+                    li([HOUSE, perSecond(derivative.housing.timber)]),
+                    li([
+                      ELECTRICITY,
+                      perSecond(
+                        derivative.timber.supply *
+                          derivative.timber.multiplier.supply
+                      )
+                    ])
                   ])
                 : null
             })

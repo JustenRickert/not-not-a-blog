@@ -132,14 +132,27 @@ export const EMPLOYMENT = {
 
 export const EDUCATION_DERIVATIVE_MULTIPLIER = {
   agriculture: {
-    supply: 1 / 3e3
+    supply: 1 + 1 / 8e3
   },
   foodService: {
     user: {
-      food: 1 / 5e3
+      food: 1 + 1 / 5e3
     }
-  },
+  }
+};
+
+export const ENERGY_DERIVATIVE_MULTIPLIER = {
   timber: {
-    supply: 1 / 3e3
+    supply: 1 + 1 / 10e3
+  },
+  housing: {
+    supply: 1 + 1 / 15e3
+  }
+};
+
+export const HEALTH_DERIVATIVE_MULTIPLIER = {
+  user: {
+    population: 1 + 1 / 10e3,
+    populationLoss: 1 - 1 / 10e3
   }
 };

@@ -3,7 +3,13 @@ import { div, section, button, nav } from "@cycle/dom";
 
 import { omit, sum } from "../util";
 import { relativeTime } from "./format";
-import { INDUSTRIES_UPDATE_SUPPLY_RATE, FOOD_PER_PERSON } from "./constant";
+import {
+  INDUSTRIES_UPDATE_SUPPLY_RATE,
+  FOOD_PER_PERSON,
+  EDUCATION_DERIVATIVE_MULTIPLIER,
+  ENERGY_DERIVATIVE_MULTIPLIER,
+  HEALTH_DERIVATIVE_MULTIPLIER
+} from "./constant";
 import Achievements from "./achievements";
 import UserQuickView from "./user-quick-view";
 import {
@@ -107,37 +113,57 @@ function NotNotABlog(sources) {
   };
 }
 
-const deriveDerivative = state => ({
-  user: {
-    points: 1,
-    population: makeUserPopulationDerivative(state),
-    food: -(FOOD_PER_PERSON * state.user.population)
-  },
-  foodService: makeFoodServiceDerivative(state),
-  agriculture: {
-    supply:
-      INDUSTRIES_UPDATE_SUPPLY_RATE.agriculture *
-      state.industries.agriculture.employed
-  },
-  timber: {
-    supply:
-      INDUSTRIES_UPDATE_SUPPLY_RATE.timber * state.industries.timber.employed
-  },
-  housing: makeHousingDerivative(state),
-  education: {
-    supply:
-      INDUSTRIES_UPDATE_SUPPLY_RATE.education *
-      state.industries.education.employed
-  },
-  energy: {
-    supply:
-      INDUSTRIES_UPDATE_SUPPLY_RATE.energy * state.industries.energy.employed
-  },
-  health: {
-    supply:
-      INDUSTRIES_UPDATE_SUPPLY_RATE.health * state.industries.health.employed
-  }
-});
+const deriveDerivative = state => {
+  const {
+    user: { population },
+    industries: { agriculture, education, energy, health, timber }
+  } = state;
+  return {
+    user: {
+      multiplier: {
+        population:
+          1 +
+          (HEALTH_DERIVATIVE_MULTIPLIER.user.population - 1) * health.employed
+        // TODO? This might be a cool mechanic. Probably more trouble to
+        // implement than it's worth
+        // populationLoss:
+        //   1 -
+        //   (HEALTH_DERIVATIVE_MULTIPLIER.user.populationLoss + 1) *
+        //     health.employed
+      },
+      points: 1,
+      population: makeUserPopulationDerivative(state),
+      food: -(FOOD_PER_PERSON * population)
+    },
+    foodService: makeFoodServiceDerivative(state),
+    agriculture: {
+      multiplier: {
+        supply:
+          1 +
+          (EDUCATION_DERIVATIVE_MULTIPLIER.agriculture.supply - 1) *
+            education.employed
+      },
+      supply: INDUSTRIES_UPDATE_SUPPLY_RATE.agriculture * agriculture.employed
+    },
+    timber: {
+      multiplier: {
+        supply:
+          1 + (ENERGY_DERIVATIVE_MULTIPLIER.timber.supply - 1) * energy.employed
+      },
+      supply: INDUSTRIES_UPDATE_SUPPLY_RATE.timber * timber.employed
+    },
+    housing: makeHousingDerivative(state),
+    education: {
+      supply: INDUSTRIES_UPDATE_SUPPLY_RATE.education * education.employed
+    },
+    energy: {
+      supply: INDUSTRIES_UPDATE_SUPPLY_RATE.energy * energy.employed
+    },
+    health: {
+      supply: INDUSTRIES_UPDATE_SUPPLY_RATE.health * health.employed
+    }
+  };
+};
 
 const withDerivedLens = {
   get: state => {

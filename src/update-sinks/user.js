@@ -87,7 +87,17 @@ export default function makeUserUpdateReducer() {
           })
         ]);
       } else {
-        return set(state, "user.population", state.user.population + delta);
+        assert(
+          derivative.user.multiplier.population >= 1 &&
+            isFinite(derivative.user.multiplier.population),
+          "user population delta multiplier should be positive finite",
+          derivative
+        );
+        return set(
+          state,
+          "user.population",
+          state.user.population + delta * derivative.user.multiplier.population
+        );
       }
     });
 

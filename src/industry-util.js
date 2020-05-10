@@ -9,7 +9,8 @@ import {
   FOOD_PER_PERSON,
   LEAST_UPPER_CAPACITY,
   POPULATION_LOSS_RATE,
-  EDUCATION_DERIVATIVE_MULTIPLIER
+  EDUCATION_DERIVATIVE_MULTIPLIER,
+  ENERGY_DERIVATIVE_MULTIPLIER
 } from "./constant";
 import { withRandomOffset, clamp, logisticDeltaEquation } from "../util";
 import sampleCombine from "xstream/extra/sampleCombine";
@@ -71,8 +72,8 @@ export function makeFoodServiceDerivative(state) {
   const maxFoodDelta = rate.unit * foodService.employed;
   const maxAgricultureSupplyDelta = maxFoodDelta * rate.agriculture;
   const educationMultiplier =
-    1 +
-    EDUCATION_DERIVATIVE_MULTIPLIER.foodService.user.food * education.employed;
+    (EDUCATION_DERIVATIVE_MULTIPLIER.foodService.user.food - 1) *
+    education.employed;
   return {
     educationMultiplier,
     food: maxFoodDelta,
@@ -81,10 +82,15 @@ export function makeFoodServiceDerivative(state) {
 }
 
 export function makeHousingDerivative(state) {
+  const {
+    industries: { energy, housing }
+  } = state;
   const rate = INDUSTRIES_UPDATE_SUPPLY_RATE.housing;
-  const userHousingDerivative = rate.unit * state.industries.housing.employed;
+  const userHousingDerivative = rate.unit * housing.employed;
   const timberSupplyDerivative = userHousingDerivative * rate.timber;
   return {
+    multiplier:
+      1 + (ENERGY_DERIVATIVE_MULTIPLIER.housing.supply - 1) * energy.employed,
     user: {
       houses: userHousingDerivative
     },
