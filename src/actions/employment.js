@@ -37,6 +37,7 @@ export function employmentActionReducer(action) {
     switch (action.reason) {
       case "employ": {
         const percentage = withRandomOffset(EMPLOYMENT.employRate);
+        assert(unemployed >= 0, "`unemployed` can't be negative 'O_o");
         return update(
           state,
           ["industries", action.industryName, "employed"],

@@ -1,4 +1,5 @@
 import xs from "xstream";
+import flattenSequentially from "xstream/extra/flattenSequentially";
 import { div, section, button, nav } from "@cycle/dom";
 
 import { omit, sum } from "../util";
@@ -27,9 +28,10 @@ import GameView from "./game-view";
 
 import "./style.css";
 import isolate from "@cycle/isolate";
+import delay from "xstream/extra/delay";
 
 function makeUpdateReducer(sources) {
-  const user$ = makeUserUpdateReducer();
+  const user$ = makeUserUpdateReducer(sources);
   const industries$ = xs.merge(
     makeIndustriesUnlockReducer(),
     makeIndustriesUpdateReducer()

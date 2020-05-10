@@ -32,7 +32,7 @@ const dropdownStat = (
     maybeStatButton(dropdownContent, { dataset: { name } }, [
       symbol,
       whole(amount),
-      perSecond(rate)
+      typeof rate === "number" ? perSecond(rate) : rate
     ]),
     dropdown.selected === name && dropdownContent
       ? div(".dropdown", [
@@ -96,7 +96,10 @@ export default function UserQuickView(sources) {
           symbol: ALIEN,
           amount: user.population,
           rate:
-            derivative.user.population * derivative.user.multiplier.population,
+            derivative.user.population > 0
+              ? derivative.user.population *
+                derivative.user.multiplier.population
+              : " PAUSED",
           dropdownContent: ul([
             li([ALIEN, perSecond(derivative.user.population)]),
             li([
