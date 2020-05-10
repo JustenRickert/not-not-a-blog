@@ -106,7 +106,7 @@ function main(sources) {
   };
 }
 
-run(withState(main), {
+run(withState(main, "state"), {
   DOM: makeDOMDriver("#root"),
   Time: timeDriver
 });

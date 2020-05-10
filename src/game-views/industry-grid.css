@@ -1,0 +1,12 @@
+.compact-header {
+    margin: 0 0.5rem 0.5rem 0;
+}
+
+.industry-grid {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.industry-item {
+    margin: 0 1rem 1rem 0;
+}

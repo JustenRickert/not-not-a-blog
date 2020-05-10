@@ -1,15 +1,30 @@
-import isolate from "@cycle/isolate";
-import Beginning from "./game-views/beginning";
+import xs from "xstream";
+import { div, section } from "@cycle/dom";
 
-/**
- * FIXME: I originally had different ideas about `game-views`, but have since
- * changed my mind. As such, `Beginning` is a terrible name. It is the main game
- * view. Don't think anything different. :)
- */
+import Story from "./game-views/story";
+import IndustryGrid from "./game-views/industry-grid";
 
-export default isolate(Beginning, {
-  state: {
-    get: state => state,
-    set: (_, state) => state
-  }
-});
+import "./game-view.css";
+
+export default function Beginning(sources) {
+  const storySinks = Story(sources);
+  const industryGridSinks = IndustryGrid(sources);
+
+  const dom$ = xs
+    .combine(industryGridSinks.DOM, storySinks.DOM)
+    .map(([industryGrid, story]) => {
+      return div(".beginning", [
+        industryGrid,
+        // TODO: implement
+        section(".upgrade-grid", []),
+        story
+      ]);
+    });
+
+  const reducer$ = xs.merge(industryGridSinks.state);
+
+  return {
+    DOM: dom$,
+    state: reducer$
+  };
+}

@@ -183,3 +183,9 @@ export function assert(condition, text, ...additionalInformation) {
     throw new Error(text);
   }
 }
+
+export function wait(x) {
+  return new Promise(resolve => {
+    setTimeout(() => resolve(x), 60e3);
+  });
+}
