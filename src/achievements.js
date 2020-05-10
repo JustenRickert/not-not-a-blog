@@ -1,27 +1,6 @@
-import xs from "xstream";
-import {
-  div,
-  section,
-  button,
-  h1,
-  h2,
-  h3,
-  p,
-  h4,
-  a,
-  ul,
-  li,
-  span,
-  nav
-} from "@cycle/dom";
+import { div, section, p, h4 } from "@cycle/dom";
 
-import {
-  ACHIEVEMENTS_LABELS,
-  ACHIEVEMENTS_UNLOCK_CONDITIONS,
-  TIMEOUTS
-} from "./constant";
-import sampleCombine from "xstream/extra/sampleCombine";
-import { setAll, updateAll } from "../util";
+import { ACHIEVEMENTS_LABELS } from "./constant";
 
 export default function Achievements(sources) {
   const achievements$ = sources.state.stream.map(state => state.achievements);

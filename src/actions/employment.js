@@ -32,7 +32,6 @@ export function makeEmploymentClickAction(sources) {
 export function employmentActionReducer(action) {
   return state => {
     const {
-      industries,
       derived: { unemployed }
     } = state;
     switch (action.reason) {

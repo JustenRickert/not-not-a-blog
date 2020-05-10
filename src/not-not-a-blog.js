@@ -84,18 +84,16 @@ function NotNotABlog(sources) {
         gameViewDom
       ]) =>
         div(".container", [
-          div(
-            nav(".tab-nav", [
-              button(".game-tab", "Game"),
-              button(".world-tab", "World"),
-              button(".achievements-tab", "Achievements"),
-              section([
-                "last save ",
-                relativeTime(state.info.lastSaveDate),
-                " ago"
-              ])
+          nav(".tab-nav", [
+            button(".game-tab", "Game"),
+            button(".world-tab", "World"),
+            button(".achievements-tab", "Achievements"),
+            section([
+              "last save ",
+              relativeTime(state.info.lastSaveDate),
+              " ago"
             ])
-          ),
+          ]),
           tab === "#game"
             ? div(".game", [userQuickViewDom, gameViewDom])
             : tab === "#world"

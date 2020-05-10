@@ -31,12 +31,12 @@ function makeIndustrySupplyReducer(industryName) {
     const {
       derived: {
         derivative: {
-          [industryName]: { supply: derivative, multiplier }
+          [industryName]: { supply: supplyDerivative, multiplier }
         }
       }
     } = state;
     const supplyMultiplier = multiplier?.supply || 1;
-    const delta = withRandomOffset(derivative * time) * supplyMultiplier;
+    const delta = withRandomOffset(supplyDerivative * time) * supplyMultiplier;
     assert(
       supplyMultiplier >= 1 && isFinite(supplyMultiplier),
       "`supplyMultiplier` should be finite and greater than 1",
@@ -66,10 +66,13 @@ function makeFoodServiceUpdateReducer() {
     const {
       derived: { derivative }
     } = state;
+    assert(
+      derivative.foodService.multiplier >= 1 &&
+        isFinite(derivative.foodService.multiplier),
+      "foodService food `multiplier` should be greater than or equal to 1 and finite"
+    );
     const foodDelta =
-      derivative.foodService.food *
-      derivative.foodService.educationMultiplier *
-      time;
+      derivative.foodService.food * derivative.foodService.multiplier * time;
     const agricultureSupplyDelta = derivative.foodService.agriculture * time;
     if (foodDelta === 0) return state;
     const ratio = Math.min(

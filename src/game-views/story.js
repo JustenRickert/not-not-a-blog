@@ -4,13 +4,73 @@ import isolate from "@cycle/isolate";
 import { withState } from "@cycle/state";
 import { div, section, button, h3, sup, nav } from "@cycle/dom";
 
-import { range, cond, setAll } from "../../util";
+import { range, setAll, ofWhich, set } from "../../util";
 import throttle from "xstream/extra/throttle";
 
 import "./story.css";
 import "./loading.css";
 
 const loading = div(".loading", range(4).map(() => div(["."])));
+
+const stories = [
+  {
+    page: "introduction",
+    label: "Introduction",
+    condition: () => true,
+    import: () =>
+      import(/* webpackChunkName: "introduction" */
+      "./chapters/introduction.md")
+  },
+  {
+    page: "productivity",
+    label: "Productivity",
+    condition: industries => industries.foodService.unlocked,
+    import: () =>
+      import(/* webpackChunkName: "productivity" */
+      "./chapters/productivity.md")
+  },
+  {
+    page: "two",
+    label: "Trees",
+    condition: industries => industries.timber.unlocked,
+    import: () =>
+      import(/* webpackChunkName: "two" */
+      "./chapters/two.md")
+  },
+  {
+    page: "tree-felling",
+    label: "Tree Felling Folk",
+    condition: industries => industries.housing.unlocked,
+    import: () =>
+      import(/* webpackChunkName: "tree-felling" */
+      "./chapters/tree-felling.md")
+  },
+  {
+    page: "more-industries",
+    label: "More Industries",
+    condition: ({ education, energy, health }) =>
+      education.unlocked && energy.unlocked && health.unlocked,
+    import: () =>
+      import(/* webpackChunkName: "more-industries" */
+      "./chapters/more-industries.md")
+  }
+];
+
+const storyViewsSwitch = ofWhich(...stories.map(a => [a.page, a.import]));
+
+const makePaginationStub = () => ({
+  isNew: true
+});
+
+const initPaginationStates = stories.slice(1).reduce(
+  (init, { page }) => ({
+    ...init,
+    [page]: makePaginationStub()
+  }),
+  {
+    [stories[0].page]: Object.assign(makePaginationStub(), { isNew: false })
+  }
+);
 
 const buttonIndexView = ({ page, label, pageState }) => {
   const { isNew } = pageState;
@@ -19,43 +79,6 @@ const buttonIndexView = ({ page, label, pageState }) => {
     isNew ? sup("new") : null
   ]);
 };
-
-const makePaginationStub = () => ({
-  isNew: true
-});
-
-const initPaginationStates = {
-  introduction: { ...makePaginationStub(), isNew: false },
-  productivity: makePaginationStub(),
-  two: makePaginationStub(),
-  "tree-felling": makePaginationStub()
-};
-
-const isCurrentPagination = page => state => state.page === page;
-
-const storyViewsSwitch = cond(
-  [
-    isCurrentPagination("introduction"),
-    () =>
-      import(/* webpackChunkName: "introduction" */
-      "./chapters/introduction.md")
-  ],
-  [
-    isCurrentPagination("productivity"),
-    () =>
-      import(/* webpackChunkName: "productivity" */
-      "./chapters/productivity.md")
-  ],
-  [
-    isCurrentPagination("two"),
-    () => import(/* webpackChunkName: "two" */ "./chapters/two.md")
-  ],
-  [
-    isCurrentPagination("tree-felling"),
-    () =>
-      import(/* webpackChunkName: "tree-felling" */ "./chapters/tree-felling.md")
-  ]
-);
 
 function Story(sources) {
   const pageChangeAction$ = sources.DOM.select(
@@ -89,7 +112,7 @@ function Story(sources) {
   );
 
   const story$ = sources.pagination.stream
-    .map(state => state)
+    .map(state => state.page)
     .compose(dropRepeats())
     .map(storyViewsSwitch)
     .map(xs.fromPromise)
@@ -104,35 +127,13 @@ function Story(sources) {
       story$
     )
     .map(([state, pagination, story]) => {
-      const {
-        industries: { foodService, timber, housing }
-      } = state;
+      const { industries } = state;
       return section(".story", [
         nav(".table-of-contents.tab-nav", [
           h3("Contents"),
-          ...[
-            {
-              page: "introduction",
-              label: "Introduction",
-              pageState: pagination.states["introduction"]
-            },
-            foodService.unlocked && {
-              page: "productivity",
-              label: "Productivity",
-              pageState: pagination.states["productivity"]
-            },
-            timber.unlocked && {
-              page: "two",
-              label: "Trees",
-              pageState: pagination.states["two"]
-            },
-            housing.unlocked && {
-              page: "tree-felling",
-              label: "Tree Felling Folk",
-              pageState: pagination.states["tree-felling"]
-            }
-          ]
-            .filter(Boolean)
+          ...stories
+            .filter(a => a.condition(industries))
+            .map(a => set(a, "pageState", pagination.states[a.page]))
             .map(buttonIndexView)
         ]),
         story ? div(".chapter", { props: { innerHTML: story } }) : loading

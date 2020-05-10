@@ -12,7 +12,7 @@ Productivity! Agriculture {TRACTOR} yields biological material useful to make fo
 
 Aliens {ALIEN} can be put to work and laid off. <sub>Just like people are... :(</sub>
 
-Around these parts---the places found inside and outside any one world, the vast product space of the endless universe and ever-changing time---alien {ALIEN} lives are shaped by the Federation of Socialist Planets {FEDERATION}. By playing this game you hope to become a member of the Federation {FEDERATION}. You lead a society of alien {ALIEN} workers whose planet's resources are all collected and redistributed by the state (you). You do not profit from having ownership over the resources. You must redistribute the resources however you see fit (but you _must_ redistribute them).
+Around these parts---the places found inside and outside any one world, the vast product space of the endless universe and ever-changing time---alien {ALIEN} lives are shaped by the Federation of Socialist Planets {FEDERATION}. By playing this game you hope to become a member of the Federation {FEDERATION}. You lead a society of alien workers {ALIEN} whose planet's resources are all collected and redistributed by the state (you). You do not profit from having ownership over the resources. You _must_ redistribute the resources, but you may do so however you see fit.
 
 As a hopeful member of the Federation, you are an economist, a sociologist, a statistician, a mathematician, a planet emperor, whatever it is that you want to be.
 

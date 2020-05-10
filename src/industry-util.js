@@ -71,11 +71,12 @@ export function makeFoodServiceDerivative(state) {
   const rate = INDUSTRIES_UPDATE_SUPPLY_RATE.foodService;
   const maxFoodDelta = rate.unit * foodService.employed;
   const maxAgricultureSupplyDelta = maxFoodDelta * rate.agriculture;
-  const educationMultiplier =
+  const multiplier =
+    1 +
     (EDUCATION_DERIVATIVE_MULTIPLIER.foodService.user.food - 1) *
-    education.employed;
+      education.employed;
   return {
-    educationMultiplier,
+    multiplier,
     food: maxFoodDelta,
     agriculture: maxAgricultureSupplyDelta
   };
