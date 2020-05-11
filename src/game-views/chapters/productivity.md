@@ -1,4 +1,4 @@
-### Productivity
+#### Productivity
 
 Nice! Looks like you found out how to look through these story panels. I hope the _new_ superscript was informative enough to... umm... <sub>inform</sub> you it might be of interest...
 

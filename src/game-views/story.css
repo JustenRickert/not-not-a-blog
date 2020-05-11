@@ -1,6 +1,7 @@
 .story {
     display: flex;
     height: 100%;
+    margin-bottom: 5rem;
 }
 
 .table-of-contents {
@@ -11,4 +12,8 @@
 
 .chapter p {
     max-width: 40rem;
+}
+
+.story h4 {
+    margin-top: 0;
 }

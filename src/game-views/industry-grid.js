@@ -1,5 +1,5 @@
 import xs from "xstream";
-import { div, section, button, h4 } from "@cycle/dom";
+import { div, section, button, h3, h4 } from "@cycle/dom";
 import delay from "xstream/extra/delay";
 import throttle from "xstream/extra/throttle";
 
@@ -99,55 +99,58 @@ function IndustryGrid(sources) {
         }
       } = state;
       const { buttonState } = grid;
-      return section(".industry-grid", [
-        industryView("agriculture", {
-          industry: agriculture,
-          symbol: TRACTOR,
-          buttonState: buttonState["agriculture"],
-          state
-        }),
-        foodService.unlocked &&
-          industryView("foodService", {
-            industry: foodService,
-            symbol: DINNER_PLATE,
-            buttonState: buttonState["foodService"],
+      return section([
+        h3("Industries"),
+        div(".industry-grid", [
+          industryView("agriculture", {
+            industry: agriculture,
+            symbol: TRACTOR,
+            buttonState: buttonState["agriculture"],
             state
           }),
-        timber.unlocked &&
-          industryView("timber", {
-            industry: timber,
-            symbol: TREE,
-            buttonState: buttonState["timber"],
-            state
-          }),
-        housing.unlocked &&
-          industryView("housing", {
-            industry: housing,
-            symbol: HOUSE,
-            buttonState: buttonState["housing"],
-            state
-          }),
-        education.unlocked &&
-          industryView("education", {
-            industry: education,
-            symbol: OPEN_BOOK,
-            buttonState: buttonState["education"],
-            state
-          }),
-        energy.unlocked &&
-          industryView("energy", {
-            industry: energy,
-            symbol: ELECTRICITY,
-            buttonState: buttonState["energy"],
-            state
-          }),
-        health.unlocked &&
-          industryView("health", {
-            industry: health,
-            symbol: AESCULAPIUS,
-            buttonState: buttonState["health"],
-            state
-          })
+          foodService.unlocked &&
+            industryView("foodService", {
+              industry: foodService,
+              symbol: DINNER_PLATE,
+              buttonState: buttonState["foodService"],
+              state
+            }),
+          timber.unlocked &&
+            industryView("timber", {
+              industry: timber,
+              symbol: TREE,
+              buttonState: buttonState["timber"],
+              state
+            }),
+          housing.unlocked &&
+            industryView("housing", {
+              industry: housing,
+              symbol: HOUSE,
+              buttonState: buttonState["housing"],
+              state
+            }),
+          education.unlocked &&
+            industryView("education", {
+              industry: education,
+              symbol: OPEN_BOOK,
+              buttonState: buttonState["education"],
+              state
+            }),
+          energy.unlocked &&
+            industryView("energy", {
+              industry: energy,
+              symbol: ELECTRICITY,
+              buttonState: buttonState["energy"],
+              state
+            }),
+          health.unlocked &&
+            industryView("health", {
+              industry: health,
+              symbol: AESCULAPIUS,
+              buttonState: buttonState["health"],
+              state
+            })
+        ])
       ]);
     });
 

@@ -2,7 +2,7 @@ import xs from "xstream";
 import sampleCombine from "xstream/extra/sampleCombine";
 import delay from "xstream/extra/delay";
 
-import { assert, set, update, updateAll } from "../../util";
+import { assert, set, update, updateAll, withRandomOffset } from "../../util";
 import { TIMEOUTS } from "../constant";
 
 /*
@@ -78,9 +78,9 @@ export default function makeUserUpdateReducer(sources) {
   });
 
   const populationTimeout = 1e3 * TIMEOUTS.population;
-  const populationDelayTime = 30 * TIMEOUTS.population;
+  const populationDelayTime = 30 * populationTimeout;
   assert(
-    populationDelayTime < populationTimeout,
+    populationDelayTime > populationTimeout,
     "`populationTimeout` has to be less than the `populationDelayTime`",
     { populationDelayTime, populationTimeout }
   );
@@ -101,7 +101,10 @@ export default function makeUserUpdateReducer(sources) {
     // happen.
     .flatten()
     .map(delta => state => {
-      assert(delta >= 0 && isFinite(delta), "`delta` needs to be positive");
+      assert(delta >= 0 && isFinite(delta), "`delta` needs to be positive", {
+        delta,
+        state
+      });
       const {
         derived: { derivative }
       } = state;
@@ -119,9 +122,11 @@ export default function makeUserUpdateReducer(sources) {
     });
 
   const foodReducer$ = xs.periodic(1e3 * TIMEOUTS.food).mapTo(state => {
-    const delta = TIMEOUTS.food * state.derived.derivative.user.food;
+    const delta = withRandomOffset(
+      TIMEOUTS.food * state.derived.derivative.user.food
+    );
     return update(state, "user.food", food => Math.max(0, food + delta));
   });
 
-  return xs.merge(pointsReducer$, populationReducer$, foodReducer$);
+  return xs.merge(pointsReducer$, foodReducer$, populationReducer$);
 }

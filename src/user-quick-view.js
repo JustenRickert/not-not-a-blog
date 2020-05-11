@@ -1,5 +1,5 @@
 import xs from "xstream";
-import { div, button, ul, li } from "@cycle/dom";
+import { div, button, h3, section, ul, li } from "@cycle/dom";
 
 import { update } from "../util";
 import {
@@ -82,158 +82,163 @@ export default function UserQuickView(sources) {
         },
         derived: { unemployed, derivative }
       } = state;
-      return div(".user-quick-view", [
-        dropdownStat("points", {
-          state,
-          dropdown,
-          symbol: RED_TRIANGLE,
-          amount: user.points,
-          rate: derivative.user.points
-        }),
-        dropdownStat("population", {
-          state,
-          dropdown,
-          symbol: ALIEN,
-          amount: user.population,
-          rate:
-            derivative.user.population > 0
-              ? derivative.user.population *
-                derivative.user.multiplier.population
-              : " PAUSED",
-          dropdownContent: ul([
-            li([ALIEN, perSecond(derivative.user.population)]),
-            li([
-              AESCULAPIUS,
-              perSecond(
-                derivative.user.population *
-                  (derivative.user.multiplier.population - 1)
-              )
-            ]),
-            li(["unemployment ", percentage(unemployed / user.population)]),
-            user.houses
-              ? li(["pop. cap. ", whole(populationCapacity(state))])
-              : null
-          ])
-        }),
-        foodService.employed
-          ? dropdownStat("food", {
+      return div([
+        h3("Stats"),
+        section(".user-quick-view", [
+          dropdownStat("points", {
+            state,
+            dropdown,
+            symbol: RED_TRIANGLE,
+            amount: user.points,
+            rate: derivative.user.points
+          }),
+          dropdownStat("population", {
+            state,
+            dropdown,
+            symbol: ALIEN,
+            amount: user.population,
+            rate:
+              derivative.user.population > 0
+                ? derivative.user.population *
+                  derivative.user.multiplier.population
+                : " PAUSED",
+            dropdownContent: ul([
+              li([ALIEN, perSecond(derivative.user.population)]),
+              li([
+                AESCULAPIUS,
+                perSecond(
+                  derivative.user.population *
+                    (derivative.user.multiplier.population - 1)
+                )
+              ]),
+              li(["unemployment ", percentage(unemployed / user.population)]),
+              user.houses
+                ? li(["pop. cap. ", whole(populationCapacity(state))])
+                : null
+            ])
+          }),
+          foodService.employed
+            ? dropdownStat("food", {
+                state,
+                dropdown,
+                symbol: DINNER_PLATE,
+                amount: user.food,
+                rate:
+                  derivative.user.food +
+                  derivative.foodService.food *
+                    derivative.foodService.multiplier,
+                dropdownContent: ul([
+                  li([ALIEN, perSecond(derivative.user.food)]),
+                  li([DINNER_PLATE, perSecond(derivative.foodService.food)]),
+                  education.unlocked &&
+                    li([
+                      OPEN_BOOK,
+                      perSecond(
+                        derivative.foodService.food *
+                          (derivative.foodService.multiplier - 1)
+                      )
+                    ])
+                ])
+              })
+            : null,
+          housing.unlocked &&
+            dropdownStat("houses", {
               state,
               dropdown,
-              symbol: DINNER_PLATE,
-              amount: user.food,
+              symbol: HOUSE,
+              amount: user.houses,
               rate:
-                derivative.user.food +
-                derivative.foodService.food * derivative.foodService.multiplier,
+                derivative.housing.user.houses * derivative.housing.multiplier,
               dropdownContent: ul([
-                li([ALIEN, perSecond(derivative.user.food)]),
-                li([DINNER_PLATE, perSecond(derivative.foodService.food)]),
-                education.unlocked &&
+                li([HOUSE, perSecond(derivative.housing.user.houses)]),
+                li([
+                  ELECTRICITY,
+                  perSecond(
+                    derivative.housing.user.houses *
+                      (derivative.housing.multiplier - 1)
+                  )
+                ])
+              ])
+            }),
+          agriculture.employed
+            ? dropdownStat("agriculture-supply", {
+                state,
+                dropdown,
+                symbol: TRACTOR,
+                amount: agriculture.supply,
+                rate:
+                  derivative.foodService.agriculture +
+                  derivative.agriculture.supply *
+                    derivative.agriculture.multiplier.supply,
+                dropdownContent: ul([
+                  li([TRACTOR, perSecond(derivative.agriculture.supply)]),
                   li([
                     OPEN_BOOK,
                     perSecond(
-                      derivative.foodService.food *
-                        (derivative.foodService.multiplier - 1)
+                      derivative.agriculture.supply *
+                        (derivative.agriculture.multiplier.supply - 1)
                     )
+                  ]),
+                  li([
+                    DINNER_PLATE,
+                    perSecond(derivative.foodService.agriculture)
                   ])
-              ])
-            })
-          : null,
-        housing.unlocked &&
-          dropdownStat("houses", {
-            state,
-            dropdown,
-            symbol: HOUSE,
-            amount: user.houses,
-            rate:
-              derivative.housing.user.houses * derivative.housing.multiplier,
-            dropdownContent: ul([
-              li([HOUSE, perSecond(derivative.housing.user.houses)]),
-              li([
-                ELECTRICITY,
-                perSecond(
-                  derivative.housing.user.houses *
-                    (derivative.housing.multiplier - 1)
-                )
-              ])
-            ])
-          }),
-        agriculture.employed
-          ? dropdownStat("agriculture-supply", {
-              state,
-              dropdown,
-              symbol: TRACTOR,
-              amount: agriculture.supply,
-              rate:
-                derivative.foodService.agriculture +
-                derivative.agriculture.supply *
-                  derivative.agriculture.multiplier.supply,
-              dropdownContent: ul([
-                li([TRACTOR, perSecond(derivative.agriculture.supply)]),
-                li([
-                  OPEN_BOOK,
-                  perSecond(
-                    derivative.agriculture.supply *
-                      (derivative.agriculture.multiplier.supply - 1)
-                  )
-                ]),
-                li([
-                  DINNER_PLATE,
-                  perSecond(derivative.foodService.agriculture)
                 ])
-              ])
-            })
-          : null,
-        timber.employed
-          ? dropdownStat("timber-supply", {
-              state,
-              dropdown,
-              symbol: TREE,
-              amount: timber.supply,
-              rate:
-                derivative.housing.timber +
-                derivative.timber.supply * derivative.timber.multiplier.supply,
-              dropdownContent: housing.employed
-                ? ul([
-                    li([TREE, perSecond(derivative.timber.supply)]),
-                    li([HOUSE, perSecond(derivative.housing.timber)]),
-                    li([
-                      ELECTRICITY,
-                      perSecond(
-                        derivative.timber.supply *
-                          (derivative.timber.multiplier.supply - 1)
-                      )
+              })
+            : null,
+          timber.employed
+            ? dropdownStat("timber-supply", {
+                state,
+                dropdown,
+                symbol: TREE,
+                amount: timber.supply,
+                rate:
+                  derivative.housing.timber +
+                  derivative.timber.supply *
+                    derivative.timber.multiplier.supply,
+                dropdownContent: housing.employed
+                  ? ul([
+                      li([TREE, perSecond(derivative.timber.supply)]),
+                      li([HOUSE, perSecond(derivative.housing.timber)]),
+                      li([
+                        ELECTRICITY,
+                        perSecond(
+                          derivative.timber.supply *
+                            (derivative.timber.multiplier.supply - 1)
+                        )
+                      ])
                     ])
-                  ])
-                : null
-            })
-          : null,
-        education.employed
-          ? dropdownStat("education-supply", {
-              state,
-              dropdown,
-              symbol: OPEN_BOOK,
-              amount: education.supply,
-              rate: derivative.education.supply
-            })
-          : null,
-        energy.employed
-          ? dropdownStat("energy-supply", {
-              state,
-              dropdown,
-              symbol: ELECTRICITY,
-              amount: energy.supply,
-              rate: derivative.energy.supply
-            })
-          : null,
-        health.employed
-          ? dropdownStat("health-supply", {
-              state,
-              dropdown,
-              symbol: AESCULAPIUS,
-              amount: health.supply,
-              rate: derivative.health.supply
-            })
-          : null
+                  : null
+              })
+            : null,
+          education.employed
+            ? dropdownStat("education-supply", {
+                state,
+                dropdown,
+                symbol: OPEN_BOOK,
+                amount: education.supply,
+                rate: derivative.education.supply
+              })
+            : null,
+          energy.employed
+            ? dropdownStat("energy-supply", {
+                state,
+                dropdown,
+                symbol: ELECTRICITY,
+                amount: energy.supply,
+                rate: derivative.energy.supply
+              })
+            : null,
+          health.employed
+            ? dropdownStat("health-supply", {
+                state,
+                dropdown,
+                symbol: AESCULAPIUS,
+                amount: health.supply,
+                rate: derivative.health.supply
+              })
+            : null
+        ])
       ]);
     });
 

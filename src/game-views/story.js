@@ -2,7 +2,7 @@ import xs from "xstream";
 import dropRepeats from "xstream/extra/dropRepeats";
 import isolate from "@cycle/isolate";
 import { withState } from "@cycle/state";
-import { div, section, button, h3, sup, nav } from "@cycle/dom";
+import { div, section, button, h3, h4, sup, nav } from "@cycle/dom";
 
 import { range, setAll, ofWhich, set } from "../../util";
 import throttle from "xstream/extra/throttle";
@@ -128,15 +128,18 @@ function Story(sources) {
     )
     .map(([state, pagination, story]) => {
       const { industries } = state;
-      return section(".story", [
-        nav(".table-of-contents.tab-nav", [
-          h3("Contents"),
-          ...stories
-            .filter(a => a.condition(industries))
-            .map(a => set(a, "pageState", pagination.states[a.page]))
-            .map(buttonIndexView)
-        ]),
-        story ? div(".chapter", { props: { innerHTML: story } }) : loading
+      return section([
+        h3("Stories"),
+        div(".story", [
+          nav(".table-of-contents.tab-nav", [
+            h4("Contents"),
+            ...stories
+              .filter(a => a.condition(industries))
+              .map(a => set(a, "pageState", pagination.states[a.page]))
+              .map(buttonIndexView)
+          ]),
+          story ? div(".chapter", { props: { innerHTML: story } }) : loading
+        ])
       ]);
     });
 

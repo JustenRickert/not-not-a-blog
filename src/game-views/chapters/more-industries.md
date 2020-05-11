@@ -1,4 +1,4 @@
-### More and more and more
+#### More and more and more
 
 There probably won't be many more other than these new ones. That's how intuitions usually are about technology and industry. Every century sees the last of the world's greatest innovations, so as to make the coming century usher in the end of civilization.
 
@@ -14,4 +14,4 @@ Such interests usually lead to decimation of others vying for the same ideals.
 
 Dolorene aliens too interested in constructing lasting civilizations often found the fruits of their labor turned into rubble. Those who spent their thinking time creating inspirational works of art usually found themselves looking at the shreds of those works under the feet of others who demonstrated interests in machinery and machinations. Family-oriented Dolorene aliens struggled to find meaning against the power-oriented, self-interested aliens who didn't mind committing genocide. Despite their potential for long, fruitful lives, most died at young ages because of the murderous tendencies of their peers.
 
-So when the Federation of Socialist Planets {FEDERATION} came to the planet Dolorene, the Dolorene aliens were prepared to greet them with highly-advanced wartime technologies, with massive budgets and infrastructure for building weapons of mass destruction and infantry carrier vehicles, with war flags ready to plant on the corpses of defeated enemies, with ornamental bayonets fixed to ends of their alien rifles. When the Federation {FEDERATION} came to Dolorene, it was the first time in all of Dolorene history that all of Dolorene found themselves a common cause: To destroy the Federation of Socialist Planets {FEDERATION}.
+So when the Federation of Socialist Planets {FEDERATION} came to the planet Dolorene, the Dolorene aliens were prepared to greet them with highly-advanced wartime technologies, with massive budgets and infrastructure for building weapons of mass destruction and infantry carrier vehicles, with war flags ready to plant on mounds of corpses of defeated enemies, with ornamental bayonets fixed to the ends of their alien rifles. When the Federation {FEDERATION} came to Dolorene, it was the first time in all of Dolorene history that all of Dolorene found themselves a common cause: To destroy the Federation of Socialist Planets {FEDERATION} who apparently had a more clean hold of immortality than they did.

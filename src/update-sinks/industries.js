@@ -73,14 +73,14 @@ function makeFoodServiceUpdateReducer() {
     );
     const foodDelta =
       derivative.foodService.food * derivative.foodService.multiplier * time;
-    const agricultureSupplyDelta = derivative.foodService.agriculture * time;
     if (foodDelta === 0) return state;
+    const agricultureSupplyDelta = derivative.foodService.agriculture * time;
     const ratio = Math.min(
       1,
       Math.abs(state.industries.agriculture.supply / agricultureSupplyDelta)
     );
     return updateAll(state, [
-      ["user.food", food => food + ratio * foodDelta],
+      ["user.food", food => food + withRandomOffset(ratio * foodDelta)],
       [
         "industries.agriculture.supply",
         supply => Math.max(0, supply + ratio * agricultureSupplyDelta) // clamping?
