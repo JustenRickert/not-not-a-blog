@@ -158,12 +158,22 @@ export function which(...conditions) {
   };
 }
 
-// like which, but without the first function
-export function ofWhich(...conditions) {
+const last = xs => xs[xs.length - 1];
+
+/**
+ * like which, but without the first function
+ */
+export function ofWhich(/* ...conditions, default? */) {
+  const default_ =
+    typeof last(arguments) === "function" ? last(arguments) : null;
+  const conditions = default_
+    ? Array.prototype.slice.call(arguments, 0, -1)
+    : arguments;
   return x => {
     for (const [y, fn] of conditions) {
       if (x === y) return fn(x);
     }
+    if (default_) return default_;
     throw new Error("need to handle all cases");
   };
 }
@@ -186,6 +196,6 @@ export function assert(condition, text, ...additionalInformation) {
 
 export function wait(x) {
   return new Promise(resolve => {
-    setTimeout(() => resolve(x), 60e3);
+    setTimeout(() => resolve(x), 3e3);
   });
 }

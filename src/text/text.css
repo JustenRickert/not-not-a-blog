@@ -1,0 +1,7 @@
+.chapter {
+    max-width: 32rem;
+}
+
+.chapter *:first-child {
+    margin-top: 0;
+}

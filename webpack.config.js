@@ -3,15 +3,15 @@ const webpack = require("webpack");
 const path = require("path");
 const marked = require("marked");
 
-const CustomString = require("./src/string");
+// const CustomString = require("./src/string");
 
 const isDev = process.env.NODE_ENV !== "production";
 
 const markdownRenderer = new class MarkdownRenderer extends marked.Renderer {
   paragraph(text) {
-    Object.entries(CustomString).forEach(([name, symbol]) => {
-      text = text.replace(new RegExp(`{${name}} *`, "g"), symbol);
-    });
+    // Object.entries(CustomString).forEach(([name, symbol]) => {
+    //   text = text.replace(new RegExp(`{${name}} *`, "g"), symbol);
+    // });
     text = text.replace(/---/g, "—"); // emdash
     text = text.replace(/--/g, "–"); // endash
     return "<p>" + text + "<p>\n";
