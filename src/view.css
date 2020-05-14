@@ -43,7 +43,6 @@ button sup {
     margin: auto;
     display: flex;
     flex-direction: column;
-    min-width: 41rem;
 }
 
 .horizontal-tabs {

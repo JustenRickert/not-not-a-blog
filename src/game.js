@@ -74,8 +74,10 @@ function UserStats(sources) {
       div(["Planet: ", planet]),
       div(["Population: ", population]),
       div(["Stones: ", resources.stones]),
-      div(["Wood: ", resources.wood]),
-      div(["Metals: ", resources.metals])
+      resources.wood ? div(["Wood: ", resources.wood]) : null,
+      resources.metals ? div(["Metals: ", resources.metals]) : null,
+      resources.science ? div(["Science: ", resources.science]) : null,
+      resources.art ? div(["Art: ", resources.art]) : null
     ]);
   });
 

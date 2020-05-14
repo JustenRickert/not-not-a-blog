@@ -59,12 +59,6 @@ export default function View(sources) {
     .map(cases(["game", game$], ["story", story$], ["upgrade", upgrade$]))
     .flatten();
 
-  const panelAction$ = sources.DOM.select(".view .horizontal-tabs button")
-    .events("click")
-    .map(e => ({
-      id: e.currentTarget.dataset.id
-    }));
-
   const dom$ = view$.map(view => {
     return div(".view", [
       section(".tabs.horizontal-tabs", [
@@ -75,6 +69,12 @@ export default function View(sources) {
       section(".panel", view)
     ]);
   });
+
+  const panelAction$ = sources.DOM.select(".view .horizontal-tabs button")
+    .events("click")
+    .map(e => ({
+      id: e.currentTarget.dataset.id
+    }));
 
   const reducer$ = xs.merge(
     storyAction$.map(a => state =>

@@ -14,19 +14,28 @@ const initState = {
   userInformation: null,
   population: 10,
   resources: {
-    stones: 0,
+    art: 0,
     metals: 0,
+    science: 0,
+    stones: 0,
     wood: 0
   },
   upgrades: {
-    handTools: {
-      unlocked: false
-    },
-    furnace: {
-      unlocked: false
-    }
+    advancedHandTools: { unlocked: false },
+    animalHusbandry: { unlocked: false },
+    coal: { unlocked: false },
+    cooking: { unlocked: false },
+    equine: { unlocked: false },
+    furnace: { unlocked: false },
+    handTools: { unlocked: false },
+    measuringEquipment: { unlocked: false },
+    paint: { unlocked: false },
+    pastoralism: { unlocked: false },
+    steel: { unlocked: false },
+    string: { unlocked: false }
   },
   viewedChapters: ["introduction"],
+  currentUpgradeTab: "purchasable",
   currentGameView: "user-information-entry",
   currentChapter: "introduction",
   currentPanel: "story"

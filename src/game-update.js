@@ -1,23 +1,69 @@
 import xs from "xstream";
 import dropRepeats from "xstream/extra/dropRepeats";
+import sampleCombine from "xstream/extra/sampleCombine";
 import { logisticDeltaEquation, update } from "../util";
 
 import roughlyPeriodic from "./roughly-periodic";
 
-const STONE_RATE = 1 / 100;
-const WOOD_RATE = 1 / 250;
-const METAL_RATE = 1 / 500;
+const RATE = {
+  art: 1 / 400,
+  metals: 1 / 500,
+  science: 1 / 1e3,
+  stones: 1 / 50,
+  wood: 1 / 250
+};
 
 const UNLOCK_CONDITION = {
   population: state => Boolean(state.userInformation),
   resources: {
-    stones: state => Boolean(state.userInformation),
-    wood: state => Boolean(state.upgrades.handTools.unlocked),
-    metals: state => Boolean(state.upgrades.furnace.unlocked)
+    art: state => state.upgrades.string.unlocked,
+    metals: state => state.upgrades.furnace.unlocked,
+    science: state => state.upgrades.cooking.unlocked,
+    stones: state => state.userInformation,
+    wood: state => state.upgrades.handTools.unlocked
   }
 };
 
+const UPGRADE_MULTIPLIERS = {
+  advancedHandTools: {
+    art: 1.01,
+    metals: 1.02,
+    science: 1.03,
+    stones: 1.01,
+    wood: 1.02
+  },
+  animalHusbandry: {},
+  coal: { resources: { metals: 1.02 } },
+  cooking: { resources: { art: 1.01 } },
+  equine: {},
+  furnace: {},
+  handTools: { resources: { stones: 1.01 } },
+  measuringEquipment: { resources: { science: 1.01 } },
+  paint: { resources: { art: 1.05 } },
+  pastoralism: {},
+  steel: { resources: { science: 1.01 } },
+  string: {}
+};
+
 export default function makeGameUpdateReducer(sources) {
+  const upgradeMultiplier$ = sources.state.stream
+    .compose(dropRepeats(({ upgrades: u1 }, { upgrades: u2 }) => u1 === u2))
+    .map(({ resources, upgrades }) =>
+      Object.keys(resources).reduce(
+        (upgradeMultipliers, resourceId) => ({
+          ...upgradeMultipliers,
+          [resourceId]: Object.entries(UPGRADE_MULTIPLIERS).reduce(
+            (multiplier, [upgradeId, { resources }]) =>
+              resources && resources[resourceId] && upgrades[upgradeId].unlocked
+                ? multiplier * resources[resourceId]
+                : multiplier,
+            1
+          )
+        }),
+        {}
+      )
+    );
+
   const periodicWhenUnlocked = condition =>
     sources.state.stream
       .map(condition)
@@ -27,7 +73,9 @@ export default function makeGameUpdateReducer(sources) {
           ? roughlyPeriodic(sources.Time.createOperator, 5e3)
           : xs.never()
       )
-      .flatten();
+      .flatten()
+      .compose(sampleCombine(upgradeMultiplier$))
+      .map(([, multipliers]) => multipliers);
 
   const populationReducer$ = periodicWhenUnlocked(
     UNLOCK_CONDITION.population
@@ -41,18 +89,18 @@ export default function makeGameUpdateReducer(sources) {
 
   const stonesReducer$ = periodicWhenUnlocked(
     UNLOCK_CONDITION.resources.stones
-  ).mapTo(state =>
+  ).map(multipliers => state =>
     update(
       state,
       "resources.stones",
-      stones => stones + STONE_RATE * state.population
+      stones => stones + RATE.stones * multipliers.stones * state.population
     )
   );
 
   const woodReducer$ = periodicWhenUnlocked(
     UNLOCK_CONDITION.resources.wood
   ).mapTo(state =>
-    update(state, "resources.wood", wood => wood + WOOD_RATE * state.population)
+    update(state, "resources.wood", wood => wood + RATE.wood * state.population)
   );
 
   const metalsReducer$ = periodicWhenUnlocked(
@@ -61,7 +109,23 @@ export default function makeGameUpdateReducer(sources) {
     update(
       state,
       "resources.metals",
-      metals => metals + METAL_RATE * state.population
+      metals => metals + RATE.metals * state.population
+    )
+  );
+
+  const artReducer$ = periodicWhenUnlocked(
+    UNLOCK_CONDITION.resources.art
+  ).mapTo(state =>
+    update(state, "resources.art", art => art + RATE.art * state.population)
+  );
+
+  const scienceReducer$ = periodicWhenUnlocked(
+    UNLOCK_CONDITION.resources.science
+  ).mapTo(state =>
+    update(
+      state,
+      "resources.science",
+      science => science + RATE.science * state.population
     )
   );
 
@@ -69,6 +133,8 @@ export default function makeGameUpdateReducer(sources) {
     populationReducer$,
     stonesReducer$,
     woodReducer$,
-    metalsReducer$
+    metalsReducer$,
+    artReducer$,
+    scienceReducer$
   );
 }
