@@ -40,13 +40,16 @@ button sup {
 }
 
 .view {
-    margin: auto;
+    width: 100%;
     display: flex;
     flex-direction: column;
 }
 
 .horizontal-tabs {
     display: flex;
+}
+
+.tabs.horizontal-tabs .selected {
 }
 
 .view .tabs {

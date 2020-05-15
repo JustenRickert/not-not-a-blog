@@ -5,6 +5,7 @@ import isolate from "@cycle/isolate";
 
 import { partition, set, cases, updateAll } from "../util";
 import { UPGRADES } from "./constant";
+import { tabButton, tabButtons } from "./shared";
 
 import "./upgrade.css";
 
@@ -102,15 +103,25 @@ function Upgrade(sources) {
     )
     .flatten();
 
-  const dom$ = switchView$.map(view =>
-    div(".upgrade-view", [
-      div(".tabs.table-of-contents", [
-        button({ dataset: { tabId: "purchasable" } }, "new"),
-        button({ dataset: { tabId: "already-purchased" } }, "purchased")
-      ]),
-      view
-    ])
-  );
+  const switchTabs = tabButtons([
+    {
+      id: "purchasable",
+      label: "new"
+    },
+    {
+      id: "already-purchased",
+      label: "purchased"
+    }
+  ]);
+
+  const tabs$ = sources.state.stream
+    .map(state => state.currentUpgradeTab)
+    .map(switchTabs)
+    .map(tabs => div(".tabs.table-of-contents", tabs));
+
+  const dom$ = xs
+    .combine(tabs$, switchView$)
+    .map(([tabs, view]) => div(".upgrade-view", [tabs, view]));
 
   const reducer$ = xs.merge(
     sources.DOM.select(".tabs.table-of-contents button")
@@ -118,10 +129,11 @@ function Upgrade(sources) {
       .map(
         ({
           currentTarget: {
-            dataset: { tabId }
+            dataset: { id }
           }
-        }) => tabId
+        }) => id
       )
+      .debug()
       .map(tabId => state => set(state, "currentUpgradeTab", tabId)),
     sources.DOM.select(".purchase-upgrade")
       .events("click")

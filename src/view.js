@@ -1,39 +1,47 @@
 import xs from "xstream";
 import dropRepeats from "xstream/extra/dropRepeats";
 import { set, cases, updateAll } from "../util";
-import { div, h2, nav, section, button, sup } from "@cycle/dom";
+import { div, h2, nav, section, sup } from "@cycle/dom";
 
 import { makeTextView, chapters } from "./text";
+import { tabButtons } from "./shared";
 import Game from "./game";
 import Upgrade from "./upgrade";
 
 import "./view.css";
 
 export default function View(sources) {
-  const chapter$ = sources.state.stream
-    .map(state => state.currentChapter)
+  const currentChapter$ = sources.state.stream.map(
+    state => state.currentChapter
+  );
+
+  const storyTabsSwitch$ = sources.state.stream.map(state =>
+    tabButtons(
+      chapters
+        .filter(c => c.condition(state))
+        .map(({ id, label }) => ({
+          id,
+          label: [label, !state.viewedChapters.includes(id) ? sup("new") : null]
+        }))
+    )
+  );
+
+  const storyTabs$ = xs
+    .combine(storyTabsSwitch$, currentChapter$)
+    .map(([storyTabsSwitch, currentChapter]) =>
+      storyTabsSwitch(currentChapter)
+    );
+
+  const chapter$ = currentChapter$
     .compose(dropRepeats())
     .map(makeTextView)
     .flatten();
 
   const story$ = xs
-    .combine(sources.state.stream, chapter$)
-    .map(([state, chapter]) => [
+    .combine(chapter$, storyTabs$)
+    .map(([chapter, storyTabs]) => [
       h2(".panel-header", "Story"),
-      div(".story", [
-        nav(
-          ".tabs.table-of-contents",
-          chapters
-            .filter(c => c.condition(state))
-            .map(({ id, label }) =>
-              button({ dataset: { id } }, [
-                label,
-                !state.viewedChapters.includes(id) ? sup("new") : null
-              ])
-            )
-        ),
-        chapter
-      ])
+      div(".story", [nav(".tabs.table-of-contents", storyTabs), chapter])
     ]);
 
   const gameSinks = Game(sources);
@@ -47,21 +55,26 @@ export default function View(sources) {
     div([h2(".panel-header", "Upgrade"), dom])
   );
 
-  const view$ = sources.state.stream
+  const currentPanel$ = sources.state.stream
     .map(state => state.currentPanel)
-    .compose(dropRepeats())
+    .compose(dropRepeats());
+
+  const switchTabs = tabButtons([
+    { id: "story" },
+    { id: "game" },
+    { id: "upgrade" }
+  ]);
+
+  const tabs$ = currentPanel$
+    .map(switchTabs)
+    .map(tabs => section(".tabs.horizontal-tabs", tabs));
+
+  const view$ = currentPanel$
     .map(cases(["game", game$], ["story", story$], ["upgrade", upgrade$]))
     .flatten();
 
-  const dom$ = view$.map(view => {
-    return div(".view", [
-      section(".tabs.horizontal-tabs", [
-        button({ dataset: { id: "story" } }, "story"),
-        button({ dataset: { id: "game" } }, "game"),
-        button({ dataset: { id: "upgrade" } }, "upgrade")
-      ]),
-      section(".panel", view)
-    ]);
+  const dom$ = xs.combine(tabs$, view$).map(([tabs, view]) => {
+    return div(".view", [tabs, section(".panel", view)]);
   });
 
   const storyAction$ = sources.DOM.select(".story .table-of-contents button")
