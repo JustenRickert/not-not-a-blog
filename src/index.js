@@ -7,7 +7,7 @@ import defaultsDeep from "lodash.defaultsdeep";
 
 import View from "./view";
 import ensureThrottle from "./ensure-throttle";
-import { upgrades } from "./upgrade";
+import { UPGRADES } from "./constant";
 
 const savedState = JSON.parse(localStorage.getItem("state"));
 const initState = {
@@ -20,20 +20,16 @@ const initState = {
     stones: 0,
     wood: 0
   },
-  upgrades: {
-    advancedHandTools: { unlocked: false },
-    animalHusbandry: { unlocked: false },
-    coal: { unlocked: false },
-    cooking: { unlocked: false },
-    equine: { unlocked: false },
-    furnace: { unlocked: false },
-    handTools: { unlocked: false },
-    measuringEquipment: { unlocked: false },
-    paint: { unlocked: false },
-    pastoralism: { unlocked: false },
-    steel: { unlocked: false },
-    string: { unlocked: false }
-  },
+  upgrades: Object.keys(UPGRADES).reduce(
+    (upgrades, upgradeId) => ({
+      ...upgrades,
+      [upgradeId]: {
+        unlocked: false,
+        unlockDate: null
+      }
+    }),
+    {}
+  ),
   viewedChapters: ["introduction"],
   currentUpgradeTab: "purchasable",
   currentGameView: "user-information-entry",

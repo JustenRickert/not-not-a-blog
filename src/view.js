@@ -10,12 +10,6 @@ import Upgrade from "./upgrade";
 import "./view.css";
 
 export default function View(sources) {
-  const storyAction$ = sources.DOM.select(".story .table-of-contents button")
-    .events("click")
-    .map(e => ({
-      id: e.currentTarget.dataset.id
-    }));
-
   const chapter$ = sources.state.stream
     .map(state => state.currentChapter)
     .compose(dropRepeats())
@@ -69,6 +63,12 @@ export default function View(sources) {
       section(".panel", view)
     ]);
   });
+
+  const storyAction$ = sources.DOM.select(".story .table-of-contents button")
+    .events("click")
+    .map(e => ({
+      id: e.currentTarget.dataset.id
+    }));
 
   const panelAction$ = sources.DOM.select(".view .horizontal-tabs button")
     .events("click")

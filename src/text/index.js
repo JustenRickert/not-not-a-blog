@@ -12,14 +12,14 @@ const chapterInformation = {
     condition: () => true,
     import: () =>
       import(/* webpackChunkName: 'introduction' */
-      "./introduction.md")
+      "./md/introduction.md")
   },
   "next-steps": {
     label: "Next Steps",
     condition: state => state.userInformation,
     import: () =>
       import(/* webpackChunkName: 'new-aliens' */
-      "./next-steps.md")
+      "./md/next-steps.md")
   },
   "new-aliens": {
     label: "New Aliens",
@@ -27,28 +27,42 @@ const chapterInformation = {
       state.upgrades.handTools.unlocked && state.upgrades.string.unlocked,
     import: () =>
       import(/* webpackChunkName: 'new-aliens' */
-      "./new-aliens.md")
+      "./md/new-aliens.md")
   },
   "working-aliens": {
     label: "Working Aliens",
     condition: state => state.upgrades.furnace.unlocked,
     import: () =>
       import(/* webpackChunkName: 'working-aliens' */
-      "./working-aliens.md")
+      "./md/working-aliens.md")
   },
   wartime: {
     label: "Wartime",
     condition: state => state.upgrades.advancedHandTools.unlocked,
     import: () =>
       import(/* webpackChunkName: 'wartime' */
-      "./wartime.md")
+      "./md/wartime.md")
   },
   bolshevists: {
     label: "Bolshevists",
     condition: state => state.resources.metals > 1000,
     import: () =>
       import(/* webpackChunkName: 'bolshevists' */
-      "./bolshevists.md")
+      "./md/bolshevists.md")
+  },
+  measuringEquipment: {
+    label: "Measuring",
+    condition: state => state.upgrades.measuringEquipment.unlocked,
+    import: () =>
+      import(/* webpackChunkName: 'measuring' */
+      "./md/measuring.md")
+  },
+  guns: {
+    label: "Get your gun",
+    condition: state => state.upgrades.guns.unlocked,
+    import: () =>
+      import(/* webpackChunkName: 'guns' */
+      "./md/guns.md")
   }
 };
 

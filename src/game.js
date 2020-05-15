@@ -9,15 +9,6 @@ import makeUpdateReducer from "./game-update";
 import "./game.css";
 
 function UserInformationEntry(sources) {
-  const submit$ = sources.DOM.select(".user-entry")
-    .events("submit", {
-      preventDefault: true
-    })
-    .map(({ currentTarget: { elements: { name, planet } } }) => ({
-      name: name.value,
-      planet: planet.value
-    }));
-
   const dom$ = xs.of(
     form(".user-entry", [
       div(label({ attrs: { for: "user-name" } }, "Name")),
@@ -45,6 +36,15 @@ function UserInformationEntry(sources) {
       div(button({ attrs: { type: "sumbit" } }, "submit"))
     ])
   );
+
+  const submit$ = sources.DOM.select(".user-entry")
+    .events("submit", {
+      preventDefault: true
+    })
+    .map(({ currentTarget: { elements: { name, planet } } }) => ({
+      name: name.value,
+      planet: planet.value
+    }));
 
   const reducer$ = submit$.map(userInformation => state =>
     updateAll(state, [

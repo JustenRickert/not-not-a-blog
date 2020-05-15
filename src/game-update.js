@@ -1,9 +1,10 @@
 import xs from "xstream";
 import dropRepeats from "xstream/extra/dropRepeats";
 import sampleCombine from "xstream/extra/sampleCombine";
-import { logisticDeltaEquation, update } from "../util";
 
+import { logisticDeltaEquation, update } from "../util";
 import roughlyPeriodic from "./roughly-periodic";
+import { UPGRADES } from "./constant";
 
 const RATE = {
   art: 1 / 400,
@@ -24,27 +25,6 @@ const UNLOCK_CONDITION = {
   }
 };
 
-const UPGRADE_MULTIPLIERS = {
-  advancedHandTools: {
-    art: 1.01,
-    metals: 1.02,
-    science: 1.03,
-    stones: 1.01,
-    wood: 1.02
-  },
-  animalHusbandry: {},
-  coal: { resources: { metals: 1.02 } },
-  cooking: { resources: { art: 1.01 } },
-  equine: {},
-  furnace: {},
-  handTools: { resources: { stones: 1.01 } },
-  measuringEquipment: { resources: { science: 1.01 } },
-  paint: { resources: { art: 1.05 } },
-  pastoralism: {},
-  steel: { resources: { science: 1.01 } },
-  string: {}
-};
-
 export default function makeGameUpdateReducer(sources) {
   const upgradeMultiplier$ = sources.state.stream
     .compose(dropRepeats(({ upgrades: u1 }, { upgrades: u2 }) => u1 === u2))
@@ -52,8 +32,8 @@ export default function makeGameUpdateReducer(sources) {
       Object.keys(resources).reduce(
         (upgradeMultipliers, resourceId) => ({
           ...upgradeMultipliers,
-          [resourceId]: Object.entries(UPGRADE_MULTIPLIERS).reduce(
-            (multiplier, [upgradeId, { resources }]) =>
+          [resourceId]: Object.entries(UPGRADES).reduce(
+            (multiplier, [upgradeId, { multiplier: { resources } = {} }]) =>
               resources && resources[resourceId] && upgrades[upgradeId].unlocked
                 ? multiplier * resources[resourceId]
                 : multiplier,

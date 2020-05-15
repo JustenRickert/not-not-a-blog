@@ -1,65 +1,15 @@
 import xs from "xstream";
 import dropRepeats from "xstream/extra/dropRepeats";
-import { div, h2, nav, section, button, sup } from "@cycle/dom";
+import { div, button } from "@cycle/dom";
 import isolate from "@cycle/isolate";
 
 import { partition, set, cases, updateAll } from "../util";
+import { UPGRADES } from "./constant";
 
 import "./upgrade.css";
 
-const UPGRADE_COST = {
-  advancedHandTools: {
-    resources: { wood: 50, metals: 200, science: 200, art: 50 },
-    upgrades: ["handTools", "coal", "furnace", "string"]
-  },
-  animalHusbandry: {
-    resources: { wood: 100, metals: 100, science: 100 },
-    upgrades: ["handTools"]
-  },
-  coal: { resources: { wood: 100 }, upgrades: ["furnace"] },
-  cooking: { resources: { wood: 50, stones: 50 }, upgrades: ["handTools"] },
-  equine: {
-    resources: { metals: 200, science: 300 },
-    upgrades: ["animalHusbandry", "advancedHandTools"]
-  },
-  furnace: { resources: { stones: 100, wood: 50 }, upgrades: ["handTools"] },
-  handTools: { resources: { stones: 10 } },
-  measuringEquipment: {
-    resources: { metals: 500, wood: 500, science: 500 },
-    upgrades: ["advancedHandTools"]
-  },
-  paint: {
-    resources: { science: 100, art: 100 },
-    upgrades: ["measuringEquipment"]
-  },
-  pastoralism: {
-    resources: { wood: 200, metals: 100, science: 150 },
-    upgrades: ["animalHusbandry"]
-  },
-  steel: {
-    resources: { wood: 10e3, metals: 15e3 },
-    upgrades: ["coal", "measuringEquipment"]
-  },
-  string: { resources: { stones: 50, wood: 50 }, upgrades: ["handTools"] }
-};
-
-const UPGRADE_LABEL = {
-  advancedHandTools: "Advanced hand tools",
-  animalHusbandry: "Animal husbandry",
-  coal: "Coal",
-  cooking: "Cooking",
-  equine: "Equestrianism",
-  furnace: "Furnace",
-  handTools: "Hand tools",
-  measuringEquipment: "Precise measuring",
-  paint: "Painting",
-  pastoralism: "Pastoralism",
-  steel: "Steel",
-  string: "String"
-};
-
 const costView = id => {
-  const cost = UPGRADE_COST[id].resources;
+  const cost = UPGRADES[id].cost.resources;
   return div(
     Object.entries(cost)
       .map(([resource, cost]) => `${resource}: ${cost}`)
@@ -68,19 +18,19 @@ const costView = id => {
 };
 
 const hasMaterials = (resources, upgradeId) => {
-  const cost = UPGRADE_COST[upgradeId].resources;
+  const cost = UPGRADES[upgradeId].cost.resources;
   return Object.keys(cost).every(resourceId => resources[resourceId]);
 };
 
 const meetsCost = (resources, upgradeId) => {
-  const cost = UPGRADE_COST[upgradeId].resources;
+  const cost = UPGRADES[upgradeId].cost.resources;
   return Object.entries(cost).every(
     ([resourceId, cost]) => resources[resourceId] >= cost
   );
 };
 
 const meetsUpgrades = (upgrades, upgradeId) => {
-  const requirements = UPGRADE_COST[upgradeId].upgrades;
+  const requirements = UPGRADES[upgradeId].cost.upgrades;
   if (!requirements) return true;
   return requirements.every(upgradeId => upgrades[upgradeId].unlocked);
 };
@@ -105,7 +55,7 @@ function Upgrade(sources) {
   const unlockedUpgradesDom$ = upgrades$.map(({ unlockedUpgrades }) =>
     div(
       unlockedUpgrades.map(([upgradeId]) =>
-        div([UPGRADE_LABEL[upgradeId] || upgradeId])
+        div([UPGRADES[upgradeId].label || upgradeId])
       )
     )
   );
@@ -120,21 +70,20 @@ function Upgrade(sources) {
     .map(([resources, { upgrades, lockedUpgrades }]) => {
       return div(
         lockedUpgrades
-          .filter(([upgradeId]) => hasMaterials(resources, upgradeId))
+          .filter(
+            ([upgradeId]) =>
+              hasMaterials(resources, upgradeId) &&
+              meetsUpgrades(upgrades, upgradeId)
+          )
           .map(([upgradeId]) =>
             div([
-              UPGRADE_LABEL[upgradeId] || upgradeId,
+              UPGRADES[upgradeId].label || upgradeId,
               costView(upgradeId),
               button(
                 ".purchase-upgrade",
                 {
                   dataset: { upgradeId },
-                  attrs: {
-                    disabled: !(
-                      meetsCost(resources, upgradeId) &&
-                      meetsUpgrades(upgrades, upgradeId)
-                    )
-                  }
+                  attrs: { disabled: !meetsCost(resources, upgradeId) }
                 },
                 "Purchase"
               )
@@ -178,7 +127,7 @@ function Upgrade(sources) {
       .events("click")
       .map(({ currentTarget: { dataset: { upgradeId } } }) => ({
         upgradeId,
-        cost: UPGRADE_COST[upgradeId].resources
+        cost: UPGRADES[upgradeId].cost.resources
       }))
       .map(({ upgradeId, cost }) => state =>
         updateAll(state, [
@@ -186,7 +135,8 @@ function Upgrade(sources) {
             ["resources", resourceName],
             supply => supply - cost
           ]),
-          [["upgrades", upgradeId, "unlocked"], () => true]
+          [["upgrades", upgradeId, "unlocked"], () => true],
+          [["upgrades", upgradeId, "unlockDate"], () => new Date()]
         ])
       )
   );
