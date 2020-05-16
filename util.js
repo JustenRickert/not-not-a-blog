@@ -24,6 +24,12 @@ export function updateAll(o, keyFns) {
   return keyFns.reduce((o, [key, fn]) => update(o, key, fn), o);
 }
 
+export function get(o, key) {
+  if (typeof key === "string") key = key.split(".");
+  if (key.length === 0) return o;
+  return get(o[key[0]], key.slice(1));
+}
+
 export function set(o, key, value) {
   if (typeof key === "string") key = key.split(".");
   if (key.length === 0) return value;

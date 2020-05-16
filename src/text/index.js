@@ -63,6 +63,13 @@ const chapterInformation = {
     import: () =>
       import(/* webpackChunkName: 'guns' */
       "./md/guns.md")
+  },
+  "anthropogenic-fire": {
+    label: "Anthropogenic Fire",
+    condition: state => state.upgrades.pastoralism.unlocked,
+    import: () =>
+      import(/* webpackChunkName: 'pastoralism' */
+      "./md/anthropogenic-fire.md")
   }
 };
 

@@ -1,16 +1,18 @@
 import xs from "xstream";
 import dropRepeats from "xstream/extra/dropRepeats";
-import { set, cases, updateAll } from "../util";
+import { set, cases, updateAll, omit } from "../util";
 import { div, h2, nav, section, sup } from "@cycle/dom";
 
 import { makeTextView, chapters } from "./text";
 import { tabButtons } from "./shared";
 import Game from "./game";
 import Upgrade from "./upgrade";
+import { computeGameUpdateRates } from "./game-update";
 
 import "./view.css";
+import isolate from "@cycle/isolate";
 
-export default function View(sources) {
+function View(sources) {
   const currentChapter$ = sources.state.stream.map(
     state => state.currentChapter
   );
@@ -110,3 +112,13 @@ export default function View(sources) {
     state: reducer$
   };
 }
+
+export default isolate(View, {
+  state: {
+    get: state => ({
+      ...state,
+      updateRates: computeGameUpdateRates(state)
+    }),
+    set: (_, state) => omit(state, ["updateRates"])
+  }
+});

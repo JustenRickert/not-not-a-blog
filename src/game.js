@@ -3,8 +3,9 @@ import isolate from "@cycle/isolate";
 import { button, br, div, form, label, input } from "@cycle/dom";
 
 import { updateAll, ofWhich } from "../util";
-
+import { whole } from "./format";
 import makeUpdateReducer from "./game-update";
+import { GAME_UPDATE_UNLOCK_CONDITION } from "./constant";
 
 import "./game.css";
 
@@ -72,12 +73,20 @@ function UserStats(sources) {
     return div(".user-stats", [
       div(["Name: ", name]),
       div(["Planet: ", planet]),
-      div(["Population: ", population]),
-      div(["Stones: ", resources.stones]),
-      resources.wood ? div(["Wood: ", resources.wood]) : null,
-      resources.metals ? div(["Metals: ", resources.metals]) : null,
-      resources.science ? div(["Science: ", resources.science]) : null,
-      resources.art ? div(["Art: ", resources.art]) : null
+      div(["Population: ", whole(population)]),
+      div(["Stones: ", whole(resources.stones)]),
+      GAME_UPDATE_UNLOCK_CONDITION.resources.wood(state)
+        ? div(["Wood: ", whole(resources.wood)])
+        : null,
+      GAME_UPDATE_UNLOCK_CONDITION.resources.metals(state)
+        ? div(["Metals: ", whole(resources.metals)])
+        : null,
+      GAME_UPDATE_UNLOCK_CONDITION.resources.science(state)
+        ? div(["Science: ", whole(resources.science)])
+        : null,
+      GAME_UPDATE_UNLOCK_CONDITION.resources.art(state)
+        ? div(["Art: ", whole(resources.art)])
+        : null
     ]);
   });
 

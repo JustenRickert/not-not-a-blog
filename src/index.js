@@ -8,6 +8,7 @@ import defaultsDeep from "lodash.defaultsdeep";
 import View from "./view";
 import ensureThrottle from "./ensure-throttle";
 import { UPGRADES } from "./constant";
+import devDriver from "./dev-driver";
 
 const savedState = JSON.parse(localStorage.getItem("state"));
 const initState = {
@@ -48,13 +49,18 @@ function Main(sources) {
     savedState ? defaultsDeep(savedState, initState) : initState
   );
 
+  const dev_upgradeReducer$ = sources.Dev.filter(a => a.type === "upgrade").map(
+    a => a.reducer
+  );
+
   return {
     DOM: viewSinks.DOM,
-    state: xs.merge(initReducer$, viewSinks.state)
+    state: xs.merge(initReducer$, viewSinks.state, dev_upgradeReducer$)
   };
 }
 
 run(withState(Main, "state"), {
   DOM: makeDOMDriver("#root"),
-  Time: timeDriver
+  Time: timeDriver,
+  Dev: devDriver
 });

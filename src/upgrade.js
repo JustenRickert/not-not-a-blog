@@ -1,22 +1,14 @@
 import xs from "xstream";
 import dropRepeats from "xstream/extra/dropRepeats";
-import { div, button } from "@cycle/dom";
+import { div, button, h4 } from "@cycle/dom";
 import isolate from "@cycle/isolate";
 
 import { partition, set, cases, updateAll } from "../util";
-import { UPGRADES } from "./constant";
-import { tabButton, tabButtons } from "./shared";
+import { TIMEOUT, UPGRADES } from "./constant";
+import { tabButtons } from "./shared";
 
 import "./upgrade.css";
-
-const costView = id => {
-  const cost = UPGRADES[id].cost.resources;
-  return div(
-    Object.entries(cost)
-      .map(([resource, cost]) => `${resource}: ${cost}`)
-      .map(text => div(text))
-  );
-};
+import { toHumanTime } from "./format";
 
 const hasMaterials = (resources, upgradeId) => {
   const cost = UPGRADES[upgradeId].cost.resources;
@@ -36,9 +28,18 @@ const meetsUpgrades = (upgrades, upgradeId) => {
   return requirements.every(upgradeId => upgrades[upgradeId].unlocked);
 };
 
-function Upgrade(sources) {
-  const resources$ = sources.state.stream.map(state => state.resources);
+const timeLeft = (upgradeId, { resources, updateRates }) => {
+  const cost = UPGRADES[upgradeId].cost.resources;
+  return Object.entries(cost).reduce((mostTimeLeft, [resourceName, cost]) => {
+    const timeLeft =
+      (TIMEOUT / 1e3) *
+      (Math.max(0, cost - resources[resourceName]) /
+        updateRates.resources[resourceName]);
+    return Math.max(timeLeft, mostTimeLeft);
+  }, -Infinity);
+};
 
+function Upgrade(sources) {
   const upgrades$ = sources.state.stream
     .map(state => state.upgrades)
     .map(upgrades => {
@@ -61,15 +62,37 @@ function Upgrade(sources) {
     )
   );
 
+  const costView = id => {
+    const cost = UPGRADES[id].cost.resources;
+    return div(
+      ".upgrade-cost",
+      Object.entries(cost)
+        .map(([resource, cost]) => `${resource}: ${cost}`)
+        .map(text => div(text))
+    );
+  };
+
+  const timeRemainingView = (upgradeId, { resources, updateRates }) => {
+    const remaining = timeLeft(upgradeId, { resources, updateRates });
+    if (!remaining) return null;
+    return div(".upgrade-grid-item-time-remaining", [
+      "ETA ",
+      "~",
+      toHumanTime(remaining)
+    ]);
+  };
+
   const upgradeDom$ = xs
     .combine(
-      resources$,
+      sources.state.stream,
       upgrades$.compose(
         dropRepeats(({ upgrades: u1 }, { upgrades: u2 }) => u1 === u2)
       )
     )
-    .map(([resources, { upgrades, lockedUpgrades }]) => {
+    .map(([state, { upgrades, lockedUpgrades }]) => {
+      const { resources, updateRates } = state;
       return div(
+        ".upgrade-grid",
         lockedUpgrades
           .filter(
             ([upgradeId]) =>
@@ -77,16 +100,24 @@ function Upgrade(sources) {
               meetsUpgrades(upgrades, upgradeId)
           )
           .map(([upgradeId]) =>
-            div([
-              UPGRADES[upgradeId].label || upgradeId,
-              costView(upgradeId),
-              button(
-                ".purchase-upgrade",
-                {
-                  dataset: { upgradeId },
-                  attrs: { disabled: !meetsCost(resources, upgradeId) }
-                },
-                "Purchase"
+            div(".upgrade-grid-item", [
+              div(".upgrade-grid-item-stats", [
+                h4(
+                  ".upgrade-grid-item-header",
+                  UPGRADES[upgradeId].label || upgradeId
+                ),
+                costView(upgradeId),
+                timeRemainingView(upgradeId, { resources, updateRates })
+              ]),
+              div(
+                button(
+                  ".purchase-upgrade",
+                  {
+                    dataset: { upgradeId },
+                    attrs: { disabled: !meetsCost(resources, upgradeId) }
+                  },
+                  "Purchase"
+                )
               )
             ])
           )
@@ -104,14 +135,8 @@ function Upgrade(sources) {
     .flatten();
 
   const switchTabs = tabButtons([
-    {
-      id: "purchasable",
-      label: "new"
-    },
-    {
-      id: "already-purchased",
-      label: "purchased"
-    }
+    { id: "purchasable", label: "new" },
+    { id: "already-purchased", label: "purchased" }
   ]);
 
   const tabs$ = sources.state.stream

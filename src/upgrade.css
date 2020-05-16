@@ -1,3 +1,38 @@
 .upgrade-view {
     display: flex;
 }
+
+.upgrade-grid {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.upgrade-grid-item {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    margin: 0 0.5rem 0.5rem 0;
+    min-width: 7rem;
+}
+
+.upgrade-grid-item-stats {
+    display: flex;
+    flex-direction: column;
+}
+
+.upgrade-cost {
+    margin: 0 0.5rem 0.5rem 0;
+}
+
+.upgrade-grid-item-header {
+    margin: 0 0.5rem 0.5rem 0;
+}
+
+.upgrade-grid-item button {
+    margin: 0 0.5rem 0.5rem 0;
+}
+
+.upgrade-grid-item-time-remaining {
+    align-self: flex-end;
+    margin: 0 0.5rem 0.5rem 0;
+}
