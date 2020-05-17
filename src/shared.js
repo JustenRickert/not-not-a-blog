@@ -1,4 +1,10 @@
-import { button } from "@cycle/dom";
+import { button, div } from "@cycle/dom";
+
+import { range } from "../util";
+
+import "./loading.css";
+
+export const loading = div(".loading", range(4).map(() => div(["."])));
 
 export const tabButtons = tabs => currentId =>
   tabs.map(({ id, label = id }) =>
@@ -9,10 +15,12 @@ export const tabButtons = tabs => currentId =>
   );
 
 export const tabButton = (id, { label = id, currentId }) =>
-  button(
-    {
-      dataset: { id },
-      style: { backgroundColor: currentId === id && "gainsboro" }
-    },
-    label
+  div(
+    button(
+      {
+        dataset: { id },
+        style: { backgroundColor: currentId === id && "gainsboro" }
+      },
+      label
+    )
   );

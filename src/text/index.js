@@ -1,46 +1,25 @@
 import xs from "xstream";
 import { div } from "@cycle/dom";
 
-import { assert, range } from "../../util";
+import { assert } from "../../util";
+import { loading } from "../shared";
 
 import "./text.css";
-import "./loading.css";
 
 const chapterInformation = {
-  introduction: {
-    label: "Introduction",
-    condition: () => true,
+  agitation: {
+    label: "Agitation",
+    condition: () => false, // TODO
     import: () =>
-      import(/* webpackChunkName: 'introduction' */
-      "./md/introduction.md")
+      import(/* webpackChunkName: 'agitation' */
+      "./md/agitation.md")
   },
-  "next-steps": {
-    label: "Next Steps",
-    condition: state => state.userInformation,
+  "anthropogenic-fire": {
+    label: "Anthropogenic Fire",
+    condition: state => state.upgrades.pastoralism.unlocked,
     import: () =>
-      import(/* webpackChunkName: 'new-aliens' */
-      "./md/next-steps.md")
-  },
-  "new-aliens": {
-    label: "New Aliens",
-    condition: state => state.upgrades.string.unlocked,
-    import: () =>
-      import(/* webpackChunkName: 'new-aliens' */
-      "./md/new-aliens.md")
-  },
-  "working-aliens": {
-    label: "Working Aliens",
-    condition: state => state.upgrades.furnace.unlocked,
-    import: () =>
-      import(/* webpackChunkName: 'working-aliens' */
-      "./md/working-aliens.md")
-  },
-  wartime: {
-    label: "Wartime",
-    condition: state => state.upgrades.advancedHandTools.unlocked,
-    import: () =>
-      import(/* webpackChunkName: 'wartime' */
-      "./md/wartime.md")
+      import(/* webpackChunkName: 'anthropogenic-fire' */
+      "./md/anthropogenic-fire.md")
   },
   bolshevists: {
     label: "Bolshevists",
@@ -49,13 +28,6 @@ const chapterInformation = {
       import(/* webpackChunkName: 'bolshevists' */
       "./md/bolshevists.md")
   },
-  measuringEquipment: {
-    label: "Measuring",
-    condition: state => state.upgrades.measuringEquipment.unlocked,
-    import: () =>
-      import(/* webpackChunkName: 'measuring' */
-      "./md/measuring.md")
-  },
   guns: {
     label: "Get your gun",
     condition: state => state.upgrades.guns.unlocked,
@@ -63,12 +35,47 @@ const chapterInformation = {
       import(/* webpackChunkName: 'guns' */
       "./md/guns.md")
   },
-  "anthropogenic-fire": {
-    label: "Anthropogenic Fire",
-    condition: state => state.upgrades.pastoralism.unlocked,
+  introduction: {
+    label: "Introduction",
+    condition: () => true,
     import: () =>
-      import(/* webpackChunkName: 'pastoralism' */
-      "./md/anthropogenic-fire.md")
+      import(/* webpackChunkName: 'introduction' */
+      "./md/introduction.md")
+  },
+  measuringEquipment: {
+    label: "Measuring",
+    condition: state => state.upgrades.measuringEquipment.unlocked,
+    import: () =>
+      import(/* webpackChunkName: 'measuring-equipment' */
+      "./md/measuring.md")
+  },
+  "new-aliens": {
+    label: "New Aliens",
+    condition: state => state.upgrades.string.unlocked,
+    import: () =>
+      import(/* webpackChunkName: 'new-aliens' */
+      "./md/new-aliens.md")
+  },
+  "next-steps": {
+    label: "Next Steps",
+    condition: state => state.userInformation,
+    import: () =>
+      import(/* webpackChunkName: 'new-aliens' */
+      "./md/next-steps.md")
+  },
+  wartime: {
+    label: "Wartime",
+    condition: state => state.upgrades.advancedHandTools.unlocked,
+    import: () =>
+      import(/* webpackChunkName: 'wartime' */
+      "./md/wartime.md")
+  },
+  "working-aliens": {
+    label: "Working Aliens",
+    condition: state => state.upgrades.furnace.unlocked,
+    import: () =>
+      import(/* webpackChunkName: 'working-aliens' */
+      "./md/working-aliens.md")
   }
 };
 
@@ -79,8 +86,6 @@ export const chapters = Object.entries(chapterInformation).map(
     condition
   })
 );
-
-const loading = div(".loading", range(4).map(() => div(["."])));
 
 export function makeTextView(id) {
   const text = chapterInformation[id];

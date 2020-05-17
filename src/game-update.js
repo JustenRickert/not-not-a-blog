@@ -7,7 +7,10 @@ import { UPGRADES, GAME_UPDATE_UNLOCK_CONDITION, TIMEOUT } from "./constant";
 
 const RATE = {
   art: 1 / 400,
+  // biomass: 1 / 1e3,
   metals: 1 / 500,
+  // petroleum: 1 / 1e3,
+  // philosophy: 1 / 1e3,
   science: 1 / 1e3,
   stones: 1 / 50,
   wood: 1 / 250

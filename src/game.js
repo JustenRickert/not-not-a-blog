@@ -1,134 +1,48 @@
 import xs from "xstream";
 import isolate from "@cycle/isolate";
-import { button, br, div, form, label, input } from "@cycle/dom";
 
-import { updateAll, ofWhich } from "../util";
-import { whole } from "./format";
+import { ofWhich } from "../util";
 import makeUpdateReducer from "./game-update";
-import { GAME_UPDATE_UNLOCK_CONDITION, TIMEOUT } from "./constant";
+import { loading } from "./shared";
 
 import "./game.css";
 
-function UserInformationEntry(sources) {
-  const dom$ = xs.of(
-    form(".user-entry", [
-      div(label({ attrs: { for: "user-name" } }, "Name")),
-      div(
-        input({
-          attrs: {
-            id: "user-name",
-            name: "name",
-            required: true
-          }
-        })
-      ),
-      br(),
-      div(label({ attrs: { for: "user-assignment" } }, "Planet")),
-      div(
-        input({
-          attrs: {
-            id: "user-assignment",
-            name: "planet",
-            required: true
-          }
-        })
-      ),
-      br(),
-      div(button({ attrs: { type: "sumbit" } }, "submit"))
-    ])
-  );
-
-  const submit$ = sources.DOM.select(".user-entry")
-    .events("submit", {
-      preventDefault: true
-    })
-    .map(({ currentTarget: { elements: { name, planet } } }) => ({
-      name: name.value,
-      planet: planet.value
-    }));
-
-  const reducer$ = submit$.map(userInformation => state =>
-    updateAll(state, [
-      ["userInformation", () => userInformation],
-      ["currentPanel", () => "story"],
-      ["currentChapter", () => "next-steps"],
-      ["viewedChapters", texts => texts.concat("next-steps")],
-      ["currentGameView", () => "user-stats"]
-    ])
-  );
-
-  return {
-    DOM: dom$,
-    state: reducer$
-  };
-}
-
-const perSecond = n =>
-  ((1e3 * n) / TIMEOUT).toLocaleString(undefined, {
-    maximumSignificantDigits: 2
-  }) + "/s";
-
-const resourceView = (state, { resourceName, label }) => {
-  const predicate = GAME_UPDATE_UNLOCK_CONDITION.resources[resourceName];
-  return predicate(state)
-    ? div([
-        label,
-        ": ",
-        whole(state.resources[resourceName]),
-        "+",
-        perSecond(state.updateRates.resources[resourceName])
-      ])
-    : null;
-};
-
-function UserStats(sources) {
-  const dom$ = sources.state.stream.map(state => {
-    const {
-      population,
-      userInformation: { name, planet },
-      updateRates
-    } = state;
-    return div(".user-stats", [
-      div(["Name: ", name]),
-      div(["Planet: ", planet]),
-      div([
-        "Population: ",
-        whole(population),
-        "+",
-        perSecond(updateRates.population)
-      ]),
-      resourceView(state, { resourceName: "stones", label: "Stones" }),
-      resourceView(state, { resourceName: "wood", label: "Wood" }),
-      resourceView(state, { resourceName: "metals", label: "Metals" }),
-      resourceView(state, { resourceName: "science", label: "Science" }),
-      resourceView(state, { resourceName: "art", label: "Art" })
-    ]);
-  });
-
-  return {
-    DOM: dom$
-  };
-}
-
+/**
+ * Used for like game progression I guess. Like if there's something that like
+ * necessarily needs to be dealt with it should go here.
+ */
 const switchComponent = ofWhich(
   [
     "user-information-entry",
-    () => isolate(UserInformationEntry, { state: null })
+    () =>
+      import(/* webpackChunkName: 'user-information-entry' */
+      "./game-views/user-information-entry")
   ],
-  ["user-stats", () => isolate(UserStats, { state: null })],
-  () => () => xs.of(div("TODO: Not implemented"))
+  [
+    "game",
+    () =>
+      import(/* webpackChunkName: 'game-view-game' */
+      "./game-views/game")
+  ]
 );
 
-function Game(sources) {
+function GameViewSwitch(sources) {
   const viewSinks$ = sources.state.stream
+    .filter(state => state.currentPanel === "game") // NOTE: Maybe not ideal? Delays request of switchComponent, which is necessary because DOM.select apparently doesn't work on unmounted components
     .map(state => state.currentGameView)
     .map(switchComponent)
+    .map(xs.fromPromise)
+    .flatten()
+    .map(m => m.default)
     .map(View => View(sources));
 
-  const dom$ = viewSinks$.map(sinks => sinks.DOM).flatten();
+  const dom$ = viewSinks$
+    .map(sinks => sinks.DOM)
+    .flatten()
+    .startWith(loading);
 
   const reducer$ = xs.merge(
-    viewSinks$.map(sinks => sinks.state || xs.empty()).flatten(),
+    viewSinks$.map(sinks => sinks.state).flatten(),
     makeUpdateReducer(sources)
   );
 
@@ -138,4 +52,4 @@ function Game(sources) {
   };
 }
 
-export default isolate(Game, { state: null });
+export default isolate(GameViewSwitch, { state: null });

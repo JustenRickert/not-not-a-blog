@@ -1,11 +1,11 @@
 import xs from "xstream";
 import dropRepeats from "xstream/extra/dropRepeats";
 import throttle from "xstream/extra/throttle";
-import { div, button, h4, span, sup } from "@cycle/dom";
+import { div, button, h3, h4, span } from "@cycle/dom";
 import isolate from "@cycle/isolate";
 
 import { partition, set, cases, updateAll } from "../util";
-import { TIMEOUT, UPGRADES, GAME_UPDATE_UNLOCK_CONDITION } from "./constant";
+import { TIMEOUT, UPGRADES } from "./constant";
 import { tabButtons } from "./shared";
 
 import "./upgrade.css";
@@ -117,14 +117,27 @@ function Upgrade(sources) {
       );
     });
 
+  const switchViewLabels = {
+    purchasable: "New Upgrades",
+    "already-purchased": "Purchased Upgrades"
+  };
+
+  const switchViewMap = cases(
+    ["purchasable", upgradeDom$],
+    ["already-purchased", unlockedUpgradesDom$]
+  );
+
   const switchView$ = sources.state.stream
     .map(state => state.currentUpgradeTab)
-    .map(
-      cases(
-        ["purchasable", upgradeDom$],
-        ["already-purchased", unlockedUpgradesDom$]
-      )
-    )
+    .map(currentUpgradeTab => {
+      const view$ = switchViewMap(currentUpgradeTab);
+      return view$.map(view =>
+        div(".upgrade-view-panel", [
+          h3(switchViewLabels[currentUpgradeTab]),
+          view
+        ])
+      );
+    })
     .flatten();
 
   const switchTabs = tabButtons([
@@ -151,7 +164,6 @@ function Upgrade(sources) {
           }
         }) => id
       )
-      .debug()
       .map(tabId => state => set(state, "currentUpgradeTab", tabId)),
     sources.DOM.select(".upgrade-purchase")
       .events("click")

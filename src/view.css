@@ -32,6 +32,7 @@ button {
     font-size: 1rem;
     margin: 0;
     border-radius: 0.12rem;
+    background-color: white;
 }
 
 button sup {
@@ -65,12 +66,17 @@ button sup {
 }
 
 .panel-header {
-    margin-top: 0;
 }
 
 .panel .story {
     display: flex;
     min-width: 8rem;
+}
+
+@media (max-width: 463px) {
+    .panel .story {
+        flex-direction: column;
+    }
 }
 
 .table-of-contents {
@@ -79,6 +85,11 @@ button sup {
 }
 
 .table-of-contents button {
+}
+
+.scroll-to-top-container {
+    display: flex;
+    justify-content: flex-end;
 }
 
 .text {

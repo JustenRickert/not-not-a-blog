@@ -2,6 +2,18 @@
     display: flex;
 }
 
+@media (min-width: 464px) {
+    .upgrade-view-panel *:first-child {
+        margin-top: 0;
+    }
+}
+
+@media (max-width: 463px) {
+    .upgrade-view {
+        flex-direction: column;
+    }
+}
+
 .upgrade-grid {
     display: flex;
     flex-wrap: wrap;
