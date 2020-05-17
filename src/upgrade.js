@@ -1,19 +1,15 @@
 import xs from "xstream";
 import dropRepeats from "xstream/extra/dropRepeats";
-import { div, button, h4 } from "@cycle/dom";
+import throttle from "xstream/extra/throttle";
+import { div, button, h4, span, sup } from "@cycle/dom";
 import isolate from "@cycle/isolate";
 
 import { partition, set, cases, updateAll } from "../util";
-import { TIMEOUT, UPGRADES } from "./constant";
+import { TIMEOUT, UPGRADES, GAME_UPDATE_UNLOCK_CONDITION } from "./constant";
 import { tabButtons } from "./shared";
 
 import "./upgrade.css";
 import { toHumanTime } from "./format";
-
-const hasMaterials = (resources, upgradeId) => {
-  const cost = UPGRADES[upgradeId].cost.resources;
-  return Object.keys(cost).every(resourceId => resources[resourceId]);
-};
 
 const meetsCost = (resources, upgradeId) => {
   const cost = UPGRADES[upgradeId].cost.resources;
@@ -75,16 +71,15 @@ function Upgrade(sources) {
   const timeRemainingView = (upgradeId, { resources, updateRates }) => {
     const remaining = timeLeft(upgradeId, { resources, updateRates });
     if (!remaining) return null;
-    return div(".upgrade-grid-item-time-remaining", [
-      "ETA ",
-      "~",
-      toHumanTime(remaining)
-    ]);
+    return span(
+      ".upgrade-time-remaining",
+      ["(", "~", toHumanTime(remaining), ")"].join("")
+    );
   };
 
   const upgradeDom$ = xs
     .combine(
-      sources.state.stream,
+      sources.state.stream.compose(throttle(200)),
       upgrades$.compose(
         dropRepeats(({ upgrades: u1 }, { upgrades: u2 }) => u1 === u2)
       )
@@ -94,11 +89,7 @@ function Upgrade(sources) {
       return div(
         ".upgrade-grid",
         lockedUpgrades
-          .filter(
-            ([upgradeId]) =>
-              hasMaterials(resources, upgradeId) &&
-              meetsUpgrades(upgrades, upgradeId)
-          )
+          .filter(([upgradeId]) => meetsUpgrades(upgrades, upgradeId))
           .map(([upgradeId]) =>
             div(".upgrade-grid-item", [
               div(".upgrade-grid-item-stats", [
@@ -106,19 +97,21 @@ function Upgrade(sources) {
                   ".upgrade-grid-item-header",
                   UPGRADES[upgradeId].label || upgradeId
                 ),
-                costView(upgradeId),
-                timeRemainingView(upgradeId, { resources, updateRates })
+                costView(upgradeId)
               ]),
-              div(
+              div(".upgrade-purchase-container", [
                 button(
-                  ".purchase-upgrade",
+                  ".upgrade-purchase",
                   {
                     dataset: { upgradeId },
                     attrs: { disabled: !meetsCost(resources, upgradeId) }
                   },
-                  "Purchase"
+                  [
+                    "Purchase ",
+                    timeRemainingView(upgradeId, { resources, updateRates })
+                  ]
                 )
-              )
+              ])
             ])
           )
       );
@@ -160,7 +153,7 @@ function Upgrade(sources) {
       )
       .debug()
       .map(tabId => state => set(state, "currentUpgradeTab", tabId)),
-    sources.DOM.select(".purchase-upgrade")
+    sources.DOM.select(".upgrade-purchase")
       .events("click")
       .map(({ currentTarget: { dataset: { upgradeId } } }) => ({
         upgradeId,

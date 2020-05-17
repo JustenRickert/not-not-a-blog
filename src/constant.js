@@ -38,7 +38,7 @@ export const UPGRADES = {
     label: "Animal husbandry",
     cost: {
       resources: { wood: 100, metals: 100, science: 100 },
-      upgrades: ["handTools"]
+      upgrades: ["handTools", "furnace"]
     }
   },
   blackPowder: {
@@ -58,8 +58,8 @@ export const UPGRADES = {
   },
   cooking: {
     label: "Cooking",
-    cost: { resources: { wood: 50, stones: 50 }, upgrades: ["handTools"] },
-    multiplier: { resources: { art: 1.01 } }
+    cost: { resources: { wood: 15, stones: 10 }, upgrades: ["handTools"] },
+    multiplier: { resources: { art: 1.1, science: 1.1 } }
   },
   domestication: {
     label: "Domestication",
@@ -111,7 +111,7 @@ export const UPGRADES = {
   handTools: {
     label: "Hand tools",
     cost: { resources: { stones: 10 } },
-    multiplier: { resources: { stones: 1.01 } }
+    multiplier: { resources: { stones: 1.1, wood: 1.1 } }
   },
   irrigation: {
     label: "Irrigation",
@@ -166,6 +166,33 @@ export const UPGRADES = {
     label: "Sulfur",
     cost: { resources: { stones: 1e3 }, upgrades: ["handTools"] }
   }
+};
+
+export const INIT_STATE = {
+  userInformation: null,
+  population: 10,
+  resources: {
+    art: Number.EPSILON,
+    metals: Number.EPSILON,
+    science: Number.EPSILON,
+    stones: Number.EPSILON,
+    wood: Number.EPSILON
+  },
+  upgrades: Object.keys(UPGRADES).reduce(
+    (upgrades, upgradeId) => ({
+      ...upgrades,
+      [upgradeId]: {
+        unlocked: false,
+        unlockDate: null
+      }
+    }),
+    {}
+  ),
+  viewedChapters: ["introduction"],
+  currentUpgradeTab: "purchasable",
+  currentGameView: "user-information-entry",
+  currentChapter: "introduction",
+  currentPanel: "story"
 };
 
 export const GAME_UPDATE_UNLOCK_CONDITION = {

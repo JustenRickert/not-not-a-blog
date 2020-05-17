@@ -1,7 +1,7 @@
 import xs from "xstream";
 import dropRepeats from "xstream/extra/dropRepeats";
 
-import { logisticDeltaEquation, get, update } from "../util";
+import { logisticDeltaEquation, get, update, withRandomOffset } from "../util";
 import roughlyPeriodic from "./roughly-periodic";
 import { UPGRADES, GAME_UPDATE_UNLOCK_CONDITION, TIMEOUT } from "./constant";
 
@@ -61,7 +61,7 @@ export default function makeGameUpdateReducer(sources) {
     "resources.science"
   ].map(key =>
     periodicWhenUnlocked(get(GAME_UPDATE_UNLOCK_CONDITION, key)).mapTo(state =>
-      update(state, key, v => v + get(state.updateRates, key))
+      update(state, key, v => v + withRandomOffset(get(state.updateRates, key)))
     )
   );
 

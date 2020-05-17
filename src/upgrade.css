@@ -32,7 +32,10 @@
     margin: 0 0.5rem 0.5rem 0;
 }
 
-.upgrade-grid-item-time-remaining {
-    align-self: flex-end;
-    margin: 0 0.5rem 0.5rem 0;
+.upgrade-time-remaining {
+    font-size: 0.75rem;
+}
+
+.upgrade-purchase-container {
+    display: flex;
 }

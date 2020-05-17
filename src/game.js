@@ -5,7 +5,7 @@ import { button, br, div, form, label, input } from "@cycle/dom";
 import { updateAll, ofWhich } from "../util";
 import { whole } from "./format";
 import makeUpdateReducer from "./game-update";
-import { GAME_UPDATE_UNLOCK_CONDITION } from "./constant";
+import { GAME_UPDATE_UNLOCK_CONDITION, TIMEOUT } from "./constant";
 
 import "./game.css";
 
@@ -63,30 +63,45 @@ function UserInformationEntry(sources) {
   };
 }
 
+const perSecond = n =>
+  ((1e3 * n) / TIMEOUT).toLocaleString(undefined, {
+    maximumSignificantDigits: 2
+  }) + "/s";
+
+const resourceView = (state, { resourceName, label }) => {
+  const predicate = GAME_UPDATE_UNLOCK_CONDITION.resources[resourceName];
+  return predicate(state)
+    ? div([
+        label,
+        ": ",
+        whole(state.resources[resourceName]),
+        "+",
+        perSecond(state.updateRates.resources[resourceName])
+      ])
+    : null;
+};
+
 function UserStats(sources) {
   const dom$ = sources.state.stream.map(state => {
     const {
       population,
-      resources,
-      userInformation: { name, planet }
+      userInformation: { name, planet },
+      updateRates
     } = state;
     return div(".user-stats", [
       div(["Name: ", name]),
       div(["Planet: ", planet]),
-      div(["Population: ", whole(population)]),
-      div(["Stones: ", whole(resources.stones)]),
-      GAME_UPDATE_UNLOCK_CONDITION.resources.wood(state)
-        ? div(["Wood: ", whole(resources.wood)])
-        : null,
-      GAME_UPDATE_UNLOCK_CONDITION.resources.metals(state)
-        ? div(["Metals: ", whole(resources.metals)])
-        : null,
-      GAME_UPDATE_UNLOCK_CONDITION.resources.science(state)
-        ? div(["Science: ", whole(resources.science)])
-        : null,
-      GAME_UPDATE_UNLOCK_CONDITION.resources.art(state)
-        ? div(["Art: ", whole(resources.art)])
-        : null
+      div([
+        "Population: ",
+        whole(population),
+        "+",
+        perSecond(updateRates.population)
+      ]),
+      resourceView(state, { resourceName: "stones", label: "Stones" }),
+      resourceView(state, { resourceName: "wood", label: "Wood" }),
+      resourceView(state, { resourceName: "metals", label: "Metals" }),
+      resourceView(state, { resourceName: "science", label: "Science" }),
+      resourceView(state, { resourceName: "art", label: "Art" })
     ]);
   });
 

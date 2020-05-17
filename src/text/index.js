@@ -23,8 +23,7 @@ const chapterInformation = {
   },
   "new-aliens": {
     label: "New Aliens",
-    condition: state =>
-      state.upgrades.handTools.unlocked && state.upgrades.string.unlocked,
+    condition: state => state.upgrades.string.unlocked,
     import: () =>
       import(/* webpackChunkName: 'new-aliens' */
       "./md/new-aliens.md")
