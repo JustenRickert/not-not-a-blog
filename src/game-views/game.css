@@ -1,0 +1,7 @@
+.game {
+    display: flex;
+}
+
+.game-panel *:first-child {
+    margin-top: 0;
+}

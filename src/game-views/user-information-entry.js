@@ -33,12 +33,11 @@ function UserInformationEntry(sources) {
     ])
   );
 
-  const submit$ = sources.DOM.select(".user-entry")
-    .events("submit", {
+  const submit$ = sources.DOM.select(".user-entry button")
+    .events("click", {
       preventDefault: true
     })
-    .debug("SUBMIT")
-    .map(({ currentTarget: { elements: { name, planet } } }) => ({
+    .map(({ ownerTarget: { form: { elements: { name, planet } } } }) => ({
       name: name.value,
       planet: planet.value
     }));

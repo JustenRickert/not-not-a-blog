@@ -178,6 +178,10 @@ export const INIT_STATE = {
     stones: Number.EPSILON,
     wood: Number.EPSILON
   },
+  enterprise: {
+    lastIndustriesUpdate: 0,
+    currentIndustries: null // should be non-null, derived information
+  },
   upgrades: Object.keys(UPGRADES).reduce(
     (upgrades, upgradeId) => ({
       ...upgrades,
@@ -190,6 +194,7 @@ export const INIT_STATE = {
   ),
   viewedChapters: ["introduction"],
   currentUpgradeTab: "purchasable",
+  currentGamePanel: "stats",
   currentGameView: "user-information-entry",
   currentChapter: "introduction",
   currentPanel: "story"

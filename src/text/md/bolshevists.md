@@ -1,4 +1,4 @@
-### _These Resources Are As Much Mine As They Are Yours_
+### These Resources Are As Much Mine As They Are Yours
 
 _These resources are as much mine as they are yours_ is what one alien told another alien today. It was quite the situation. The quoted alien was one to have just come back from a foreign continent as part of a wartime effort. The other alien was one hailing from elite society, was protected from having to participate in the wartime effort for the reason that they needed to remain alive to sign payroll checks.
 

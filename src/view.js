@@ -53,12 +53,10 @@ function View(sources) {
 
   const panelAction$ = sources.DOM.select(".view .horizontal-tabs button")
     .events("click")
-    .map(e => ({
-      id: e.currentTarget.dataset.id
-    }));
+    .map(e => e.currentTarget.dataset.id);
 
   const reducer$ = xs.merge(
-    panelAction$.map(a => state => set(state, "currentPanel", a.id)),
+    panelAction$.map(id => state => set(state, "currentPanel", id)),
     storySinks.state,
     gameSinks.state,
     upgradeSinks.state
