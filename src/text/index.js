@@ -44,6 +44,7 @@ const chapterInformation = {
   },
   bolshevists: {
     label: "Bolshevists",
+    // TODO maybe consider adding like a currency upgrade instead?
     condition: state => state.resources.metals > 1000,
     import: () =>
       import(/* webpackChunkName: 'bolshevists' */
@@ -59,6 +60,9 @@ const chapterInformation = {
   guns: {
     label: "Get The Gun",
     condition: state => state.upgrades.guns.unlocked,
+    options: _ => ({
+      transcluded: "hella"
+    }),
     import: () =>
       import(/* webpackChunkName: 'guns' */
       "./md/guns.md")
@@ -96,6 +100,7 @@ export function makeTextView(id) {
         text
           .import()
           .then(m => m.default)
+          .then(d => (typeof d === "function" ? d(text.options()) : d))
           .then(innerHTML => div(".chapter", { props: { innerHTML } }))
       )
       // TODO: Do we like this? Probably not... :shrug:

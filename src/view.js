@@ -2,7 +2,7 @@ import xs from "xstream";
 import isolate from "@cycle/isolate";
 import dropRepeats from "xstream/extra/dropRepeats";
 import { set, cases, omit } from "../util";
-import { div, h2, section } from "@cycle/dom";
+import { div, h2, br, section } from "@cycle/dom";
 
 import { tabButtons } from "./shared";
 import GameViewSwitch from "./game";
@@ -31,25 +31,26 @@ function View(sources) {
   const gameSinks = GameViewSwitch(sources);
   const upgradeSinks = Upgrade(sources);
 
-  const story$ = storySinks.DOM.map(dom =>
-    div([h2(".panel-header", "Story"), dom])
-  );
-
-  const game$ = gameSinks.DOM.map(dom =>
-    div([h2(".panel-header", "Game"), dom])
-  );
-
-  const upgrade$ = upgradeSinks.DOM.map(dom =>
-    div([h2(".panel-header", "Upgrade"), dom])
-  );
-
   const view$ = currentPanel$
-    .map(cases(["game", game$], ["story", story$], ["upgrade", upgrade$]))
+    .map(
+      cases(
+        ["game", gameSinks.DOM],
+        ["story", storySinks.DOM],
+        ["upgrade", upgradeSinks.DOM]
+      )
+    )
     .flatten();
 
-  const dom$ = xs.combine(tabs$, view$).map(([tabs, view]) => {
-    return div(".view", [tabs, section(".panel", view)]);
-  });
+  const dom$ = xs
+    .combine(currentPanel$, tabs$, view$)
+    .map(([currentPanel, tabs, view]) => {
+      return div(".view", [
+        h2(".panel-header", currentPanel),
+        tabs,
+        br(),
+        section(".panel", view)
+      ]);
+    });
 
   const panelAction$ = sources.DOM.select(".view .horizontal-tabs button")
     .events("click")

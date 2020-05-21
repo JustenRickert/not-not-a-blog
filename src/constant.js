@@ -48,6 +48,28 @@ export const UPGRADES = {
       upgrades: ["coal", "sulfur"]
     }
   },
+  brass: {
+    label: "Brass",
+    cost: {
+      resources: { metals: 15e3, art: 10e3, science: 500 },
+      upgrades: []
+    }
+  },
+  bronze: {
+    label: "Bronze",
+    cost: {
+      resources: { metals: 10e3 },
+      upgrades: []
+    }
+  },
+  baking: {
+    label: "Baking",
+    cost: {
+      resources: { wood: 100, metals: 250e3, art: 250e3 },
+      upgrades: ["measurement", "cooking"]
+    },
+    multiplier: { resources: { art: 1.1 } }
+  },
   coal: {
     label: "Coal",
     cost: {
@@ -55,6 +77,12 @@ export const UPGRADES = {
       upgrades: ["furnace"]
     },
     multiplier: { resources: { metals: 1.02 } }
+  },
+  copper: {
+    label: "Copper",
+    cost: {
+      resources: { metals: 10e3 }
+    }
   },
   cooking: {
     label: "Cooking",
@@ -120,13 +148,21 @@ export const UPGRADES = {
       upgrades: ["handTools", "farming"]
     }
   },
+  measurement: {
+    label: "Measurement",
+    cost: {
+      resources: { metals: 100e3, wood: 100e3, science: 100e3, art: 50e3 },
+      upgrades: ["advancedHandTools"]
+    },
+    multiplier: { resources: { science: 1.1 } }
+  },
   measuringEquipment: {
     label: "Precise measuring",
     cost: {
-      resources: { metals: 500, wood: 500, science: 500 },
-      upgrades: ["advancedHandTools"]
+      resources: { metals: 500e3, wood: 500e3, science: 500e3, art: 250e3 },
+      upgrades: ["measurement"]
     },
-    multiplier: { resources: { science: 1.01 } }
+    multiplier: { resources: { science: 1.1 } }
   },
   paint: {
     label: "Paint",
@@ -150,13 +186,21 @@ export const UPGRADES = {
       upgrades: ["agriculture"]
     }
   },
+  steamEngine: {
+    label: "Steam Engine",
+    cost: {
+      resources: { metals: 20e3, wood: 10e3 },
+      upgrades: ["steel"]
+    },
+    multiplier: { resources: { science: 1.1 } }
+  },
   steel: {
     label: "Steel",
     cost: {
       resources: { wood: 10e3, metals: 15e3 },
       upgrades: ["coal", "measuringEquipment"]
     },
-    multiplier: { resources: { science: 1.01 } }
+    multiplier: { resources: { science: 1.1 } }
   },
   string: {
     label: "String",
@@ -165,6 +209,12 @@ export const UPGRADES = {
   sulfur: {
     label: "Sulfur",
     cost: { resources: { stones: 1e3 }, upgrades: ["handTools"] }
+  },
+  tin: {
+    label: "Tin",
+    cost: {
+      resources: { metals: 10e3 }
+    }
   }
 };
 

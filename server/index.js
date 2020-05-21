@@ -45,45 +45,45 @@ app.use(bodyParser.json());
 app.use(session(expressSessionConfig));
 
 mongoClientPromise.then(client => {
-  const db = client.db(mongoDbName);
+  // const db = client.db(mongoDbName);
 
-  app.post("/login", (req, res) => {
-    authenticateUser(db, req.body)
-      .then(_id => {
-        req.session.authenticated = true;
-        req.session.userId = _id;
-        res.redirect(301, "/index.html");
-      })
-      .catch(() => res.send(401).send());
-  });
+  // app.post("/login", (req, res) => {
+  //   authenticateUser(db, req.body)
+  //     .then(_id => {
+  //       req.session.authenticated = true;
+  //       req.session.userId = _id;
+  //       res.redirect(301, "/index.html");
+  //     })
+  //     .catch(() => res.send(401).send());
+  // });
 
-  app.post("/new-user", (req, res) => {
-    if (req.body.username && req.body.password) {
-      newUser(db, req.body).then(({ result: { ok }, ops: [{ _id }] }) => {
-        assert(ok, "should be ok");
-        req.session.authenticated = true;
-        req.session.userId = _id;
-        res.redirect(301, "/index.html");
-      });
-    } else {
-      res.status(401).send();
-    }
-  });
+  // app.post("/new-user", (req, res) => {
+  //   if (req.body.username && req.body.password) {
+  //     newUser(db, req.body).then(({ result: { ok }, ops: [{ _id }] }) => {
+  //       assert(ok, "should be ok");
+  //       req.session.authenticated = true;
+  //       req.session.userId = _id;
+  //       res.redirect(301, "/index.html");
+  //     });
+  //   } else {
+  //     res.status(401).send();
+  //   }
+  // });
 
-  app.use((req, res, next) => {
-    if (!req.session.authenticated) {
-      switch (req.url) {
-        case "/new-user.html":
-          return res.status(401).sendFile("new-user.html", { root: "public" });
-        case "/login.html":
-        default:
-          return res.status(401).sendFile("login.html", { root: "public" });
-      }
-    }
-    next();
-  });
+  // app.use((req, res, next) => {
+  //   if (!req.session.authenticated) {
+  //     switch (req.url) {
+  //       case "/new-user.html":
+  //         return res.status(401).sendFile("new-user.html", { root: "public" });
+  //       case "/login.html":
+  //       default:
+  //         return res.status(401).sendFile("login.html", { root: "public" });
+  //     }
+  //   }
+  //   next();
+  // });
 
-  app.use("/", makeRouter(db));
+  // app.use("/", makeRouter(db));
 
   app.all("*", express.static(path.join(process.cwd(), "public")));
 
