@@ -145,11 +145,16 @@ export function range(n) {
 }
 
 // like which, but without either function
-export function cases(...pairs) {
+export function cases(/* ...pairs */) {
+  const default_ = !Array.isArray(last(arguments)) ? last(arguments) : null;
+  const pairs = default_
+    ? Array.prototype.slice.call(arguments, 0, -1)
+    : arguments;
   return x => {
     for (const [key, value] of pairs) {
       if (x === key) return value;
     }
+    if (default_) return default_;
     throw new Error("need to handle all cases");
   };
 }
