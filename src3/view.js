@@ -1,9 +1,9 @@
 import xs from "xstream";
 import isolate from "@cycle/isolate";
-import dropRepeats from "xstream/extra/dropRepeats";
-import { set, cases, omit } from "../util";
+import { withState } from "@cycle/state";
 import { div, h2, br, section } from "@cycle/dom";
 
+import { set, cases, omit } from "../util";
 import { tabButtons } from "./shared";
 import GameViewSwitch from "./game";
 import Upgrade from "./upgrade";
@@ -13,9 +13,7 @@ import { computeGameUpdateRates } from "./game-update";
 import "./view.css";
 
 function View(sources) {
-  const currentPanel$ = sources.state.stream
-    .map(state => state.currentPanel)
-    .compose(dropRepeats());
+  const currentPanel$ = sources.local.stream.map(state => state.currentPanel);
 
   const switchTabs = tabButtons([
     { id: "story" },
@@ -57,19 +55,24 @@ function View(sources) {
     .map(e => e.currentTarget.dataset.id);
 
   const reducer$ = xs.merge(
-    panelAction$.map(id => state => set(state, "currentPanel", id)),
     storySinks.state,
     gameSinks.state,
     upgradeSinks.state
   );
 
+  const localReducer$ = xs.merge(
+    xs.of(() => ({ currentPanel: "story" })),
+    panelAction$.map(id => state => set(state, "currentPanel", id))
+  );
+
   return {
     DOM: dom$,
-    state: reducer$
+    state: reducer$,
+    local: localReducer$
   };
 }
 
-export default isolate(View, {
+export default isolate(withState(View, "local"), {
   state: {
     get: state => ({
       ...state,

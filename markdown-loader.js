@@ -36,7 +36,7 @@ module.exports = function(markdown) {
 module.exports = innerOptions => {
   const possibleOptions = [${Object.keys(options)
     .map(o => `'${o}'`)
-    .join(",")}]
+    .join(",")}];
   if (!possibleOptions.every(po => Object.keys(innerOptions).some(io => po === io)))
     throw new Error(
       'Missing option, need '

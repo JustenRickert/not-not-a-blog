@@ -1,13 +1,22 @@
 import { adapt } from "@cycle/run/lib/adapt";
 import xs from "xstream";
 
-import { assert, set, setAll } from "../util";
+import { assert, get, set, setAll } from "../util";
 import { UPGRADES, INIT_STATE } from "./constant";
 
 export default function devDriver() {
   const incoming$ = xs.create({
     start(listener) {
       window.dev = {
+        log(key = []) {
+          listener.next({
+            type: "reducer",
+            reducer: state => {
+              console.log(get(state, key));
+              return state;
+            }
+          });
+        },
         upgrade(upgradeName) {
           assert(upgradeName in UPGRADES, "`upgrade` name is bad");
           listener.next({

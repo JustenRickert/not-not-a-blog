@@ -1,11 +1,12 @@
 import xs from "xstream";
 import isolate from "@cycle/isolate";
 import dropRepeats from "xstream/extra/dropRepeats";
-import { button, div, h2, nav, section, sup } from "@cycle/dom";
+import { button, div, nav, sup } from "@cycle/dom";
 
-import { set, cases, updateAll, omit } from "../util";
+import { updateAll } from "../util";
 import { tabButtons } from "./shared";
 import { makeTextView, chapters } from "./text";
+import { loading } from "./shared";
 
 function Story(sources) {
   const currentChapter$ = sources.state.stream.map(
@@ -39,7 +40,12 @@ function Story(sources) {
     .map(([chapter, storyTabs]) =>
       div(".story", [
         nav(".tabs.table-of-contents", storyTabs),
-        div([chapter, div(".scroll-to-top-container", button("Back to top"))])
+        div(".chapter", [
+          chapter,
+          chapter !== loading
+            ? div(".scroll-to-top-container", button("Back to top"))
+            : null
+        ])
       ])
     );
 

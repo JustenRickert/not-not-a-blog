@@ -1,6 +1,6 @@
 import xs from "xstream";
-import dropRepeats from "xstream/extra/dropRepeats";
 import isolate from "@cycle/isolate";
+import { withState } from "@cycle/state";
 import { div, h3, section } from "@cycle/dom";
 
 import { tabButtons } from "../shared";
@@ -28,28 +28,22 @@ const gamePanelLabels = gamePanels.reduce(
 const sinkSwitch = ofWhich(...gamePanels.map(p => [p.id, p.view]));
 
 function Game(sources) {
-  const currentGamePanel$ = sources.state.stream.map(
-    state => state.currentGamePanel
+  const currentGamePanel$ = sources.local.stream.map(
+    local => local.currentGamePanel
   );
 
-  // TODO how do I avoid all the `dropRepeats`. lol irony.
+  sources.local.stream.addListener({
+    next: state => localStorage.setItem("game-local", JSON.stringify(state))
+  });
 
   const tabs$ = currentGamePanel$
-    .compose(dropRepeats())
     .map(tabButtons(gamePanels))
     .map(tabs => section(".tabs.table-of-contents", tabs));
 
-  const sinks$ = currentGamePanel$
-    .compose(dropRepeats())
-    .map(sinkSwitch)
-    .map(View => View(sources));
+  const sinks$ = currentGamePanel$.map(sinkSwitch).map(View => View(sources));
 
   const dom$ = xs
-    .combine(
-      currentGamePanel$.compose(dropRepeats()),
-      tabs$,
-      sinks$.map(s => s.DOM).flatten()
-    )
+    .combine(currentGamePanel$, tabs$, sinks$.map(s => s.DOM).flatten())
     .map(([currentGamePanel, tabs, view]) =>
       div(".game", [
         tabs,
@@ -61,14 +55,27 @@ function Game(sources) {
     .events("click")
     .map(e => e.currentTarget.dataset.id);
 
-  const reducer$ = panelAction$.map(id => state =>
-    set(state, "currentGamePanel", id)
+  const initLocalReducer$ = xs.of(
+    () =>
+      JSON.parse(localStorage.getItem("game-local")) || {
+        currentGamePanel: "stats"
+      }
+  );
+
+  const reducer$ = xs.merge(
+    sinks$
+      .map(sinks => sinks.state || xs.empty()) // why need empty?
+      .flatten()
   );
 
   return {
     DOM: dom$,
-    state: reducer$
+    state: reducer$,
+    local: xs.merge(
+      initLocalReducer$,
+      panelAction$.map(id => local => set(local, "currentGamePanel", id))
+    )
   };
 }
 
-export default isolate(Game, { state: null });
+export default isolate(withState(Game, "local"), { state: null });

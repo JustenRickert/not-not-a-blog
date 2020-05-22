@@ -32,11 +32,6 @@ const switchComponent = ofWhich(
 
 function GameViewSwitch(sources) {
   const sinks$ = sources.state.stream
-    .compose(
-      dropRepeats((s1, s2) =>
-        ["currentPanel", "currentGameView"].every(k => s1[k] === s2[k])
-      )
-    )
     .map(state => state.currentGameView)
     .map(switchComponent)
     .map(xs.fromPromise)

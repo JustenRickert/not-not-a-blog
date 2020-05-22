@@ -12,6 +12,7 @@ export const TIMEOUT = 5e3;
 // mathematics, physics, chemistry, additional specific stuff like set theory
 // and junk
 
+// TODO: rename this to `INDUSTRIES`?
 export const UPGRADES = {
   advancedHandTools: {
     label: "Advanced hand tools",
@@ -20,11 +21,11 @@ export const UPGRADES = {
       upgrades: ["handTools", "coal", "furnace", "string"]
     },
     multiplier: {
-      art: 1.01,
-      metals: 1.02,
-      science: 1.03,
-      stones: 1.01,
-      wood: 1.02
+      art: 1.1,
+      metals: 1.2,
+      science: 1.3,
+      stones: 1.1,
+      wood: 1.2
     }
   },
   agriculture: {
@@ -76,7 +77,10 @@ export const UPGRADES = {
       resources: { wood: 100 },
       upgrades: ["furnace"]
     },
-    multiplier: { resources: { metals: 1.02 } }
+    multiplier: { resources: { metals: 1.02 } },
+    enterprise: {
+      coal: true
+    }
   },
   copper: {
     label: "Copper",
@@ -223,6 +227,7 @@ export const INIT_STATE = {
   population: 10,
   resources: {
     art: Number.EPSILON,
+    coal: Number.EPSILON,
     metals: Number.EPSILON,
     science: Number.EPSILON,
     stones: Number.EPSILON,
@@ -230,7 +235,8 @@ export const INIT_STATE = {
   },
   enterprise: {
     lastIndustriesUpdate: 0,
-    currentIndustries: null // should be non-null, derived information
+    currentIndustries: null, // should be non-null, derived information
+    currentIndustryInvestments: {}
   },
   upgrades: Object.keys(UPGRADES).reduce(
     (upgrades, upgradeId) => ({

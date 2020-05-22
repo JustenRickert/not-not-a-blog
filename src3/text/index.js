@@ -101,7 +101,7 @@ export function makeTextView(id) {
           .import()
           .then(m => m.default)
           .then(d => (typeof d === "function" ? d(text.options()) : d))
-          .then(innerHTML => div(".chapter", { props: { innerHTML } }))
+          .then(innerHTML => div(".chapter-content", { props: { innerHTML } }))
       )
       // TODO: Do we like this? Probably not... :shrug:
       .startWith(loading)
