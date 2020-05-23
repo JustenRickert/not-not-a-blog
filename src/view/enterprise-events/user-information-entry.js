@@ -47,12 +47,7 @@ function UserInformationEntry(sources) {
     updateAll(state, [["userInformation", () => userInformation]])
   );
 
-  const routeReducer$ = submit$.mapTo(route => {
-    console.log("HITHER");
-    console.log(sources);
-    console.log(route);
-    return set(route, "enterprise", undefined);
-  });
+  const routeReducer$ = submit$.mapTo(route => set(route, "enterprise", null));
 
   return {
     dom: dom$,

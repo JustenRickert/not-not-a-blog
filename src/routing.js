@@ -1,11 +1,13 @@
 import xs from "xstream";
-import sampleCombine from "xstream/extra/sampleCombine";
 import { withState } from "@cycle/state";
 import { button, div } from "@cycle/dom";
 
 import { cases, set } from "../util";
+import routing from "./model/routing";
 import Story from "./view/story";
 import Enterprise from "./view/enterprise";
+
+import "./routing.css";
 
 const routes = {
   story: { label: "Story", View: Story },
@@ -33,7 +35,9 @@ function view(sources, routeDom$) {
       )
     )
   );
-  return xs.combine(tabs$, routeDom$).map(([tabs, dom]) => div([tabs, dom]));
+  return xs
+    .combine(tabs$, routeDom$)
+    .map(([tabs, dom]) => div(".page", [tabs, dom]));
 }
 
 function intent(sources) {
@@ -43,12 +47,6 @@ function intent(sources) {
     .map(e => e.ownerTarget.dataset.id);
   return { tabAction$ };
 }
-
-const routeInit = xs.of(() => ({
-  route: "story",
-  story: "introduction",
-  enterprise: "user-information-entry"
-}));
 
 function Routing(sources) {
   sources.route.stream.addListener({
@@ -63,7 +61,7 @@ function Routing(sources) {
   const { tabAction$ } = intent(sources);
 
   const routeReducer$ = xs.merge(
-    routeInit,
+    routing(sources),
     tabAction$.map(id => state => set(state, "route", id)),
     sinks$.map(s => s.route || xs.empty()).flatten()
   );

@@ -7,11 +7,17 @@ import { timeDriver } from "@cycle/time";
 
 import init from "./model/init";
 import points from "./model/points";
+import market from "./model/market";
 import Routing from "./routing";
+import devDriver from "./dev-driver";
 
 function main(sources) {
   sources.state.stream.addListener({
     // next: console.log,
+    error: console.error
+  }); // required!
+
+  sources.dev.addListener({
     error: console.error
   }); // required!
 
@@ -20,6 +26,7 @@ function main(sources) {
   const reducer$ = xs.merge(
     init(sources),
     points(sources),
+    market(sources).debug("MARKET"),
     sinks.state || xs.empty()
   );
 
@@ -31,5 +38,6 @@ function main(sources) {
 
 run(withState(main, "state"), {
   dom: makeDOMDriver("#root"),
-  time: timeDriver
+  time: timeDriver,
+  dev: devDriver
 });

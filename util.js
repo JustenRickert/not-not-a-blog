@@ -11,6 +11,16 @@ export const toDecimal = n => Number(n).toFixed(1);
 
 export const withPlus = s => (/^-/.test(s) ? s : "+" + s);
 
+export function allKeyPaths(o) {
+  const keys = Object.keys(o);
+  const [nodes, leaves] = partition(keys, key => typeof o[key] === "object");
+  return nodes
+    .flatMap(key =>
+      allKeyPaths(o[key]).map(childKey => [key, childKey].join("."))
+    )
+    .concat(leaves);
+}
+
 export function update(o, key, fn) {
   if (typeof key === "string") key = key.split(".");
   if (key.length === 0) return fn(o);
@@ -33,6 +43,7 @@ export function get(o, key) {
 export function set(o, key, value) {
   if (typeof key === "string") key = key.split(".");
   if (key.length === 0) return value;
+  if (o === undefined) o = {};
   return {
     ...o,
     [key[0]]: set(o[key[0]], key.slice(1), value)
@@ -69,9 +80,16 @@ export function setAll(o, keyValues) {
   return keyValues.reduce((o, [key, value]) => set(o, key, value), o);
 }
 
+export function offset(offsetPercentage = 0.1) {
+  return offsetPercentage * (2 * (Math.random() - 1 / 2));
+}
+
+export function leaningOffset(leaningPercentage, offsetPercentage = 0.1) {
+  return offsetPercentage * (leaningPercentage + 2 * (Math.random() - 1 / 2));
+}
+
 export function withRandomOffset(n, offsetPercentage = 0.1) {
-  const offset = offsetPercentage * (2 * (Math.random() - 1 / 2));
-  return n * (1 + offset);
+  return n * (1 + offset(offsetPercentage));
 }
 
 export function pick(o, keys) {
@@ -120,6 +138,11 @@ export function growthAfterTime(
       ((capacity - original) / original) *
         Math.E ** (-growthRate * secondsDiff))
   );
+}
+
+export function zip(...xss) {
+  const min = Math.min(...xss.map(xs => xs.length));
+  return range(min).map(i => range(xss.length).map(j => xss[j][i]));
 }
 
 export function clamp(n, min, max) {
