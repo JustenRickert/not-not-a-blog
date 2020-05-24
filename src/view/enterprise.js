@@ -1,8 +1,10 @@
 import xs from "xstream";
 import { div, h2, h3, h4, section } from "@cycle/dom";
 
-import { cases } from "../../util";
+import { cases, which } from "../../util";
+import { INDUSTRIES, STORY } from "../constant";
 import UserInformationEntry from "./enterprise-events/user-information-entry";
+import NewAlienHero from "./enterprise-events/new-alien-hero";
 import Market from "./enterprise-industry/market";
 import { whole } from "../format";
 
@@ -10,14 +12,10 @@ import "./enterprise.css";
 
 function renderStats(state) {
   const { points, industry } = state;
-  const unlockedIndustries = Object.entries(industry).filter(([, { stock }]) =>
-    Boolean(stock)
-  );
-  if (!unlockedIndustries.length) return null;
   return div(".stats", [
     h2("Stats"),
     h3("Misc"),
-    section(div(".points", [whole(points), " points"])),
+    section(div(".points", [whole(points), " Points"])),
     h3("Industries"),
     section(".table", [
       div(".table-row.head", [
@@ -25,13 +23,15 @@ function renderStats(state) {
         div(".table-item", h4("Supply")),
         div(".table-item", h4("Stocks"))
       ]),
-      ...unlockedIndustries.map(([key, { supply, stock }]) =>
-        div(".table-row", [
-          div(".table-item", key),
-          div(".table-item.number", whole(supply)),
-          div(".table-item.number", whole(stock))
-        ])
-      )
+      ...Object.entries(industry)
+        .filter(([, { stock }]) => Boolean(stock))
+        .map(([key, { supply, stock }]) =>
+          div(".table-row", [
+            div(".table-item", INDUSTRIES[key].label),
+            div(".table-item.number", whole(supply)),
+            div(".table-item.number", whole(stock))
+          ])
+        )
     ])
   ]);
 }
@@ -54,12 +54,16 @@ function Stats(sources) {
 const eventRoutes = {
   "user-information-entry": {
     label: "Information Entry",
-    View: UserInformationEntry
+    view: UserInformationEntry
+  },
+  [STORY.newAlienHero.route]: {
+    label: "New Alien Hero",
+    view: NewAlienHero
   }
 };
 
 const routeSwitch = cases(
-  ...Object.entries(eventRoutes).map(([key, { View }]) => [key, View]),
+  ...Object.entries(eventRoutes).map(([key, { view }]) => [key, view]),
   Stats
 );
 

@@ -14,10 +14,6 @@ const routes = {
   enterprise: { label: "Enterprise", View: Enterprise }
 };
 
-const routeSwitch = cases(
-  ...Object.entries(routes).map(([key, { View }]) => [key, View])
-);
-
 function view(sources, routeDom$) {
   const tabs$ = sources.route.stream.map(state =>
     div(
@@ -53,9 +49,12 @@ function Routing(sources) {
     // next: console.log,
     error: console.error
   });
-  const sinks$ = sources.route.stream
-    .map(state => routeSwitch(state.route))
-    .map(View => View(sources));
+
+  const routeSwitch = cases(
+    ...Object.entries(routes).map(([key, { View }]) => [key, View(sources)])
+  );
+
+  const sinks$ = sources.route.stream.map(state => routeSwitch(state.route));
 
   const dom$ = view(sources, sinks$.map(s => s.dom).flatten());
   const { tabAction$ } = intent(sources);

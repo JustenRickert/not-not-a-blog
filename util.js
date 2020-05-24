@@ -186,11 +186,16 @@ export function cases(/* ...pairs */) {
 }
 
 // like cond, but without the second function
-export function which(...conditions) {
+export function which(/* ...conditions, default */) {
+  const default_ = !Array.isArray(last(arguments)) ? last(arguments) : null;
+  const conditions = default_
+    ? Array.prototype.slice.call(arguments, 0, -1)
+    : arguments;
   return x => {
     for (const [predicate, result] of conditions) {
       if (predicate(x)) return result;
     }
+    if (default_) return default_;
     throw new Error("need to handle all cases");
   };
 }

@@ -11,9 +11,9 @@ import "./market.css";
 const kpToWord = kp => {
   switch (kp) {
     case "points":
-      return kp;
+      return "Points";
     default:
-      return kp.split(".")[1];
+      return INDUSTRIES[kp.split(".")[1]].label;
   }
 };
 
@@ -23,6 +23,7 @@ function renderColoredPercentage(n) {
 }
 
 function renderMarketCostOption({
+  state,
   scaledCost,
   disabled,
   marketIndex,
@@ -31,12 +32,19 @@ function renderMarketCostOption({
   return div(".cost-option", [
     div(
       ".table",
-      allKeyPaths(scaledCost).map(kp =>
-        div(".table-row", [
+      allKeyPaths(scaledCost).map(kp => {
+        const supplyCost = get(scaledCost, kp);
+        const currentSupply = get(state, kp);
+        return div(".table-row", [
           div(".table-item", kpToWord(kp)),
-          div(".table-item.number", decimal(get(scaledCost, kp)))
-        ])
-      )
+          div(".table-item.number", [
+            decimal(supplyCost),
+            ...(currentSupply < supplyCost
+              ? ["(", percentage(currentSupply / supplyCost), ")"]
+              : [])
+          ])
+        ]);
+      })
     ),
     div(
       ".invest",
@@ -61,12 +69,14 @@ function renderMarket(state, market, marketIndex) {
     div(".stat", [
       h3(label),
       div([renderColoredPercentage(market.offset)]),
-      div([decimal(requiredInvestment), "/stock"])
+      div(["+", decimal(requiredInvestment), " supply"]),
+      div(["+1 stock"])
     ]),
     div(
       ".cost",
       costs.map(({ scaledCost, disabled }, investmentIndex) =>
         renderMarketCostOption({
+          state,
           disabled,
           scaledCost,
           marketIndex,
@@ -135,7 +145,7 @@ const investmentScaleCost = (state, market) => {
   const costs = market.costs.map(cost => {
     const kps = allKeyPaths(cost);
     const disabled = kps.some(kp => {
-      const individualSupplyCost = get(cost, kp);
+      const individualSupplyCost = (1 + market.offset) * get(cost, kp);
       const totalSupplyCost = individualSupplyCost * requiredInvestment;
       const currentSupply = get(state, kp);
       return currentSupply < totalSupplyCost;
@@ -144,7 +154,7 @@ const investmentScaleCost = (state, market) => {
       disabled,
       scaledCost: updateAll(
         cost,
-        kps.map(kp => [kp, s => requiredInvestment * s])
+        kps.map(kp => [kp, s => (1 + market.offset) * requiredInvestment * s])
       )
     };
   });

@@ -1,4 +1,6 @@
 import xs from "xstream";
+// import sampleCombine from "xstream/extra/sampleCombine";
+import dropRepeats from "xstream/extra/dropRepeats";
 import { button, div, h2, label, span } from "@cycle/dom";
 
 import { cases, set, setAll } from "../../util";
@@ -45,9 +47,18 @@ function TableOfContents(sources) {
 }
 
 function Chapter(sources) {
-  const chapter$ = sources.route.stream
-    .map(route => makeTextView(route.story.chapter.id))
+  const chapter$ = xs
+    .combine(sources.route.stream, sources.state.stream)
+    .compose(dropRepeats(([r1], [r2]) => r1 === r2))
+    .map(([route, state]) => makeTextView(route.story.chapter.id, state))
     .flatten();
+
+  // TODO this should work but like doesn't?!?! Is a little bit cleaner but
+  // that's all I guess
+  // const chapter$ = sources.route.stream
+  //   .compose(sampleCombine(sources.state.stream))
+  //   .map(([route, state]) => makeTextView(route.story.chapter.id, state))
+  //   .flatten();
 
   const dom$ = xs
     .combine(sources.route.stream, sources.state.stream, chapter$)

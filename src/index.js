@@ -27,7 +27,8 @@ function main(sources) {
     init(sources),
     points(sources),
     market(sources),
-    sinks.state || xs.empty()
+    sinks.state || xs.empty(),
+    sources.dev.filter(a => a.type === "reducer").map(a => a.reducer)
   );
 
   return {

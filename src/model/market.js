@@ -30,7 +30,6 @@ const sampleWithEmptiesWithoutReplacement = (xs, count) => {
 const meetableResourceRequirements = (state, industryKey) =>
   INDUSTRIES[industryKey].from.filter(costObject => {
     const keysPaths = allKeyPaths(costObject);
-    console.log({ keysPaths, costObject, industryKey, state });
     return keysPaths.every(kp => get(state, kp) >= get(costObject, kp));
   });
 
@@ -46,7 +45,7 @@ export default function market(sources) {
     )
     .map(key => state => {
       const industry = get(state, ["industry", key]);
-      const { productionRate } = INDUSTRIES[key]; // TODO: need this?
+      const { productionRate } = INDUSTRIES[key];
       const delta = productionRate * leaningOffset(0.1, 0.9) * industry.stock;
       return update(state, ["industry", key, "supply"], s =>
         Math.max(0, s + delta)

@@ -13,7 +13,7 @@ module.exports = function(markdown) {
   const options = {};
   let code = marked(markdown)
     .replace(/[\n]*/g, "")
-    .replace(/{{.*}}/g, optionKey => {
+    .replace(/{{\w*}}/g, optionKey => {
       optionKey = optionKey.slice(2, -2);
       options[optionKey] = true;
       return `\` + innerOptions.${optionKey} + \``;

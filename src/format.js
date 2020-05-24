@@ -14,8 +14,7 @@ export function decimal(n) {
   const exponentSymbol = exponentGroupSymbols[exponentGroup];
   return (
     (n / 1e3 ** exponentGroup).toLocaleString(undefined, {
-      maximumSignificantDigits: 4,
-      maximumFractionDigits: 1
+      maximumSignificantDigits: 3
     }) + exponentSymbol
   );
 }
@@ -37,10 +36,11 @@ export function toHumanTime(seconds) {
 }
 
 export function percentage(n) {
+  n = 100 * n;
   return (
-    (100 * n).toLocaleString(undefined, {
-      maximumSignificantDigits: 2,
-      maximumFractionDigits: 2
+    n.toLocaleString(undefined, {
+      maximumSignificantDigits: n < 1 ? 1 : 2,
+      maximumFractionDigits: 1
     }) + "%"
   );
 }

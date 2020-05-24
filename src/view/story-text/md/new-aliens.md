@@ -13,3 +13,7 @@ Goulpian aliens, though in general less renown than Xa Kinaxen aliens among Fede
 There are similar stories for Dregon aliens, who are known for innovations in musculature advancement; Suun Strounda aliens, known for their mastery of abstract reasoning and mathematics; and Traxene aliens who've founded techniques for enhancing neurological capabilities. Meanwhile---in showing the new aliens of your assignment the potential usefulness of circumstantially sharpened rocks---your aliens have taken to debarking trees and using the long strands of the stuff to make string. They have taken to twisting together pieces of string long enough to wear around their yet unclothed bodies. Though they're obviously more culturally advanced than they were before, it is yet to be determined if they'll find any sort of like economic benefit from the innovation.
 
 At least these new aliens are not quite as boring to look at. 
+
+<hr>
+
+There is one with a keen lack of boringness. The aliens call this enemy of dullness by the name {{newAlienHero}}.

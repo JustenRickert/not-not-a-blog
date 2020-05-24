@@ -14,34 +14,43 @@ const chapterInformation = {
   "next-steps": {
     label: "Next Steps",
     condition: state => Boolean(state.userInformation),
+    options: state => ({
+      planetName: state.userInformation.planet
+    }),
     import: () =>
       import(/* webpackChunkName: 'new-aliens' */
       "./md/next-steps.md")
   },
   "new-aliens": {
     label: "New Aliens",
-    condition: state => Boolean(state.industry.handTool.stock),
+    condition: state => state.userInformation.newAlienHero,
+    options: state => ({
+      newAlienHero: state.userInformation.newAlienHero
+    }),
     import: () =>
       import(/* webpackChunkName: 'new-aliens' */
       "./md/new-aliens.md")
   },
   "working-aliens": {
     label: "Working Aliens",
-    condition: state => Boolean(state.industry.metal.stock),
+    condition: state => state.industry.metal.stock >= 5,
     import: () =>
       import(/* webpackChunkName: 'working-aliens' */
       "./md/working-aliens.md")
   },
   wartime: {
     label: "Wartime",
-    condition: state => false,
+    condition: state =>
+      state.industry.handTool.stock >= 10 &&
+      state.industry.archery.stock >= 3 &&
+      state.industry.gun.stock >= 1,
     import: () =>
       import(/* webpackChunkName: 'wartime' */
       "./md/wartime.md")
   },
   bolshevists: {
     label: "Bolshevists",
-    condition: state => state.industry.metal.stock >= 25,
+    condition: state => state.industry.metal.stock >= 10,
     import: () =>
       import(/* webpackChunkName: 'bolshevists' */
       "./md/bolshevists.md")
@@ -87,7 +96,7 @@ export const chapters = Object.entries(chapterInformation).map(
   })
 );
 
-export function makeTextView(id) {
+export function makeTextView(id, state) {
   const text = chapterInformation[id];
   assert(text, "bad `id`", id);
   return xs
@@ -95,7 +104,7 @@ export function makeTextView(id) {
       text
         .import()
         .then(m => m.default)
-        .then(d => (typeof d === "function" ? d(text.options()) : d))
+        .then(im => (typeof im === "function" ? im(text.options(state)) : im))
         .then(innerHTML => div(".chapter-content", { props: { innerHTML } }))
     )
     .startWith(div("loading"));

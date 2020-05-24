@@ -33,7 +33,6 @@
 .table-item {
     flex: 1;
     margin: 0.25rem 0.125rem;
-    white-space: pre;
 }
 
 .table-item.number {
