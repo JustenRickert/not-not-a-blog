@@ -24,9 +24,12 @@ export function allKeyPaths(o) {
 export function update(o, key, fn) {
   if (typeof key === "string") key = key.split(".");
   if (key.length === 0) return fn(o);
+  const updated = update(o[key[0]], key.slice(1), fn);
+  if (Array.isArray(o))
+    return [...o.slice(0, key[0]), updated, ...o.slice(key[0] + 1)];
   return {
     ...o,
-    [key[0]]: update(o[key[0]], key.slice(1), fn)
+    [key[0]]: updated
   };
 }
 

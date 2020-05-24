@@ -1,9 +1,15 @@
-.stats {
+.enterprise {
     font-size: 1.25rem;
 }
 
-.stats h3 {
-    font-size: 1.5rem;
+.enterprise h3 {
+    border-bottom: 1px solid gray;
+}
+
+.stats section {}
+
+.points {
+    margin: 0 1rem 1rem 0;
 }
 
 .table {
@@ -16,11 +22,24 @@
     display: flex;
 }
 
-.table-item {
-    flex: 1;
-    margin: 0 1rem 1rem 0;
+.table-row:nth-child(odd) {
+    background-color: gainsboro;
 }
 
-.table-item h3 {
+.table-row.head {
+    background-color: unset;
+}
+
+.table-item {
+    flex: 1;
+    margin: 0.25rem 0.125rem;
+    white-space: pre;
+}
+
+.table-item.number {
+    text-align: end;
+}
+
+.table-item h4 {
     margin: 0;
 }

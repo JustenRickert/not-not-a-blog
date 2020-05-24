@@ -26,7 +26,7 @@ function main(sources) {
   const reducer$ = xs.merge(
     init(sources),
     points(sources),
-    market(sources).debug("MARKET"),
+    market(sources),
     sinks.state || xs.empty()
   );
 

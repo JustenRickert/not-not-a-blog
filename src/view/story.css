@@ -1,0 +1,36 @@
+.table-of-contents {
+    margin: 1rem 0 0 0;
+}
+
+.chapter {
+    border: none;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    margin: 0 0.5rem 0.5rem 0;
+    font-size: 1.25rem;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.chapter:hover {
+    text-decoration: underline;
+}
+
+.chapter index {
+    background-color: white;
+}
+
+.chapter label {
+    cursor: pointer;
+    background: white;
+    overflow-x: hidden;
+}
+
+.chapter label:after {
+    width: 0;
+    content: '...............................................................';
+}
+

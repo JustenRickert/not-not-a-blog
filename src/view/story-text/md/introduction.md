@@ -24,6 +24,6 @@ There's a finger pointing in your direction. Without being told, you follow Recr
 
 The alien welcomes you aboard the _Notnotablog_. "Welcome!" says the alien. The alien provides for you the name Plorkis Crok, commenting on how it's the same name as what's labeled on the office door.
 
-Plorkis Crok, obviously a Xa Kinaxen alien, seats you across from the alien's desk (owned by the Contraxis Space Exploration corporation) and asks you about yourself. There's a piece of paper handed off with information required to fill out. The alien tells a brief tale about the contents of the form, indicating an intimate knowledge with it. The alien chortles all the while. Plorkis Crok is clearly a happy alien.
+Plorkis Crok, obviously a Xa Kinaxen alien, seats you across from the alien's desk (owned by the Contraxis Space Exploration corporation) and asks you about yourself. There's a piece of paper handed off with information required to fill out. The alien tells a brief tale about the contents of the form, indicating an intimate knowledge of it. The alien chortles all the while. Plorkis Crok is clearly a happy alien.
 
 After talking through a series of seemingly unrelated topics with the loquacious alien, it is explained that the position has already been approved for you and that this meeting---this _interview_---is just a formality. The true purpose of your being here is to fill out the form. Filling it out means the job is yours.

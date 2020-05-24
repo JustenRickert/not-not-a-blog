@@ -13,50 +13,49 @@ const chapterInformation = {
   },
   "next-steps": {
     label: "Next Steps",
-    condition: state => state.userInformation,
+    condition: state => Boolean(state.userInformation),
     import: () =>
       import(/* webpackChunkName: 'new-aliens' */
       "./md/next-steps.md")
   },
   "new-aliens": {
     label: "New Aliens",
-    condition: state => state.upgrades.string.unlocked,
+    condition: state => Boolean(state.industry.handTool.stock),
     import: () =>
       import(/* webpackChunkName: 'new-aliens' */
       "./md/new-aliens.md")
   },
   "working-aliens": {
     label: "Working Aliens",
-    condition: state => state.upgrades.furnace.unlocked,
+    condition: state => Boolean(state.industry.metal.stock),
     import: () =>
       import(/* webpackChunkName: 'working-aliens' */
       "./md/working-aliens.md")
   },
   wartime: {
     label: "Wartime",
-    condition: state => state.upgrades.advancedHandTools.unlocked,
+    condition: state => false,
     import: () =>
       import(/* webpackChunkName: 'wartime' */
       "./md/wartime.md")
   },
   bolshevists: {
     label: "Bolshevists",
-    // TODO maybe consider adding like a currency upgrade instead?
-    condition: state => state.resources.metals > 1000,
+    condition: state => state.industry.metal.stock >= 25,
     import: () =>
       import(/* webpackChunkName: 'bolshevists' */
       "./md/bolshevists.md")
   },
   measuringEquipment: {
     label: "Measuring",
-    condition: state => state.upgrades.measuringEquipment.unlocked,
+    condition: state => false,
     import: () =>
       import(/* webpackChunkName: 'measuring' */
       "./md/measuring.md")
   },
   guns: {
     label: "Get The Gun",
-    condition: state => state.upgrades.guns.unlocked,
+    condition: state => false,
     options: _ => ({
       transcluded: "hella"
     }),
@@ -73,7 +72,7 @@ const chapterInformation = {
   },
   "anthropogenic-fire": {
     label: "Fire",
-    condition: state => state.upgrades.pastoralism.unlocked,
+    condition: state => false,
     import: () =>
       import(/* webpackChunkName: 'anthropogenic-fire' */
       "./md/anthropogenic-fire.md")

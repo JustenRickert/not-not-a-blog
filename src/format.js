@@ -24,8 +24,9 @@ export function whole(n) {
   const exponentGroup = Math.max(0, Math.floor(Math.log(n) / Math.log(1e3)));
   const exponentSymbol = exponentGroupSymbols[exponentGroup];
   return (
-    Math.floor(n / 1e3 ** exponentGroup).toLocaleString(undefined, {}) +
-    exponentSymbol
+    (n / 1e3 ** exponentGroup).toLocaleString(undefined, {
+      maximumFractionDigits: exponentGroup > 0 ? 2 : 0
+    }) + exponentSymbol
   );
 }
 

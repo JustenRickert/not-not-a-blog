@@ -27,7 +27,7 @@ function view(sources, routeDom$) {
           {
             dataset: { id: key },
             style: {
-              backgroundColor: key === state.route ? "yellow" : undefined
+              backgroundColor: key === state.route ? "gainsboro" : undefined
             }
           },
           label

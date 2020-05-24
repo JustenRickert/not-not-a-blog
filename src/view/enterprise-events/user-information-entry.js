@@ -1,12 +1,13 @@
 import xs from "xstream";
 import isolate from "@cycle/isolate";
-import { button, br, div, form, label, input } from "@cycle/dom";
+import { button, br, div, form, h2, label, input } from "@cycle/dom";
 
 import { updateAll, set } from "../../../util";
 
 function UserInformationEntry(sources) {
   const dom$ = xs.of(
     form(".user-entry", [
+      h2("User Information"),
       div(label({ attrs: { for: "user-name" } }, "Name")),
       div(
         input({

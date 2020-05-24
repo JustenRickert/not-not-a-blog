@@ -1,0 +1,28 @@
+.markets h2 {
+    /* margin-bottom: 0; */
+}
+
+.markets section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-gap: 1rem;
+}
+
+.market {}
+
+.market .cost-option {
+    display: flex;
+    flex-direction: column;
+    margin: 0.5rem 0;
+}
+
+.market .invest {
+    margin: 0.5rem 0;
+    align-self: flex-end;
+}
+
+.stat {}
+
+.stat h3 {
+    margin-top: 0;
+}

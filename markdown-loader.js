@@ -1,25 +1,13 @@
 "use strict";
 
 const marked = require("marked");
-const loaderUtils = require("loader-utils");
-
-const markdownRenderer = new class MarkdownRenderer extends marked.Renderer {
-  paragraph(text) {
-    // Object.entries(CustomString).forEach(([name, symbol]) => {
-    //   text = text.replace(new RegExp(`{${name}} *`, "g"), symbol);
-    // });
-    text = text.replace(/---/g, "—"); // emdash
-    text = text.replace(/--/g, "–"); // endash
-    return "<p>" + text + "<p>\n";
-  }
-}();
 
 module.exports = function(markdown) {
   this.cacheable();
 
   marked.setOptions({
     pedantic: true,
-    renderer: markdownRenderer
+    smartypants: true
   });
 
   const options = {};

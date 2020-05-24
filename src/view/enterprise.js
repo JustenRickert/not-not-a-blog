@@ -1,10 +1,10 @@
 import xs from "xstream";
-import { div, h3 } from "@cycle/dom";
+import { div, h2, h3, h4, section } from "@cycle/dom";
 
 import { cases } from "../../util";
 import UserInformationEntry from "./enterprise-events/user-information-entry";
 import Market from "./enterprise-industry/market";
-import { decimal, whole } from "../format";
+import { whole } from "../format";
 
 import "./enterprise.css";
 
@@ -15,17 +15,21 @@ function renderStats(state) {
   );
   if (!unlockedIndustries.length) return null;
   return div(".stats", [
-    div(".table", [
-      div(".table-row", [
-        div(".table-item", h3("Industry")),
-        div(".table-item", h3("Supply")),
-        div(".table-item", h3("Stocks"))
+    h2("Stats"),
+    h3("Misc"),
+    section(div(".points", [whole(points), " points"])),
+    h3("Industries"),
+    section(".table", [
+      div(".table-row.head", [
+        div(".table-item", h4("Industry")),
+        div(".table-item", h4("Supply")),
+        div(".table-item", h4("Stocks"))
       ]),
       ...unlockedIndustries.map(([key, { supply, stock }]) =>
         div(".table-row", [
           div(".table-item", key),
-          div(".table-item", whole(supply)),
-          div(".table-item", whole(stock))
+          div(".table-item.number", whole(supply)),
+          div(".table-item.number", whole(stock))
         ])
       )
     ])
@@ -37,7 +41,9 @@ function Stats(sources) {
 
   const dom$ = xs
     .combine(sources.state.stream, marketSinks.dom)
-    .map(([state, marketDom]) => div([renderStats(state), marketDom]));
+    .map(([state, marketDom]) =>
+      div(".enterprise", [renderStats(state), marketDom])
+    );
 
   return {
     dom: dom$,
