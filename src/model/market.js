@@ -3,8 +3,8 @@ import xs from "xstream";
 import {
   allKeyPaths,
   get,
-  range,
-  set,
+  sample,
+  takeRight,
   offset,
   leaningOffset,
   update
@@ -12,20 +12,9 @@ import {
 import { INDUSTRIES } from "../constant";
 import roughlyPeriodic from "../roughly-periodic";
 
-const NEW_MARKET_TIMEOUT = 60e3;
+const MAX_MARKET_TRADES = 10;
+const NEW_MARKET_TIMEOUT = 30e3;
 const MARKET_GROWTH_TIMEOUT = 5e3;
-
-// TODO need to add back the `withEmpties` part of this method. Want something
-// that returns a minimum of 1, and a maximum of ... something
-const sampleWithEmptiesWithoutReplacement = (xs, count) => {
-  const result = [];
-  const ys = xs.slice();
-  range(count).forEach(() => {
-    const index = Math.floor(Math.random() * ys.length);
-    result.push(ys.splice(index, 1)[0]);
-  });
-  return result.filter(Boolean);
-};
 
 const meetableResourceRequirements = (state, industryKey) =>
   INDUSTRIES[industryKey].from.filter(costObject => {
@@ -46,27 +35,35 @@ export default function market(sources) {
     .map(key => state => {
       const industry = get(state, ["industry", key]);
       const { productionRate } = INDUSTRIES[key];
-      const delta = productionRate * leaningOffset(0.1, 0.9) * industry.stock;
+      const delta = productionRate * leaningOffset(0.5, 0.25) * industry.stock;
       return update(state, ["industry", key, "supply"], s =>
         Math.max(0, s + delta)
       );
     });
 
   const randomNewMarket = state => {
-    const markets = Object.keys(INDUSTRIES)
+    if (state.market.length >= MAX_MARKET_TRADES) return state;
+    const investableMarkets = Object.keys(INDUSTRIES)
       .map(key => {
         const costs = meetableResourceRequirements(state, key);
         return {
           key,
-          offset: offset(0.5),
           costs
         };
       })
       .filter(m => m.costs.length);
-    return set(
-      state,
-      "markets",
-      sampleWithEmptiesWithoutReplacement(markets, markets.length * 2)
+    if (!investableMarkets.length) return state;
+    const newMarket = sample(investableMarkets);
+    const newCost = sample(newMarket.costs);
+    return update(state, "market", ms =>
+      takeRight(
+        ms.concat({
+          key: newMarket.key,
+          offset: offset(0.5),
+          cost: newCost
+        }),
+        MAX_MARKET_TRADES
+      )
     );
   };
 

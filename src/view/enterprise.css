@@ -3,13 +3,16 @@
 }
 
 .enterprise h3 {
-    border-bottom: 1px solid gray;
+    border-bottom: 1px solid gainsboro;
 }
 
 .stats section {}
 
 .points {
-    margin: 0 1rem 1rem 0;
+    display: flex;
+    min-height: 2rem;
+    align-items: center;
+    justify-content: space-between;
 }
 
 .table {
@@ -19,7 +22,9 @@
 
 .table-row {
     width: 100%;
+    min-height: 2rem;
     display: flex;
+    align-items: center;
 }
 
 .table-row:nth-child(odd) {

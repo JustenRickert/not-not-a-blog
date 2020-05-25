@@ -60,10 +60,16 @@ export const INDUSTRIES = {
     costRate: 5,
     from: [
       {
-        points: 25,
-        industry: { stone: { supply: 450 }, wood: { supply: 300 } }
+        industry: { stone: { supply: 300 }, wood: { supply: 250 } }
       }
-    ]
+    ],
+    productionMultiplier: {
+      points: 1.1,
+      industry: {
+        stone: { supply: 1.1 },
+        wood: { supply: 1.1 }
+      }
+    }
   },
   hunting: {
     label: "Hunting",
@@ -85,7 +91,10 @@ export const INDUSTRIES = {
       }
     ],
     productionRate: 2,
-    costRate: 12
+    costRate: 12,
+    productionMultiplier: {
+      points: 1.075
+    }
   },
   stone: {
     label: "Stone",
@@ -101,7 +110,7 @@ export const INDUSTRIES = {
   },
   wood: {
     label: "Wood",
-    productionRate: 2,
+    productionRate: 5,
     costRate: 100,
     from: [{ points: 1 }]
   }

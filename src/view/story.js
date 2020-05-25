@@ -1,5 +1,5 @@
 import xs from "xstream";
-// import sampleCombine from "xstream/extra/sampleCombine";
+import sampleCombine from "xstream/extra/sampleCombine";
 import dropRepeats from "xstream/extra/dropRepeats";
 import { button, div, h2, label, span } from "@cycle/dom";
 
@@ -70,7 +70,7 @@ function Chapter(sources) {
       } = route;
       const previousChapter = chapters[index - 1];
       const nextChapter = chapters[index + 1];
-      return div([
+      return div(".story-chapter", [
         div(".table-of-contents", button("Table of Contents")),
         h2(["Chapter ", index]),
         chapterDom,
@@ -89,20 +89,32 @@ function Chapter(sources) {
       ]);
     });
 
+  const headerElement$ = sources.dom.select(".story-chapter h2").element();
+
+  const paginationAction$ = sources.dom
+    .select("button.pagination")
+    .events("click")
+    .map(e => e.ownerTarget.dataset)
+    .map(({ index = "0" }) => ({ index: Number(index) }));
+
+  paginationAction$.compose(sampleCombine(headerElement$)).addListener({
+    next: ([, el]) => {
+      window.scrollTo({
+        top: el.offsetTop,
+        behavior: "smooth"
+      });
+    }
+  });
+
   return {
     dom: dom$,
     route: xs.merge(
-      sources.dom
-        .select("button.pagination")
-        .events("click")
-        .map(e => e.ownerTarget.dataset)
-        .map(({ index = "0" }) => ({ index: Number(index) }))
-        .map(({ index }) => route =>
-          set(route, "story.chapter", {
-            index,
-            id: chapters[index].id
-          })
-        ),
+      paginationAction$.map(({ index }) => route =>
+        set(route, "story.chapter", {
+          index,
+          id: chapters[index].id
+        })
+      ),
       sources.dom
         .select(".table-of-contents button")
         .events("click")
@@ -111,16 +123,19 @@ function Chapter(sources) {
   };
 }
 
-const storySwitchView = cases(
-  ["table-of-contents", TableOfContents],
-  ["chapter", Chapter]
-);
+const storyRoutes = {
+  "table-of-contents": TableOfContents,
+  chapter: Chapter
+};
 
 function Story(sources) {
+  const storySwitch = cases(
+    ...Object.entries(storyRoutes).map(([route, cfn]) => [route, cfn(sources)])
+  );
+
   const view$ = sources.route.stream
     .map(route => route.story.section)
-    .map(storySwitchView)
-    .map(View => View(sources));
+    .map(storySwitch);
 
   const dom$ = view$.map(v => v.dom).flatten();
 

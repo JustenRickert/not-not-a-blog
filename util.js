@@ -21,6 +21,10 @@ export function allKeyPaths(o) {
     .concat(leaves);
 }
 
+export function sample(xs) {
+  return xs[Math.floor(Math.random() * xs.length)];
+}
+
 export function update(o, key, fn) {
   if (typeof key === "string") key = key.split(".");
   if (key.length === 0) return fn(o);
@@ -35,6 +39,11 @@ export function update(o, key, fn) {
 
 export function updateAll(o, keyFns) {
   return keyFns.reduce((o, [key, fn]) => update(o, key, fn), o);
+}
+
+export function takeRight(xs, count) {
+  if (xs.length <= count) return xs;
+  return xs.slice(xs.length - count);
 }
 
 export function get(o, key) {

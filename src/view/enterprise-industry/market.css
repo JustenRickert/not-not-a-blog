@@ -1,27 +1,71 @@
-.markets h2 {
+.market h2 {
 }
 
-.markets section {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-gap: 1rem;
-}
-
-.market {}
-
-.market .cost-option {
+.market section {
     display: flex;
     flex-direction: column;
-    margin: 0.5rem 0;
 }
 
-.market .invest {
+.trade {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1rem;
+}
+
+.trade:not(:last-child) {
+    border-bottom: 1px solid gainsboro;
+}
+
+.trade .cost {
+    display: flex;
+}
+
+.trade .cost .table {
+    width: 100%;
+    margin: 0 0.5rem 0.5rem 0;
+}
+
+.trade .cost .table-row:nth-child(odd) {
+    background-color: unset;
+}
+
+.trade .cost .table-row:nth-child(even) {
+    background-color: gainsboro;
+}
+
+.trade button {
     margin: 0.5rem 0;
     align-self: flex-end;
 }
 
-.stat {}
+.stat {
+    display: flex;
+    margin-bottom: 0.5rem;
+}
 
 .stat h3 {
+    border-bottom: none;
+    width: 100%;
+    margin-right: 0.5rem;
     margin-top: 0;
+    margin-bottom: auto;
+}
+
+.stat .info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    white-space: nowrap;
+    flex: 3;
+}
+
+.options {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: flex-end;
+}
+
+.options button {
+    margin: 0 0.5rem 0.5rem 0;
 }

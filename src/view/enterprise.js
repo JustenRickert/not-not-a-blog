@@ -1,21 +1,27 @@
-import xs from "xstream";
-import { div, h2, h3, h4, section } from "@cycle/dom";
+import "./enterprise.css";
 
-import { cases, which } from "../../util";
+import xs from "xstream";
+import { button, div, h2, h3, h4, section } from "@cycle/dom";
+
+import { pointDelta } from "../model/points";
+import { cases, update } from "../../util";
 import { INDUSTRIES, STORY } from "../constant";
 import UserInformationEntry from "./enterprise-events/user-information-entry";
 import NewAlienHero from "./enterprise-events/new-alien-hero";
 import Market from "./enterprise-industry/market";
-import { whole } from "../format";
-
-import "./enterprise.css";
+import { whole, decimal } from "../format";
 
 function renderStats(state) {
   const { points, industry } = state;
   return div(".stats", [
     h2("Stats"),
     h3("Misc"),
-    section(div(".points", [whole(points), " Points"])),
+    section(
+      div(".points", [
+        div(["points ", whole(points), "+", decimal(pointDelta(state)), "/s"]),
+        div(button("Add!"))
+      ])
+    ),
     h3("Industries"),
     section(".table", [
       div(".table-row.head", [
@@ -45,9 +51,23 @@ function Stats(sources) {
       div(".enterprise", [renderStats(state), marketDom])
     );
 
+  const click$ = xs.merge(
+    sources.dom
+      .select(".points button")
+      .events("keydown", { preventDefault: true })
+      .filter(e => !e.repeat),
+    sources.dom
+      .select(".points button")
+      .events("click")
+      .map(e => e)
+  );
+
   return {
     dom: dom$,
-    state: marketSinks.state
+    state: xs.merge(
+      marketSinks.state,
+      click$.mapTo(state => update(state, "points", p => p + pointDelta(state)))
+    )
   };
 }
 
