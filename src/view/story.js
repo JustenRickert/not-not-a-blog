@@ -100,8 +100,7 @@ function Chapter(sources) {
   paginationAction$.compose(sampleCombine(headerElement$)).addListener({
     next: ([, el]) => {
       window.scrollTo({
-        top: el.offsetTop,
-        behavior: "smooth"
+        top: el.offsetTop
       });
     }
   });

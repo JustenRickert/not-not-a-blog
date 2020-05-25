@@ -1,8 +1,10 @@
 ### The New Aliens on the Block
 
-These new aliens are quite boring to look at. They mostly play around with sticks and rocks all day. You've shown them hand tools now, so maybe things will change. They seem to have the capabilities of intelligent life: They've already created like words for trees and water and sex and the sun. They like breaking rocks apart, and they've found that if they break the right rocks apart and in just the right way that the broken up rocks can be sharp enough to cut things with.
+These new aliens are quite boring to look at. They mostly play around with sticks and rocks all day. They seem to have the capabilities of intelligent life: They've already created words for trees and water and sex and the sun. They like breaking rocks apart, and they've found that if they break the right rocks apart and in just the right way that the broken up rocks can be sharp enough to cut things with.
 
-It might be useful to intervene, to show them that they might be able to use the like circumstantially sharpened rocks---what you refer to as _hand tools_---to their benefit. They might be able to use the rocks to cut down vegetation, to clear areas that are not otherwise walkable; or they could use the sharp rocks (umm _hand tools_) as tools to hunt down animals, to give them the ability to gather protein from the surrounding wildlife, to augment their diet and let them live off the land more efficiently; or they could be shown that the sharpened rocks might facilitate the harvesting of things like tree branches, materials that could be put together to create shelter and help settle the land.
+You've shown them that using these broken rocks might actually be useful, that they can be used as _hand tools_, so maybe these new aliens will start being not quite so boring to look at. 
+
+They might start cutting down vegetation, to clear areas that are not otherwise walkable; or they maybe they'll start to use the sharp rocks (umm _hand tools_) as tools to hunt down animals, to give them the ability to gather protein from the surrounding wildlife, to augment their diet and let them live off the land more efficiently; or they could be shown that the sharpened rocks might facilitate the harvesting of things like tree branches, materials that could be put together to create shelter and help settle the land.
 
 <hr>
 
@@ -16,4 +18,4 @@ At least these new aliens are not quite as boring to look at.
 
 <hr>
 
-There is one with a keen lack of boringness. The aliens call this enemy of dullness by the name {{newAlienHero}}.
+There is one with a keen lack of boringness. The aliens call this enemy of dullness by the name {{newAlienHero}}. With a hand tool in alien appendage, {{newAlienHero}} showed that almost everything could be done much more easily with the use of tools. In response, the aliens of {{planetName}} made {{newAlienHero}} their leader. It was an era of prosperity, and, for a moment at least, you forgot all about the Federation of Socialist Planets and the Contraxis Space Exploration corporation.

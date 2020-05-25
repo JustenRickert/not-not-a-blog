@@ -9,7 +9,7 @@ export const STORY = {
     condition: state =>
       state.userInformation &&
       !state.userInformation.newAlienHero &&
-      state.industry.handTool.stock >= 3 &&
+      Boolean(state.industry.handTool.stock) &&
       state.industry.string.stock >= 5
   }
 };
@@ -20,36 +20,71 @@ export const INDUSTRIES = {
     productionRate: 5,
     costRate: 5,
     from: [
-      { points: 750 },
+      { points: 1e3 },
       {
-        points: 25,
-        industry: { handTool: { supply: 10 } }
+        industry: { handTool: { supply: 100 } }
       }
-    ]
+    ],
+    productionMultiplier: {
+      points: 1.01
+    }
   },
-  archery: {
-    label: "Archery",
+  arms: {
+    label: "Arms",
     productionRate: 1,
     costRate: 10,
     from: [
       {
         industry: {
-          handTool: { supply: 1 },
-          wood: { supply: 25 },
-          string: { supply: 15 }
+          handTool: { supply: 1e3 },
+          wood: { supply: 100e3 },
+          string: { supply: 50e3 }
+        }
+      },
+      {
+        industry: {
+          stone: { supply: 100e3 },
+          metal: { supply: 25e3 },
+          handTool: { supply: 1e3 }
         }
       }
     ]
   },
-  gun: {
-    label: "Gun",
+  coal: {
+    label: "Coal",
     productionRate: 1,
     costRate: 10,
     from: [
       {
         industry: {
-          metal: { supply: 100 },
-          handTool: { supply: 250 }
+          wood: { supply: 50e3 },
+          metal: { supply: 1.5e3 }
+        }
+      }
+    ]
+  },
+  electricity: {
+    label: "Electricity",
+    productionRate: 1,
+    costRate: 10,
+    from: [
+      {
+        industry: {
+          coal: { supply: 10e3 },
+          metal: { supply: 7e3 }
+        }
+      }
+    ]
+  },
+  fishing: {
+    label: "Fishing",
+    productionRate: 1,
+    costRate: 10,
+    from: [
+      {
+        industry: {
+          agriculture: { supply: 5e3 },
+          string: { supply: 5e3 }
         }
       }
     ]
@@ -57,62 +92,117 @@ export const INDUSTRIES = {
   handTool: {
     label: "Hand tool",
     productionRate: 1,
-    costRate: 5,
+    costRate: 8,
     from: [
       {
-        industry: { stone: { supply: 300 }, wood: { supply: 250 } }
+        industry: {
+          stone: { supply: 500 },
+          wood: { supply: 500 }
+        }
       }
-    ],
-    productionMultiplier: {
-      points: 1.1,
-      industry: {
-        stone: { supply: 1.1 },
-        wood: { supply: 1.1 }
-      }
-    }
+    ]
   },
   hunting: {
     label: "Hunting",
     productionRate: 2,
-    costRate: 250,
+    costRate: 10,
     from: [
-      { points: 50, industry: { stone: { supply: 600 } } },
-      { points: 25, industry: { wood: { supply: 400 } } },
-      { points: 10, industry: { handTool: { supply: 25 } } },
-      { points: 5, industry: { archery: { supply: 20 } } }
-    ]
+      {
+        industry: { wood: { supply: 1e3 }, stone: { supply: 1e3 } }
+      },
+      { industry: { handTool: { supply: 25 } } },
+      { points: 5, industry: { arms: { supply: 20 } } }
+    ],
+    productionMultiplier: {
+      points: 1.01
+    }
   },
   metal: {
     label: "Metal",
+    productionRate: 2,
+    costRate: 2.5,
     from: [
       {
-        points: 25,
-        industry: { stone: { supply: 100 }, wood: { supply: 75 } }
+        industry: {
+          handTool: { supply: 100 },
+          stone: { supply: 10e3 },
+          wood: { supply: 7.5e3 }
+        }
       }
-    ],
-    productionRate: 2,
-    costRate: 12,
-    productionMultiplier: {
-      points: 1.075
-    }
+    ]
+  },
+  paper: {
+    label: "Paper",
+    productionRate: 1,
+    costRate: 10,
+    from: [
+      {
+        industry: {
+          handTool: { supply: 20e3 },
+          metal: { supply: 20e3 },
+          stone: { supply: 50e3 },
+          string: { supply: 15e3 },
+          wood: { supply: 50e3 }
+        }
+      }
+    ]
   },
   stone: {
     label: "Stone",
-    productionRate: 7,
-    costRate: 100,
-    from: [{ points: 1 }]
+    productionRate: 1,
+    costRate: 10,
+    from: [
+      {
+        points: 1
+      }
+    ],
+    productionMultiplier: {
+      industry: {
+        handTool: 1.01
+      }
+    }
   },
   string: {
     label: "String",
-    productionRate: 3,
-    costRate: 20,
-    from: [{ points: 25, industry: { wood: { supply: 30 } } }]
+    productionRate: 1,
+    costRate: 10,
+    from: [
+      {
+        points: 100,
+        industry: { wood: { supply: 25 }, handTool: { supply: 5 } }
+      }
+    ],
+    productionMultiplier: {
+      points: 1.01
+    }
+  },
+  transportation: {
+    label: "Transportation",
+    productionRate: 1,
+    costRate: 10,
+    from: [
+      {
+        industry: {
+          metal: { supply: 2e3 },
+          coal: { supply: 3e3 }
+        }
+      }
+    ]
   },
   wood: {
     label: "Wood",
-    productionRate: 5,
-    costRate: 100,
-    from: [{ points: 1 }]
+    productionRate: 1,
+    costRate: 10,
+    from: [
+      {
+        points: 1
+      }
+    ],
+    productionMultiplier: {
+      industry: {
+        metal: 1.02
+      }
+    }
   }
 };
 

@@ -1,6 +1,6 @@
 import xs from "xstream";
 
-import { update } from "../../util";
+import { product, update, withRandomOffset } from "../../util";
 import roughlyPeriodic from "../roughly-periodic";
 import { INDUSTRIES } from "../constant";
 
@@ -13,15 +13,18 @@ function industryPointMultiplier(industryKey, industry) {
 }
 
 export function pointDelta(state) {
-  return Object.keys(INDUSTRIES).reduce(
-    (delta, key) => delta * industryPointMultiplier(key, state.industry[key]),
-    1
+  return product(Object.keys(INDUSTRIES), key =>
+    industryPointMultiplier(key, state.industry[key])
   );
 }
 
-export default function points(sources) {
-  const update$ = roughlyPeriodic(sources.time.createOperator, 1e3).mapTo(
-    state => update(state, "points", points => points + pointDelta(state))
+export default function points(_sources) {
+  const update$ = roughlyPeriodic(1e3).map(since => state =>
+    update(
+      state,
+      "points",
+      points => points + withRandomOffset(since / 1e3, 0.25) * pointDelta(state)
+    )
   );
   return xs.merge(update$);
 }

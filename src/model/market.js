@@ -4,10 +4,12 @@ import {
   allKeyPaths,
   get,
   sample,
+  drop,
   takeRight,
+  product,
   offset,
-  leaningOffset,
-  update
+  update,
+  withRandomOffset
 } from "../../util";
 import { INDUSTRIES } from "../constant";
 import roughlyPeriodic from "../roughly-periodic";
@@ -18,31 +20,43 @@ const MARKET_GROWTH_TIMEOUT = 5e3;
 
 const meetableResourceRequirements = (state, industryKey) =>
   INDUSTRIES[industryKey].from.filter(costObject => {
-    const keysPaths = allKeyPaths(costObject);
-    return keysPaths.every(kp => get(state, kp) >= get(costObject, kp));
+    const keyPaths = allKeyPaths(costObject);
+    return keyPaths.every(kp => get(state, kp) >= get(costObject, kp));
   });
+
+function industryProductionMultiplier(industryKey, state) {
+  const { productionMultiplier } = INDUSTRIES[industryKey];
+  if (!productionMultiplier?.industry) return 1;
+  return product(
+    Object.entries(productionMultiplier.industry),
+    ([key, m]) => state.industry[key].stock * m
+  );
+}
 
 export default function market(sources) {
   const marketGrowthReducer$ = xs
     .merge(
       ...Object.keys(INDUSTRIES).map(key =>
-        roughlyPeriodic(
-          sources.time.createOperator,
-          MARKET_GROWTH_TIMEOUT
-        ).mapTo(key)
+        roughlyPeriodic(MARKET_GROWTH_TIMEOUT).map(since => ({ since, key }))
       )
     )
-    .map(key => state => {
+    .map(({ since, key }) => state => {
       const industry = get(state, ["industry", key]);
       const { productionRate } = INDUSTRIES[key];
-      const delta = productionRate * leaningOffset(0.5, 0.25) * industry.stock;
+      const multiplier = industryProductionMultiplier(key, state);
+      const delta =
+        multiplier *
+        productionRate *
+        industry.stock *
+        withRandomOffset(since / MARKET_GROWTH_TIMEOUT, 0.25);
       return update(state, ["industry", key, "supply"], s =>
         Math.max(0, s + delta)
       );
     });
 
   const randomNewMarket = state => {
-    if (state.market.length >= MAX_MARKET_TRADES) return state;
+    if (state.market.length >= MAX_MARKET_TRADES)
+      state = update(state, "market", ms => drop(ms, 1));
     const investableMarkets = Object.keys(INDUSTRIES)
       .map(key => {
         const costs = meetableResourceRequirements(state, key);
@@ -70,11 +84,8 @@ export default function market(sources) {
   const randomNewMarketReducer$ = sources.state.stream
     .take(1)
     .map(state => {
-      let reducer$ = roughlyPeriodic(
-        sources.time.createOperator,
-        NEW_MARKET_TIMEOUT
-      ).mapTo(randomNewMarket);
-      if (!state.markets) reducer$ = reducer$.startWith(randomNewMarket);
+      let reducer$ = roughlyPeriodic(NEW_MARKET_TIMEOUT).mapTo(randomNewMarket);
+      if (!state.market) reducer$ = reducer$.startWith(randomNewMarket);
       return reducer$;
     })
     .flatten();

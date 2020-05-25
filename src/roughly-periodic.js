@@ -1,44 +1,43 @@
-import xs from "xstream";
-import { adapt } from "@cycle/run/lib/adapt";
+import { Stream } from "xstream";
 
 import { withRandomOffset } from "../util";
 
-export default function roughlyPeriodic(
-  createOperator,
-  period,
-  offsetPercentage = 0.25
-) {
-  const { schedule, currentTime } = createOperator();
-  let currentPeriod = withRandomOffset(period, offsetPercentage);
-  let lastEmitTime = 0;
-  let stopped = false;
+class RoughlyPeriodic {
+  constructor(period, offsetPercentage) {
+    this.type = "roughly-periodic";
+    this.period = period;
+    this.offsetPercentage = offsetPercentage;
+    this.intervalID = -1;
+    this.i = 0;
+    this.lastTime = null;
+  }
 
-  const scheduleNextEvent = (entry, _time, schedule_, _currentTime) => {
-    if (stopped) return;
-    const value = entry.value + 1;
-    currentPeriod = withRandomOffset(period, offsetPercentage);
-    schedule_.next(
-      entry.stream,
-      lastEmitTime + currentPeriod,
-      value,
-      scheduleNextEvent
-    );
-    lastEmitTime += period;
-  };
-
-  const producer = {
-    listener: null,
-    start(listener) {
-      producer.listener = listener;
-      const timeToEmit = currentTime() + currentPeriod;
-      schedule.next(listener, timeToEmit, 0, scheduleNextEvent);
-      lastEmitTime = timeToEmit;
-    },
-    stop() {
-      stopped = true;
-      producer.listener.complete();
+  _start(out) {
+    const self = this;
+    function intervalHandler() {
+      const now = performance.now();
+      out._n(now - self.lastTime);
+      self.lastTime = now;
+      self.intervalID = setTimeout(
+        intervalHandler,
+        withRandomOffset(self.period, self.offsetPercentage)
+      );
     }
-  };
+    this.lastTime = performance.now();
+    this.intervalID = setTimeout(
+      intervalHandler,
+      withRandomOffset(this.period, self.offsetPercentage)
+    );
+  }
 
-  return adapt(xs.create(producer));
+  _stop() {
+    if (this.intervalID !== -1) clearInterval(this.intervalID);
+    this.lastTime = null;
+    this.intervalID = -1;
+    this.i = 0;
+  }
+}
+
+export default function roughlyPeriodic(period) {
+  return new Stream(new RoughlyPeriodic(period));
 }

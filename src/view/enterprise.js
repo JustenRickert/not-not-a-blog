@@ -8,7 +8,7 @@ import { cases, update } from "../../util";
 import { INDUSTRIES, STORY } from "../constant";
 import UserInformationEntry from "./enterprise-events/user-information-entry";
 import NewAlienHero from "./enterprise-events/new-alien-hero";
-import Market from "./enterprise-industry/market";
+import Market from "./market";
 import { whole, decimal } from "../format";
 
 function renderStats(state) {
@@ -18,7 +18,7 @@ function renderStats(state) {
     h3("Misc"),
     section(
       div(".points", [
-        div(["points ", whole(points), "+", decimal(pointDelta(state)), "/s"]),
+        div(["Points ", whole(points), "+", decimal(pointDelta(state)), "/s"]),
         div(button("Add!"))
       ])
     ),
@@ -54,7 +54,9 @@ function Stats(sources) {
   const click$ = xs.merge(
     sources.dom
       .select(".points button")
-      .events("keydown", { preventDefault: true })
+      .events("keydown", {
+        preventDefault: e => [" ", "Enter"].some(kc => e.key === kc)
+      })
       .filter(e => !e.repeat),
     sources.dom
       .select(".points button")

@@ -1,4 +1,6 @@
-### Civilization Beginning
+### Working, Civilization Beginning
+
+Working aliens.
 
 These aliens are truly unique. They can make metals now. They do it by throwing rocks covered with colored slime into a very hot furnace. When the furnace cools down they dig through the ashes at the bottom of the furnace to find pebbles of metal melted together. It's very impressive that they figured out that the colored slime was rust and indicative of deposits of metal.
 
@@ -26,8 +28,20 @@ The Federation of Socialist Planets is able to have a socialist state by exporti
 
 These new aliens often come from worlds filled with battles against existential nihilism. These aliens can't decide if they live for no reason at all, or for all the reasons that their suffering and passion drives them for. These aliens either can't cope with the insignificance of life as they know it on their small, lonely planet, or they foam at the mouth with passionate ambition, luxury, and greed.
 
-In isolation, some of these aliens wallow while others come up with wild, innovative ideas. The innovators give the wallowers sources of great indulgences, anything entertaining enough to make them forget about their _apatheia_. The most usual innovator's story begins with some question like _Who is God_ and ends with some innovator's statement like _We can make God from money_. Incidentally, Xa Kinaxen alien innovators fit this archetype.
+In isolation, some of these aliens wallow while others come up with wild, innovative ideas. The innovators give the wallowers sources of great indulgences---anything entertaining enough to make them forget about their _apatheia_. The most usual story begins with some question like _Who is God_ and ends with some statement like _We can make God from money_. Incidentally, Xa Kinaxen alien innovators fit this archetype.
 
-Xa Kinaxen aliens started as a species of temple building aliens making towers tall enough to _reach into the heavens_. They believed that from such a vantage point they could see Who must be up there making all the reasons for being. At the point they ended their galactic isolationism, they were building skyscraping computation machines designed to find the most _strategic_ way to consolidate money from the hands of wallowers into as few innovator hands as possible. They believed that with enough coalescence of monetary power that they could create someone capable of shaping life as they knew it on their small, lonely planet.
+Xa Kinaxen aliens started as a species of temple building aliens making towers tall enough to _reach into the heavens_. They believed that from such a vantage point they could see Who must be up there making all the reasons for being.
 
-Before anything got too wild, the Federation found the planet of the Xa Kinaxen aliens. (They lived on the planet of Xa.) Incidentally the space exploration corporation charged with the discovery task became the Contraxis Space Exploration corporation. It was a team of intrepid, failed strip-mining-financiers-turned-space-explorers, who---through a series of mergers and acquisitions---redirected their monetary resources to a risky, high-yield space exploration opportunity after the planet they were mining ran out of resources.
+At the point the Xa Kinaxen aliens had to end their galactic isolationism, they were building skyscraping computation machines designed to find the most _strategic_ way to consolidate money from the hands of wallowers into as few innovator hands as possible. They believed that with enough coalescence of monetary power that they could create some<em>one</em> capable of shaping life as they knew it, as well as _new_ reasons for being, on their small, lonely planet.
+
+But before anything got too wild with respect to consolidation of power and recreationism, the Federation found the planet of the Xa Kinaxen aliens. The existence of the Federation meant that no one Xa Kinaxen alien could hold anywhere close to all the power anymore. At just about the same time as the Federation arrival---conveniently---the Axis Terra Mining company almost ran the planet of Xa out of natural resources. So, incidentally enough, with the help of the Federation, the Xa Kinaxen ex-strip mining financiers (with a bit of help from just a _few_ venture capitalists) put their financial focus on space exploration. With the knowledge of space and the Federation resource trade, the will of the Xa Kinaxen aliens (at the time held primarily by a couple <em>you know who</em>s) was focused on space exploration.
+
+Alien capitalists long dream of space as being a place of profit, a place to appropriate resources extracted from asteroids and neighboring planets for commercial use on their home planet. However, space exploration, being usually fueled by annihilation of natural resources, is usually is a socialist endeavor. When the primary competitor to the alien capitalist is the rest of the galaxy (i.e. the Federation of Socialist Planets) it becomes hard to compete.
+
+At least that's how the predominant theory goes.
+
+When the intrepid Xa Kinaxen financiers-turned-space-explorers took to space with the help of the Federation of Socialist Planets, and the Contraxis Space Exploration corporation was born. But these financiers couldn't any longer hold onto their capitalistic ideas. They found out soon enough, like every other alien species extracted into the Federation of Socialist Planets, that acquisition of all the resources didn't meant anything if the only place resources could go was the Federation's intergalactic resource trade.
+
+So all the rich capitalist Xa Kinaxen aliens became poor like overnight. They had to leave their giant vaults of money behind with their planet of fellow aliens who once worshiped them for being Gods made from money. The home planet aliens took to working Federation jobs doing social work, essentially helping other newly-found aliens assimilate to a life of space exploration and socialism.
+
+Lazy aliens.

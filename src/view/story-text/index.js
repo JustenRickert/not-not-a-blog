@@ -3,6 +3,9 @@ import { div } from "@cycle/dom";
 
 import { assert } from "../../../util";
 
+const wartimeCondition = state =>
+  state.industry.handTool.stock >= 10 && state.industry.arms.stock >= 1;
+
 const chapterInformation = {
   introduction: {
     label: "Introduction",
@@ -23,9 +26,10 @@ const chapterInformation = {
   },
   "new-aliens": {
     label: "New Aliens",
-    condition: state => state.userInformation.newAlienHero,
+    condition: state => state.userInformation?.newAlienHero,
     options: state => ({
-      newAlienHero: state.userInformation.newAlienHero
+      newAlienHero: state.userInformation.newAlienHero,
+      planetName: state.userInformation.planet
     }),
     import: () =>
       import(/* webpackChunkName: 'new-aliens' */
@@ -40,17 +44,30 @@ const chapterInformation = {
   },
   wartime: {
     label: "Wartime",
-    condition: state =>
-      state.industry.handTool.stock >= 10 &&
-      state.industry.archery.stock >= 3 &&
-      state.industry.gun.stock >= 1,
+    condition: wartimeCondition,
     import: () =>
       import(/* webpackChunkName: 'wartime' */
       "./md/wartime.md")
   },
+  entertainment: {
+    label: "Entertainment",
+    condition: state =>
+      wartimeCondition(state) && state.industry.paper.stock >= 2,
+    options: state => ({
+      newAlienHero: state.userInformation.newAlienHero,
+      planetName: state.userInformation.planet
+    }),
+    import: () =>
+      import(/* webpackChunkName: 'entertainment' */
+      "./md/entertainment.md")
+  },
   bolshevists: {
     label: "Bolshevists",
     condition: state => state.industry.metal.stock >= 10,
+    options: state => ({
+      newAlienHero: state.userInformation.newAlienHero,
+      planetName: state.userInformation.planet
+    }),
     import: () =>
       import(/* webpackChunkName: 'bolshevists' */
       "./md/bolshevists.md")

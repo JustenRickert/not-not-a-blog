@@ -5,7 +5,7 @@ import { INDUSTRIES } from "../constant";
 
 const initState = {
   points: 0,
-  markets: null,
+  market: [],
   industry: Object.keys(INDUSTRIES).reduce(
     (industry, key) => ({
       ...industry,

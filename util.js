@@ -41,6 +41,15 @@ export function updateAll(o, keyFns) {
   return keyFns.reduce((o, [key, fn]) => update(o, key, fn), o);
 }
 
+export function drop(xs, count) {
+  return xs.slice(count);
+}
+
+export function take(xs, count) {
+  if (count >= xs.length) return xs;
+  return xs.slice(0, count);
+}
+
 export function takeRight(xs, count) {
   if (xs.length <= count) return xs;
   return xs.slice(xs.length - count);
@@ -60,6 +69,10 @@ export function set(o, key, value) {
     ...o,
     [key[0]]: set(o[key[0]], key.slice(1), value)
   };
+}
+
+export function product(xs, toNumeric = x => x) {
+  return xs.reduce((p, m) => p * toNumeric(m), 1);
 }
 
 export function sum(xs, toNumeric = x => x) {

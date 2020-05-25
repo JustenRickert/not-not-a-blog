@@ -11,13 +11,28 @@ function NewAlienHero(sources) {
       div(label({ attrs: { for: "newAlienHero" } }, "An Alien Hero's Name")),
       div(
         input({
-          attrs: { id: "newAlienHero", required: true }
+          attrs: {
+            id: "newAlienHero",
+            required: true,
+            placeholder: "Zuüg"
+          }
         })
       ),
       br(),
       div(button({ attrs: { type: "sumbit" } }, "submit"))
     ])
   );
+
+  const inputEl$ = sources.dom.select("#newAlienHero").element();
+
+  const defaultValueListener = {
+    next: el => {
+      el.value = el.placeholder;
+      inputEl$.removeListener(defaultValueListener);
+    }
+  };
+
+  inputEl$.addListener(defaultValueListener);
 
   const submit$ = sources.dom
     .select(".user-entry")

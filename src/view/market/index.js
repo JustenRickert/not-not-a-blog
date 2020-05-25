@@ -32,9 +32,9 @@ function renderTrade(state, trade, tradeIndex) {
     div(".stat", [
       h3(label),
       div(".info", [
-        div(renderColoredPercentage(trade.offset)),
-        div(["supply +", decimal(requiredInvestment)]),
-        div("stock +1")
+        div(["Var. ", renderColoredPercentage(trade.offset)]),
+        div(["Supply +", decimal(requiredInvestment)]),
+        div("Stock +1")
       ])
     ]),
     div(".cost", [
@@ -73,7 +73,7 @@ function Market(sources) {
       h2("Market"),
       section(
         !market.length
-          ? "No stock currently selling"
+          ? "No stocks currently selling"
           : market.map((trade, tradeIndex) =>
               renderTrade(state, trade, tradeIndex)
             )
