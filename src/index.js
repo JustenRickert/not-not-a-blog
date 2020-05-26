@@ -1,9 +1,7 @@
 import xs from "xstream";
-import sampleCombine from "xstream/extra/sampleCombine";
 import { run } from "@cycle/run";
 import { makeDOMDriver } from "@cycle/dom";
 import { withState } from "@cycle/state";
-import { timeDriver } from "@cycle/time";
 
 import init from "./model/init";
 import points from "./model/points";
@@ -39,6 +37,5 @@ function main(sources) {
 
 run(withState(main, "state"), {
   dom: makeDOMDriver("#root"),
-  time: timeDriver,
   dev: devDriver
 });

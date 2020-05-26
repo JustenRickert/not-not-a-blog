@@ -37,8 +37,8 @@ export const INDUSTRIES = {
       {
         industry: {
           handTool: { supply: 1e3 },
-          wood: { supply: 100e3 },
-          string: { supply: 50e3 }
+          wood: { supply: 25e3 },
+          string: { supply: 25e3 }
         }
       },
       {

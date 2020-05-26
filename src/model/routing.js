@@ -33,7 +33,7 @@ function init(sources) {
 }
 
 function storyEvents(sources) {
-  return roughlyPeriodic(sources.time.createOperator, STORY_EVENT_TIMEOUT)
+  return roughlyPeriodic(STORY_EVENT_TIMEOUT)
     .compose(sampleCombine(sources.state.stream))
     .map(([, state]) => routeState => {
       const storyEvent = Object.values(STORY).find(({ condition }) =>

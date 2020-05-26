@@ -1,6 +1,7 @@
 import "./market.css";
 
 import xs from "xstream";
+import sampleCombine from "xstream/extra/sampleCombine";
 import { button, div, h2, h3, section, span } from "@cycle/dom";
 import isolate from "@cycle/isolate";
 
@@ -23,47 +24,79 @@ function renderColoredPercentage(n) {
   return span({ style: { color } }, [n > 0 ? "+" : null, percentage(n)]);
 }
 
+function renderTradeLabel(trade, costs) {
+  const { label } = INDUSTRIES[trade.key];
+  const { requiredInvestment } = costs;
+  return div(".stat", [
+    h3(label),
+    div(".info", [
+      div(["Var. ", renderColoredPercentage(trade.offset)]),
+      div(["Supply +", decimal(requiredInvestment)]),
+      div("Stock +1")
+    ])
+  ]);
+}
+
+function renderCostTable(state, costs, tradeIndex) {
+  const { disabled, scaledCosts } = costs;
+  return div(".cost", [
+    div(
+      ".table",
+      allKeyPaths(scaledCosts).map(kp => {
+        const supplyCost = get(scaledCosts, kp);
+        const currentSupply = get(state, kp);
+        return div(".table-row", [
+          div(".table-item", kpToWord(kp)),
+          div(".table-item.number", [
+            decimal(get(scaledCosts, kp)),
+            ...(currentSupply < supplyCost
+              ? ["(", percentage(currentSupply / supplyCost), ")"]
+              : [])
+          ])
+        ]);
+      })
+    ),
+    div(".options", [
+      button(".dismiss", { dataset: { tradeIndex } }, "dismiss"),
+      button(
+        ".invest",
+        { attrs: { disabled }, dataset: { tradeIndex } },
+        "invest"
+      )
+    ])
+  ]);
+}
+
 function renderTrade(state, trade, tradeIndex) {
   const { derivedMarketCosts } = state;
   const costs = derivedMarketCosts[tradeIndex];
-  const { label } = INDUSTRIES[trade.key];
-  const { disabled, requiredInvestment, scaledCosts } = costs;
   return div(".trade", [
-    div(".stat", [
-      h3(label),
-      div(".info", [
-        div(["Var. ", renderColoredPercentage(trade.offset)]),
-        div(["Supply +", decimal(requiredInvestment)]),
-        div("Stock +1")
-      ])
-    ]),
-    div(".cost", [
-      div(
-        ".table",
-        allKeyPaths(scaledCosts).map(kp => {
-          const supplyCost = get(scaledCosts, kp);
-          const currentSupply = get(state, kp);
-          return div(".table-row", [
-            div(".table-item", kpToWord(kp)),
-            div(".table-item.number", [
-              decimal(get(scaledCosts, kp)),
-              ...(currentSupply < supplyCost
-                ? ["(", percentage(currentSupply / supplyCost), ")"]
-                : [])
-            ])
-          ]);
-        })
-      ),
-      div(".options", [
-        button(".dismiss", { dataset: { tradeIndex } }, "dismiss"),
-        button(
-          ".invest",
-          { attrs: { disabled }, dataset: { tradeIndex } },
-          "invest"
-        )
-      ])
-    ])
+    renderTradeLabel(trade, costs),
+    renderCostTable(state, costs, tradeIndex)
   ]);
+}
+
+function intent(sources) {
+  const dismiss$ = sources.dom
+    .select(".trade .cost button.dismiss")
+    .events("click")
+    .map(e => e.ownerTarget.dataset)
+    .map(({ tradeIndex = 0 }) => ({
+      tradeIndex: Number(tradeIndex)
+    }));
+
+  const invest$ = sources.dom
+    .select(".trade .cost button.invest")
+    .events("click")
+    .map(e => e.ownerTarget.dataset)
+    .map(({ tradeIndex = 0 }) => ({
+      tradeIndex: Number(tradeIndex)
+    }));
+
+  return {
+    dismiss$,
+    invest$
+  };
 }
 
 function Market(sources) {
@@ -81,27 +114,13 @@ function Market(sources) {
     ]);
   });
 
-  const dismissAction$ = sources.dom
-    .select(".trade .cost button.dismiss")
-    .events("click")
-    .map(e => e.ownerTarget.dataset)
-    .map(({ tradeIndex = 0 }) => ({
-      tradeIndex: Number(tradeIndex)
-    }));
-
-  const investAction$ = sources.dom
-    .select(".trade .cost button.invest")
-    .events("click")
-    .map(e => e.ownerTarget.dataset)
-    .map(({ tradeIndex = 0 }) => ({
-      tradeIndex: Number(tradeIndex)
-    }));
+  const actions = intent(sources);
 
   const reducer$ = xs.merge(
-    dismissAction$.map(({ tradeIndex }) => state =>
+    actions.dismiss$.map(({ tradeIndex }) => state =>
       update(state, "market", ms => ms.filter((_, i) => i !== tradeIndex))
     ),
-    investAction$.map(({ tradeIndex }) => state => {
+    actions.invest$.map(({ tradeIndex }) => state => {
       const { market, derivedMarketCosts } = state;
       const { key } = market[tradeIndex];
       const { scaledCosts, requiredInvestment } = derivedMarketCosts[

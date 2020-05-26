@@ -37,7 +37,7 @@ const chapterInformation = {
   },
   "working-aliens": {
     label: "Working Aliens",
-    condition: state => state.industry.metal.stock >= 5,
+    condition: state => state.industry.metal.stock >= 3,
     import: () =>
       import(/* webpackChunkName: 'working-aliens' */
       "./md/working-aliens.md")
