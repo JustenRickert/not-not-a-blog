@@ -147,6 +147,16 @@ export const INDUSTRIES = {
       }
     ]
   },
+  salt: {
+    label: "Salt",
+    productionRate: 1,
+    costRate: 10,
+    from: [
+      {
+        points: 10e3
+      }
+    ]
+  },
   stone: {
     label: "Stone",
     productionRate: 1,

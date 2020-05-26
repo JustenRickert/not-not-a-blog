@@ -71,6 +71,11 @@ export function set(o, key, value) {
   };
 }
 
+const __uniqueId = {};
+export function uniqueId(prefix) {
+  return String(prefix) + (++__uniqueId[prefix] || (__uniqueId[prefix] = 0));
+}
+
 export function product(xs, toNumeric = x => x) {
   return xs.reduce((p, m) => p * toNumeric(m), 1);
 }

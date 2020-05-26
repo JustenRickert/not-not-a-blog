@@ -6,6 +6,8 @@
 }
 
 button {
+    border: 1px solid darkgrey;
+    padding: 0.25rem 0.5rem;
     font-size: 1.25rem;
     border-radius: 0.125rem;
     background-color: white;

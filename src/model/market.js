@@ -1,4 +1,5 @@
 import xs from "xstream";
+import { v4 as uuid } from "uuid";
 
 import {
   allKeyPaths,
@@ -33,6 +34,34 @@ function industryProductionMultiplier(industryKey, state) {
   );
 }
 
+export function randomNewMarket(state) {
+  if (state.market.length >= MAX_MARKET_TRADES)
+    state = update(state, "market", ms => drop(ms, 1));
+  const investableMarkets = Object.keys(INDUSTRIES)
+    .map(key => {
+      const costs = meetableResourceRequirements(state, key);
+      return {
+        key,
+        costs
+      };
+    })
+    .filter(m => m.costs.length);
+  if (!investableMarkets.length) return state;
+  const newMarket = sample(investableMarkets);
+  const newCost = sample(newMarket.costs);
+  return update(state, "market", ms =>
+    takeRight(
+      ms.concat({
+        key: newMarket.key,
+        id: uuid(),
+        offset: offset(0.5),
+        cost: newCost
+      }),
+      MAX_MARKET_TRADES
+    )
+  );
+}
+
 export default function market(sources) {
   const marketGrowthReducer$ = xs
     .merge(
@@ -53,33 +82,6 @@ export default function market(sources) {
         Math.max(0, s + delta)
       );
     });
-
-  const randomNewMarket = state => {
-    if (state.market.length >= MAX_MARKET_TRADES)
-      state = update(state, "market", ms => drop(ms, 1));
-    const investableMarkets = Object.keys(INDUSTRIES)
-      .map(key => {
-        const costs = meetableResourceRequirements(state, key);
-        return {
-          key,
-          costs
-        };
-      })
-      .filter(m => m.costs.length);
-    if (!investableMarkets.length) return state;
-    const newMarket = sample(investableMarkets);
-    const newCost = sample(newMarket.costs);
-    return update(state, "market", ms =>
-      takeRight(
-        ms.concat({
-          key: newMarket.key,
-          offset: offset(0.5),
-          cost: newCost
-        }),
-        MAX_MARKET_TRADES
-      )
-    );
-  };
 
   const randomNewMarketReducer$ = sources.state.stream
     .take(1)

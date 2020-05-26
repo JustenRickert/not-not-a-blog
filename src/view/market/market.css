@@ -69,3 +69,57 @@
 .options button {
     margin: 0 0.5rem 0.5rem 0;
 }
+
+.dismissing {
+    animation-name: happywiggle, badred;
+    animation-duration: 200ms;
+    animation-timing-function: ease-in-out;
+}
+
+.investing {
+    animation-name: happywiggle, goodgreen;
+    animation-duration: 200ms;
+    animation-timing-function: ease-in-out;
+}
+
+.shrinking {
+    opacity: 0;
+    animation-name: shrinking;
+    animation-duration: 100ms;
+    animation-timing-function: ease-in;
+}
+
+@keyframes shrinking {
+    from {
+        max-height: 12rem;
+    }
+    to {
+        max-height: 0;
+    }
+}
+
+@keyframes badred {
+    from {
+        background-color: rgba(255, 99, 71, 0.2);
+    }
+    to {
+        background-color: white;
+    }
+}
+
+@keyframes goodgreen {
+    from {
+        background-color: rgba(34 , 139, 34, 0.2);
+    }
+    to {
+        background-color: white;
+    }
+}
+
+@keyframes happywiggle {
+    0% { transform: rotate(0deg); }
+    25% { transform: rotate(2deg); }
+    50% { transform: rotate(0deg); }
+    75% { transform: rotate(-2deg); }
+    100% { transform: rotate(0deg); }
+}

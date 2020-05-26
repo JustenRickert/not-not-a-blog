@@ -30,6 +30,7 @@
     "lodash.defaultsdeep": "^4.6.1",
     "mongodb": "^3.5.6",
     "most": "^1.8.1",
+    "uuid": "^8.1.0",
     "xstream": "^11.11.0"
   },
   "devDependencies": {

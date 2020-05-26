@@ -1,141 +1,113 @@
 import "./market.css";
 
 import xs from "xstream";
-import sampleCombine from "xstream/extra/sampleCombine";
-import { button, div, h2, h3, section, span } from "@cycle/dom";
+import debounce from "xstream/extra/debounce";
+import { div, h2, section } from "@cycle/dom";
 import isolate from "@cycle/isolate";
+import { makeCollection } from "@cycle/state";
 
-import { allKeyPaths, get, set, updateAll, omit, update } from "../../../util";
-import { INDUSTRIES } from "../../constant";
-import { decimal, percentage } from "../../format";
+import {
+  allKeyPaths,
+  get,
+  updateAll,
+  omit,
+  setAll,
+  update
+} from "../../../util";
 import { marketInvestmentRequirement } from "./util";
+import Trade from "./trade";
 
-const kpToWord = kp => {
-  switch (kp) {
-    case "points":
-      return "Points";
-    default:
-      return INDUSTRIES[kp.split(".")[1]].label;
+const investmentScaleCost = (state, market) => {
+  const required = marketInvestmentRequirement(state, market);
+  const kps = allKeyPaths(market.cost);
+  const scaledCosts = updateAll(
+    market.cost,
+    kps.map(kp => [kp, s => (1 + market.offset) * required * s])
+  );
+  return {
+    disabled: kps.some(kp => {
+      const individualSupplyCost = (1 + market.offset) * get(market.cost, kp);
+      const totalSupplyCost = individualSupplyCost * required;
+      const currentSupply = get(state, kp);
+      return currentSupply < totalSupplyCost;
+    }),
+    required,
+    scaledCosts,
+    costPercentages: setAll(
+      {},
+      kps.map(kp => [kp, get(state, kp) / get(scaledCosts, kp)])
+    )
+  };
+};
+
+const tradeCollectionScope = {
+  state: {
+    get: state =>
+      state.market.map((trade, index) => ({
+        derivedInvestment: investmentScaleCost(state, trade, index),
+        isDismissing: false,
+        isInvesting: false,
+        ...trade
+      })),
+    set: (state, market) => ({
+      ...state,
+      market: market.map(trade => omit(trade, ["derivedInvestment"]))
+    })
   }
 };
 
-function renderColoredPercentage(n) {
-  const color = n > 0 ? "tomato" : n < 0 ? "forestgreen" : undefined;
-  return span({ style: { color } }, [n > 0 ? "+" : null, percentage(n)]);
-}
+const TradeCollection = isolate(
+  makeCollection({
+    item: Trade,
+    itemKey: s => s.id,
+    itemScope: id => id,
+    collectSinks: instances => ({
+      dom: instances
+        .pickCombine("dom")
+        .map(trades =>
+          section(!trades.length ? "No stocks currently selling" : trades)
+        ),
+      action: instances.pickMerge("action"),
+      state: instances.pickMerge("state")
+    })
+  }),
+  tradeCollectionScope
+);
 
-function renderTradeLabel(trade, costs) {
-  const { label } = INDUSTRIES[trade.key];
-  const { requiredInvestment } = costs;
-  return div(".stat", [
-    h3(label),
-    div(".info", [
-      div(["Var. ", renderColoredPercentage(trade.offset)]),
-      div(["Supply +", decimal(requiredInvestment)]),
-      div("Stock +1")
-    ])
-  ]);
-}
+export default function Market(sources) {
+  const tradeCollectionSinks = TradeCollection(sources);
 
-function renderCostTable(state, costs, tradeIndex) {
-  const { disabled, scaledCosts } = costs;
-  return div(".cost", [
-    div(
-      ".table",
-      allKeyPaths(scaledCosts).map(kp => {
-        const supplyCost = get(scaledCosts, kp);
-        const currentSupply = get(state, kp);
-        return div(".table-row", [
-          div(".table-item", kpToWord(kp)),
-          div(".table-item.number", [
-            decimal(get(scaledCosts, kp)),
-            ...(currentSupply < supplyCost
-              ? ["(", percentage(currentSupply / supplyCost), ")"]
-              : [])
-          ])
-        ]);
-      })
-    ),
-    div(".options", [
-      button(".dismiss", { dataset: { tradeIndex } }, "dismiss"),
-      button(
-        ".invest",
-        { attrs: { disabled }, dataset: { tradeIndex } },
-        "invest"
-      )
-    ])
-  ]);
-}
-
-function renderTrade(state, trade, tradeIndex) {
-  const { derivedMarketCosts } = state;
-  const costs = derivedMarketCosts[tradeIndex];
-  return div(".trade", [
-    renderTradeLabel(trade, costs),
-    renderCostTable(state, costs, tradeIndex)
-  ]);
-}
-
-function intent(sources) {
-  const dismiss$ = sources.dom
-    .select(".trade .cost button.dismiss")
-    .events("click")
-    .map(e => e.ownerTarget.dataset)
-    .map(({ tradeIndex = 0 }) => ({
-      tradeIndex: Number(tradeIndex)
-    }));
-
-  const invest$ = sources.dom
-    .select(".trade .cost button.invest")
-    .events("click")
-    .map(e => e.ownerTarget.dataset)
-    .map(({ tradeIndex = 0 }) => ({
-      tradeIndex: Number(tradeIndex)
-    }));
-
-  return {
-    dismiss$,
-    invest$
-  };
-}
-
-function Market(sources) {
-  const dom$ = sources.state.stream.map(state => {
-    const { market } = state;
-    return div(".market", [
-      h2("Market"),
-      section(
-        !market.length
-          ? "No stocks currently selling"
-          : market.map((trade, tradeIndex) =>
-              renderTrade(state, trade, tradeIndex)
-            )
-      )
-    ]);
-  });
-
-  const actions = intent(sources);
+  const dom$ = tradeCollectionSinks.dom.map(trades =>
+    div(".market", [h2("Market"), trades])
+  );
 
   const reducer$ = xs.merge(
-    actions.dismiss$.map(({ tradeIndex }) => state =>
-      update(state, "market", ms => ms.filter((_, i) => i !== tradeIndex))
-    ),
-    actions.invest$.map(({ tradeIndex }) => state => {
-      const { market, derivedMarketCosts } = state;
-      const { key } = market[tradeIndex];
-      const { scaledCosts, requiredInvestment } = derivedMarketCosts[
-        tradeIndex
-      ];
-      return updateAll(state, [
-        ...allKeyPaths(scaledCosts).map(kp => [
-          kp,
-          s => s - get(scaledCosts, kp)
-        ]),
-        [["industry", key, "supply"], s => s + requiredInvestment],
-        [["industry", key, "stock"], s => s + 1],
-        ["market", ms => ms.filter((_, i) => i !== tradeIndex)]
-      ]);
-    })
+    tradeCollectionSinks.state,
+    tradeCollectionSinks.action
+      .filter(a => a.type === "dismiss")
+      .map(a => state =>
+        update(state, "market", ms =>
+          ms.filter(trade => trade.id !== a.trade.id)
+        )
+      ),
+    tradeCollectionSinks.action
+      .filter(a => a.type === "invest")
+      .map(a => state => {
+        const {
+          derivedInvestment: { scaledCosts, required },
+          key,
+          id
+        } = a.trade;
+        return updateAll(state, [
+          ...allKeyPaths(scaledCosts).map(kp => [
+            kp,
+            s => s - get(scaledCosts, kp)
+          ]),
+          [["industry", key, "supply"], s => s + required],
+          [["industry", key, "stock"], s => s + 1],
+          ["market", ms => ms.filter(trade => trade.id !== id)]
+        ]);
+      })
   );
 
   return {
@@ -143,36 +115,3 @@ function Market(sources) {
     state: reducer$
   };
 }
-
-const investmentScaleCost = (state, market) => {
-  const requiredInvestment = marketInvestmentRequirement(state, market);
-  const kps = allKeyPaths(market.cost);
-  return {
-    disabled: kps.some(kp => {
-      const individualSupplyCost = (1 + market.offset) * get(market.cost, kp);
-      const totalSupplyCost = individualSupplyCost * requiredInvestment;
-      const currentSupply = get(state, kp);
-      return currentSupply < totalSupplyCost;
-    }),
-    requiredInvestment,
-    scaledCosts: updateAll(
-      market.cost,
-      kps.map(kp => [kp, s => (1 + market.offset) * requiredInvestment * s])
-    )
-  };
-};
-
-export default isolate(Market, {
-  state: {
-    get: state =>
-      set(
-        state,
-        "derivedMarketCosts",
-        state.market.map((market, marketIndex) =>
-          investmentScaleCost(state, market, marketIndex)
-        )
-      ),
-    set: (_, state) => omit(state, "derived")
-  },
-  route: null
-});
