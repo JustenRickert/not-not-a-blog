@@ -10,13 +10,16 @@ import {
   product,
   offset,
   update,
-  withRandomOffset
+  withRandomOffset,
+  range,
+  assert
 } from "../../util";
 import { INDUSTRIES } from "../constant";
 import roughlyPeriodic from "../roughly-periodic";
 
 const MAX_MARKET_TRADES = 10;
-const NEW_MARKET_TIMEOUT = 30e3;
+const NEW_MARKET_TIMEOUT = 3e3;
+const NEW_MARKET_CHANCE = 0.1;
 const MARKET_GROWTH_TIMEOUT = 5e3;
 
 const meetableResourceRequirements = (state, industryKey) =>
@@ -30,7 +33,7 @@ function industryProductionMultiplier(industryKey, state) {
   if (!productionMultiplier?.industry) return 1;
   return product(
     Object.entries(productionMultiplier.industry),
-    ([key, m]) => state.industry[key].stock * m
+    ([key, m]) => state.industry[key].stock * m || 1
   );
 }
 
@@ -73,6 +76,11 @@ export default function market(sources) {
       const industry = get(state, ["industry", key]);
       const { productionRate } = INDUSTRIES[key];
       const multiplier = industryProductionMultiplier(key, state);
+      assert(multiplier >= 1, `multiplier is incorrect`, {
+        industry,
+        productionRate,
+        multiplier
+      });
       const delta =
         multiplier *
         productionRate *
@@ -86,7 +94,17 @@ export default function market(sources) {
   const randomNewMarketReducer$ = sources.state.stream
     .take(1)
     .map(state => {
-      let reducer$ = roughlyPeriodic(NEW_MARKET_TIMEOUT).mapTo(randomNewMarket);
+      let reducer$ = roughlyPeriodic(NEW_MARKET_TIMEOUT).map(since => state =>
+        range(
+          Math.min(
+            MAX_MARKET_TRADES / NEW_MARKET_CHANCE,
+            Math.max(1, Math.floor(since / NEW_MARKET_TIMEOUT))
+          )
+        ).reduce(state => {
+          if (Math.random() < NEW_MARKET_CHANCE) return randomNewMarket(state);
+          return state;
+        }, state)
+      );
       if (!state.market) reducer$ = reducer$.startWith(randomNewMarket);
       return reducer$;
     })

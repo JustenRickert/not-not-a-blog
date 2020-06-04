@@ -1,3 +1,7 @@
+.market {
+    margin-bottom: 2rem;
+}
+
 .market h2 {
 }
 
@@ -85,7 +89,7 @@
 .shrinking {
     opacity: 0;
     animation-name: shrinking;
-    animation-duration: 100ms;
+    animation-duration: 150ms;
     animation-timing-function: ease-in;
 }
 

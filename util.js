@@ -25,6 +25,10 @@ export function sample(xs) {
   return xs[Math.floor(Math.random() * xs.length)];
 }
 
+export function times(count, fn) {
+  for (let _ of range(count)) fn();
+}
+
 export function update(o, key, fn) {
   if (typeof key === "string") key = key.split(".");
   if (key.length === 0) return fn(o);

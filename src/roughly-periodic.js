@@ -15,7 +15,7 @@ class RoughlyPeriodic {
   _start(out) {
     const self = this;
     function intervalHandler() {
-      const now = performance.now();
+      const now = Date.now();
       out._n(now - self.lastTime);
       self.lastTime = now;
       self.intervalID = setTimeout(
@@ -23,7 +23,7 @@ class RoughlyPeriodic {
         withRandomOffset(self.period, self.offsetPercentage)
       );
     }
-    this.lastTime = performance.now();
+    this.lastTime = Date.now();
     this.intervalID = setTimeout(
       intervalHandler,
       withRandomOffset(this.period, self.offsetPercentage)

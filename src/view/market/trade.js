@@ -36,8 +36,12 @@ function renderTradeLabel(state) {
 
 function renderCostTable(state) {
   const {
+    isDismissing,
+    isInvesting,
+    isShrinking,
     derivedInvestment: { disabled, scaledCosts, costPercentages }
   } = state;
+  const isAnimating = Boolean(isDismissing || isInvesting || isShrinking);
   return div(".cost", [
     div(
       ".table",
@@ -55,8 +59,12 @@ function renderCostTable(state) {
       })
     ),
     div(".options", [
-      button(".dismiss", "dismiss"),
-      button(".invest", { attrs: { disabled } }, "invest")
+      button(".dismiss", { attrs: { disabled: isAnimating } }, "dismiss"),
+      button(
+        ".invest",
+        { attrs: { disabled: disabled || isAnimating } },
+        "invest"
+      )
     ])
   ]);
 }
@@ -91,7 +99,7 @@ export default function Trade(sources) {
 
   const shrinking$ = xs
     .merge(dismiss$, invest$)
-    .compose(delay(250))
+    .compose(delay(225))
     .mapTo(state =>
       setAll(state, [
         ["isShrinking", true],
@@ -111,6 +119,6 @@ export default function Trade(sources) {
       .merge(dismiss$.mapTo("dismiss"), invest$.mapTo("invest"))
       .compose(sampleCombine(sources.state.stream))
       .map(([type, trade]) => ({ type, trade }))
-      .compose(delay(350))
+      .compose(delay(400))
   };
 }
