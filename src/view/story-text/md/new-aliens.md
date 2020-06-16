@@ -8,6 +8,14 @@ They might start cutting down vegetation, to clear areas that are not otherwise 
 
 <hr>
 
+The Dregon aliens, known for their musculature, lived their lives in dirt pits before the Federation of Socialist Planets came to their planet. Perhaps it was the planet's climate that influenced the Dregons to prefer the simplicity of habitation without rooves over their heads. When the assigned Federation alien arrived, one by the name of Stem Kiex, the Dregons were shown how to weave together the leaves of their planet's vegetation into thatching.
+
+The Dregons, their lifestyles previously bound to the need to hunt near-daily for survival's sake, determined, with the help of Stem Kiex, that they needed to commercialize their way of life. With the aids of collars, the design of which Stem Kiex influenced, the Dregons learned to domesticate the animals they'd previously hunted.
+
+Given the newfound ownership over the animals of the land, the ideas of commerce, and ability to lord over the lands, the Dregons civilized themselves. In retrospect the Federation did little to influence the inherent culture. Stem Kiex only the supplied the tools with which a Dregon could more dramatically assert his cultural influences and deny another Dregon their own. With .
+
+<hr>
+
 The usefulness of these new aliens in the eyes of the Contraxis Space Exploration corporation lies in their ability to innovate technologically. Xa Kinaxen aliens, for example, have proven themselves to be adept with computational technologies. Their prestige among Federation types follows from their ability to utilize more than just the typical electronic manipulations of materials to create computer hardware. They've incorporated the spooky actions of atomic and subatomic materials to achieve faster computation speeds from unliving material than any other alien.
 
 Goulpian aliens, though in general less renown than Xa Kinaxen aliens among Federation types, owe their prestige to endeavors in chemistry. Though on occasion remarked for their psychedelic <sup>mis</sup>adventures, Goulpian aliens know better than any other what the most effective techniques might be for the synthesis of any compound. Certain Goulpian aliens like Marix Courvie have had their names put in practically every primary education curriculum of every planet of the Federation of Socialist Planets, and certain other Goulpian aliens like Ximophi Learvie fail to be obscured by what are---essentially---the indoctrination systems of the galaxies.

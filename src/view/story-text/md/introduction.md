@@ -1,18 +1,20 @@
 ### Introduction
 
-It's a bright room. Not a dark room. It's like usually that things start out in a dark room. Like eyes open up, it's hard to see for a moment or something, then someone proclaims something obvious like _Looks like you're awake_.
+It's a bright room. It's like usually that things start out in a dark room. Like eyes open up, it's hard to see for a moment or something, then someone proclaims something obvious like _Looks like you're awake_. 
 
-Not this time. This time it's a bright room. There's no one in particular paying any attention.
+Not this time. This is not a dark room. There's no one in particular paying any attention.
 
-There is the noise of footsteps in the background. Many footsteps. Accompanying the footsteps are voices. Many voices speaking in many different conversations, the kind of conversations businesspeople have. The word _sales_ can be made out clearly and numerously.
+There noise the background. Footsteps. Lots of them. Accompanying the footsteps are voices. Many voices speaking in many different conversations, the kind of conversations businesspeople have. The word _sales_ can be made out again and again. The word _sales_ is being said with many different alien accents and a few different alien languages.
 
 A row of chairs sits against a wall. At the end of the row of chairs is a door. The door is labeled _Plorkis Crok, Recruitment Director_.
 
-The chairs are owned by the Contraxis Space Exploration corporation. The door is owned by the Contraxis Space Exploration corporation and labels the employee in charge of bringing new employees into it. Every chair is filled with a potential new employee of the Contraxis Space Exploration corporation, and, well, they will probably soon be owned by the Contraxis Space Exploration corporation too.
+The chairs are owned by the Contraxis Space Exploration corporation. The door is owned by the Contraxis Space Exploration corporation and labels the employee in charge of bringing in new employees. Every chair is filled with a potential new employee of the Contraxis Space Exploration corporation, and, well, they too will probably soon be owned by the Contraxis Space Exploration corporation.
 
-All around are blinking panels. Above some of them are large portholes to the endless outer space. Outside the portholes, between the very distance, untwinkling stars, are spacecrafts of all kinds docking and departing from impressive spacecraft carriers. The spacecrafts are not entirely owned by the Contraxis Space Exploration corporation; however, the impressive spacecrafts carriers are.
+All around are blinking panels. Above some of the blinking panels are large portholes to the endless outer space. Outside the portholes, between the very distance, untwinkling stars, are spacecrafts of all kinds docking and departing from impressive spacecraft carriers. The spacecrafts are behemoth, extravagant examples of what happens when a very diverse collection of alien engineers work together. The spacecraft carriers also. The spacecrafts are not entirely owned by the Contraxis Space Exploration corporation; however, the impressive spacecraft carriers are.
 
-Altogether, the scene represents the accomplishments of the Federation of Socialist Planets. In commemoration of such extraordinary accomplishments, the government of the Federation of Socialist Planets provided funded directly to the Contraxis Space Exploration corporation to build the space station _Notnotablog_. You are aboard this space station.
+Altogether, the scene represents the accomplishments of the Federation of Socialist Planets. What the Federation of Socialist Planets once accomplished was bringing together aliens from all over the galaxies. To this day this is what it continues to do. In commemoration of such an extraordinary pastime, the government of the Federation of Socialist Planets provided funded to the Contraxis Space Exploration corporation to build the space station _Notnotablog_.
+
+You are aboard this space station.
 
 Welcome to _Notnotablog_.
 
@@ -24,17 +26,25 @@ The door opens up.
 
 There's a finger pointing in your direction. Without being told, you follow Recruitment Director Plorkis Crok into the room behind the door owned by the Contraxis Space Exploration corporation.
 
-The alien welcomes you aboard the _Notnotablog_. "Welcome!" says the alien. The alien provides for you the name Plorkis Crok, commenting on how it's the same name as what's labeled on the office door.
+The alien welcomes you aboard the _Notnotablog_. "Welcome!" says the alien. The alien explains that Plorkis Crok, the name that's labeled on the office door, is the alien's own.
 
-Plorkis Crok, obviously a Xa Kinaxen alien, seats you across from the alien's desk (owned by the Contraxis Space Exploration corporation) and asks you about yourself. There's a piece of paper handed off with information required to fill out. The alien tells a brief tale about the contents of the form, chortling all the while. Plorkis Crok, the happiest alien you've ever seen, seems to have an intimate knowledge of the form.
+Plorkis Crok, a Xa Kinaxen alien according to appearance, seats you across from the alien's desk (owned by the Contraxis Space Exploration corporation) and asks you about yourself. There's a piece of paper handed off with information required to fill out. The alien tells a not-so-brief tale about the contents of the form, chortling all the while. Plorkis Crok, the happiest alien you've ever had the pleasure to talk to, seems to know the form intimately.
 
-After talking through a series of seemingly unrelated topics with the loquacious alien, it is explained that the position has already been approved for you and that this meeting---this _interview_---is just a formality. The true purpose of your being here is to fill out the form. Filling it out means the job is yours.
+After talking through a series of seemingly unrelated topics with the loquacious alien, Plorkis Crok explains that the position has already been approved for you and that this meeting---this _interview_---is just a formality. The true purpose of your being here is to fill out the form. Filling it out means the job is yours.
+
+You really wonder.
 
 <hr>
 
 Outside the space station _Notnotablog_ is the endless frontier of space. There is no alien in the universe with vision great enough to see across the entirety of it, not even with technological aids. Some philosophical Federation aliens posit that the endlessness of space is even greater in magnitude than the endlessness of thought. Some pious Federation aliens believe that space is so unimaginably vast that not even a creator deity could have constructed it. Some humorist Federation aliens wonder why these aliens even waste their time thinking about it.
 
-A self-diagnosed _genuine neurotic_ author might characterize the endlessness of space as being like dimensionally equivalent to intelligent life's collective time lost thinking about precious fragments and not so precious fragments of involuntary memory. The endlessness equivalency condition is no longer met when considering _false_ involuntary memories such as the following:
+What a laugh.
+
+An author, one who self-diagnoses as a genuine neurotic, might characterize the endlessness of space as being like dimensionally equivalent to intelligent life's collective time lost thinking about precious fragments and not so precious fragments of involuntary memory.
+
+Such is the nature of intelligence. It is that aliens tall and wide, short and skinny, or anywhere in between, cannot remember well enough all of the seconds they've lost rehashing the times they've felt good or bad or traumatized or whatever else to be able to count them each and add them all up.
+
+For a short period of time, a period of time just long enough to spell out a long like soliloquy, the self-diagnosed genuine neurotic author turns into a kind of philosophical mathematician, says some crazy nonsense like _The endlessness equivalency condition is no longer met when considering_ false _involuntary memories such as the following_:
 
 <!-- Post-Modern Prophet Disorder -->
 
@@ -42,4 +52,8 @@ A self-diagnosed _genuine neurotic_ author might characterize the endlessness of
 
 <!-- Positron Emission Tomography  -->
 
-You are glad that your search for meaning in the universe need not go any further in any one of the directions of the endlessness of space. For it seems your present purpose in life can be fixed to a job working for the Contraxis Space Exploration corporation. At least for the moment, you feel as happy as the happy alien Plorkis Crok, gilded with a corporate office and the creature comforts of a steadily recurring paycheck.
+<hr>
+
+You are glad that your search for meaning in the universe need not go any further. For it seems your present purpose in life can be fixed to a job working for the Contraxis Space Exploration corporation. You need not travel any further in any of the other directions in the endlessness of space. For the moment you feel as happy as the happy alien Plorkis Crok. The form in front of you asks that you fill out it, you know what awaits: the creature comforts of a steady paycheck signed by the Contraxis Space Exploration corporation on behalf of the Federation of Socialist Planets.
+
+Hooray.
